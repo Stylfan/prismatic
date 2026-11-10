@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ITEM_KINDS, ITEM_STATUSES, PERIOD_MODELS, SIZES, SIZE_LEVELS, TRACKS } from "@/db/schema";
+import { ITEM_KINDS, ITEM_STATUSES, SIZES, SIZE_LEVELS, TRACKS } from "@/db/schema";
 import { MAX_POINTS } from "@/domain/sizes";
 
 /** Input schemas for everything a page may write. Lengths are the product's, not the database's. */
@@ -12,9 +12,10 @@ const points = z.number().int().min(0).max(MAX_POINTS);
 export const ProgramFields = z.object({
   name: text(80).min(1),
   goal: text(300),
-  periodModel: z.enum(PERIOD_MODELS),
+  // The custom start model is kept in the period arithmetic but not offered yet.
+  periodModel: z.enum(["seasons", "calendar"]),
   startDate: isoDate,
-  quarterHorizon: z.number().int().min(1).max(8),
+  quarterHorizon: z.number().int().min(1).max(4),
   costPerQuarter: z.number().int().min(0).max(999_999_999).nullable(),
   deviationPct: z.number().int().min(1).max(100),
 });

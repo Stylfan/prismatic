@@ -20,7 +20,7 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
   const editorId = `editor-${item.id}`;
 
   return (
-    <li className={cn("bg-surface", isGoal ? "" : "pl-6 sm:pl-10")}>
+    <li className={cn("bg-surface", isGoal ? "" : "pl-10")}>
       <div
         className={cn(
           "flex items-stretch border-l-[3px]",
@@ -33,7 +33,7 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
           aria-controls={editorId}
           aria-label={t("row.edit", { title: item.title })}
           onClick={() => setOpen((v) => !v)}
-          className="grid flex-1 grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-1 px-4 py-3 text-left transition-colors hover:bg-paper sm:grid-cols-[auto_1fr_auto_auto_auto]"
+          className="grid flex-1 grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 gap-y-1 px-4 py-3 text-left transition-colors hover:bg-paper"
         >
           <span
             className={cn(
@@ -65,7 +65,7 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
                     : "")}
             </span>
           </span>
-          <span className="tabular hidden text-right text-[13px] sm:block">
+          <span className="tabular text-right text-[13px]">
             {item.size && <span className="mr-2 font-semibold">{item.size}</span>}
             <span className={item.points === null ? "text-slate" : ""}>
               {item.points === null
@@ -73,7 +73,7 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
                 : t("row.points", { points: item.points.toLocaleString("da-DK") })}
             </span>
           </span>
-          <span className="hidden items-center gap-2 sm:flex">
+          <span className="flex items-center gap-2">
             {item.integration && (
               <Plug className="size-4 text-slate" aria-label={t("row.integration")} />
             )}

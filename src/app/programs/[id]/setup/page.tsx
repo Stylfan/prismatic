@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ColumnsPreview } from "@/components/program/columns-preview";
 import { ProgramTabs } from "@/components/program/program-tabs";
 import { MilestonesPanel } from "@/components/program/milestones-panel";
 import { SettingsPanel } from "@/components/program/settings-panel";
@@ -9,7 +8,6 @@ import { SizesPanel } from "@/components/program/sizes-panel";
 import { PageHeader, Section } from "@/components/ui/layout";
 import { getDb } from "@/db/client";
 import { milestoneComputedScope } from "@/domain/backlog";
-import { roadmapColumns } from "@/domain/periods";
 import { cumulativeScopes } from "@/domain/scope";
 import { todayInCopenhagen } from "@/lib/dates";
 import { listItems } from "@/services/items";
@@ -24,7 +22,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: full?.program.name };
 }
 
-/** One programme's set-up: the frame its roadmap sits in, its milestones, sizes and settings. */
+/** One programme's set-up: its settings and periods, its milestones and its sizes. */
 export default async function ProgramSetupPage({ params }: Params) {
   const db = getDb();
   const full = getProgram(db, (await params).id);
@@ -35,11 +33,6 @@ export default async function ProgramSetupPage({ params }: Params) {
   const tm = await getTranslations("milestones");
   const ts = await getTranslations("sizes");
 
-  const columns = roadmapColumns(
-    { model: program.periodModel, startDate: program.startDate },
-    todayInCopenhagen(),
-    program.quarterHorizon,
-  );
   const computed = new Map(
     milestones.map((m) => [m.id, milestoneComputedScope(sizes, m.id, rows)]),
   );
@@ -57,13 +50,25 @@ export default async function ProgramSetupPage({ params }: Params) {
       <PageHeader label={t("label")} title={program.name} lead={program.goal || undefined} />
       <ProgramTabs programId={program.id} active="setup" />
       <Section
-        id="columns"
+        id="settings"
         number={1}
-        label={t("columnsLabel")}
-        title={t("columnsTitle")}
-        lead={t("columnsLead")}
+        label={t("settingsLabel")}
+        title={t("settingsTitle")}
+        lead={t("settingsLead")}
       >
-        <ColumnsPreview columns={columns} />
+        <SettingsPanel
+          programId={program.id}
+          today={todayInCopenhagen()}
+          initial={{
+            name: program.name,
+            goal: program.goal,
+            periodModel: program.periodModel,
+            startDate: program.startDate,
+            quarterHorizon: program.quarterHorizon,
+            costPerQuarter: program.costPerQuarter,
+            deviationPct: program.deviationPct,
+          }}
+        />
       </Section>
       <Section id="milestones" number={2} label={tm("label")} title={tm("title")} lead={tm("lead")}>
         <MilestonesPanel
@@ -82,26 +87,6 @@ export default async function ProgramSetupPage({ params }: Params) {
       </Section>
       <Section id="sizes" number={3} label={ts("label")} title={ts("title")} lead={ts("lead")}>
         <SizesPanel programId={program.id} sizes={sizes} />
-      </Section>
-      <Section
-        id="settings"
-        number={4}
-        label={t("settingsLabel")}
-        title={t("settingsTitle")}
-        lead={t("settingsLead")}
-      >
-        <SettingsPanel
-          programId={program.id}
-          initial={{
-            name: program.name,
-            goal: program.goal,
-            periodModel: program.periodModel,
-            startDate: program.startDate,
-            quarterHorizon: program.quarterHorizon,
-            costPerQuarter: program.costPerQuarter,
-            deviationPct: program.deviationPct,
-          }}
-        />
       </Section>
     </div>
   );

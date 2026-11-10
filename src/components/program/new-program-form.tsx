@@ -39,7 +39,7 @@ export function NewProgramForm({ today }: { today: string }) {
           });
         }}
       >
-        <ProgramFields values={values} onChange={setValues} idPrefix="new-program" />
+        <ProgramFields values={values} onChange={setValues} idPrefix="new-program" today={today} />
         <div className="flex flex-wrap items-center gap-4">
           <Button type="submit" variant="primary" disabled={pending}>
             {pending ? t("creating") : t("submit")}

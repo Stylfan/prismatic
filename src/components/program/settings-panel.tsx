@@ -14,9 +14,11 @@ import { ProgramFields, type ProgramValues } from "./program-fields";
 export function SettingsPanel({
   programId,
   initial,
+  today,
 }: {
   programId: string;
   initial: ProgramValues;
+  today: string;
 }) {
   const t = useTranslations("program");
   const common = useTranslations("common");
@@ -41,7 +43,12 @@ export function SettingsPanel({
           });
         }}
       >
-        <ProgramFields values={values} onChange={setValues} idPrefix="program-settings" />
+        <ProgramFields
+          values={values}
+          onChange={setValues}
+          idPrefix="program-settings"
+          today={today}
+        />
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-hairline-soft pt-5">
           <div className="flex flex-wrap items-center gap-4">
             <Button type="submit" variant="primary" disabled={pending || !changed}>
