@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.local
+# The local database: everything you typed in. Back it up, never commit it.
+data/
+coverage/
+.DS_Store
