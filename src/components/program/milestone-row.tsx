@@ -23,6 +23,8 @@ export type MilestoneRowView = {
   description: string;
   scopeOverride: number | null;
   done: boolean;
+  /** Its own points computed from its goals, shown when no scope is typed. */
+  computed: number;
   /** Its own points plus every earlier milestone's. */
   cumulative: number;
 };
@@ -152,7 +154,7 @@ export function MilestoneRow({
             max={MAX_POINTS}
             inputMode="numeric"
             className="tabular"
-            placeholder={t("scopePlaceholder")}
+            placeholder={t("scopeComputed", { points: milestone.computed.toLocaleString("da-DK") })}
             value={scope}
             aria-invalid={!scopeValid}
             aria-describedby={id("scope-hint")}

@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ColumnsPreview } from "@/components/program/columns-preview";
-import { MilestonesPanel } from "@/components/program/milestones-panel";
-import { SettingsPanel } from "@/components/program/settings-panel";
-import { SizesPanel } from "@/components/program/sizes-panel";
+import { AddItemForm } from "@/components/backlog/add-item-form";
+import { BacklogList } from "@/components/backlog/backlog-list";
+import { BacklogSummary } from "@/components/backlog/backlog-summary";
+import { ProgramTabs } from "@/components/program/program-tabs";
 import { PageHeader, Section } from "@/components/ui/layout";
 import { getDb } from "@/db/client";
-import { roadmapColumns } from "@/domain/periods";
-import { cumulativeScopes } from "@/domain/scope";
-import { todayInCopenhagen } from "@/lib/dates";
+import { buildBacklogView } from "@/lib/backlog-view";
+import { listItems } from "@/services/items";
 import { getProgram } from "@/services/programs";
 
 export const dynamic = "force-dynamic";
@@ -21,73 +20,24 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: full?.program.name };
 }
 
-/** One programme's set-up: the frame its roadmap sits in, its milestones, sizes and settings. */
-export default async function ProgramPage({ params }: Params) {
-  const full = getProgram(getDb(), (await params).id);
+/** A programme's backlog: its business goals and features, grouped by milestone. */
+export default async function ProgramBacklogPage({ params }: Params) {
+  const db = getDb();
+  const full = getProgram(db, (await params).id);
   if (!full) notFound();
-  const { program, sizes, milestones } = full;
+  const { program, milestones } = full;
   const t = await getTranslations("program");
-  const tm = await getTranslations("milestones");
-  const ts = await getTranslations("sizes");
-
-  const columns = roadmapColumns(
-    { model: program.periodModel, startDate: program.startDate },
-    todayInCopenhagen(),
-    program.quarterHorizon,
-  );
-  // Business goals arrive in the next step; until then a milestone's own scope is its override.
-  const scopes = cumulativeScopes(
-    milestones.map((m) => ({ id: m.id, seq: m.seq, scopeOverride: m.scopeOverride, computed: 0 })),
-  );
+  const tb = await getTranslations("backlog");
+  const { views, options } = await buildBacklogView(full, listItems(db, program.id));
 
   return (
-    <div className="flex flex-col gap-14">
+    <div className="flex flex-col gap-12">
       <PageHeader label={t("label")} title={program.name} lead={program.goal || undefined} />
-      <Section
-        id="columns"
-        number={1}
-        label={t("columnsLabel")}
-        title={t("columnsTitle")}
-        lead={t("columnsLead")}
-      >
-        <ColumnsPreview columns={columns} />
-      </Section>
-      <Section id="milestones" number={2} label={tm("label")} title={tm("title")} lead={tm("lead")}>
-        <MilestonesPanel
-          programId={program.id}
-          milestones={milestones.map((m) => ({
-            id: m.id,
-            seq: m.seq,
-            title: m.title,
-            description: m.description,
-            scopeOverride: m.scopeOverride,
-            done: m.doneAt !== null,
-            cumulative: scopes.find((s) => s.id === m.id)?.cumulative ?? 0,
-          }))}
-        />
-      </Section>
-      <Section id="sizes" number={3} label={ts("label")} title={ts("title")} lead={ts("lead")}>
-        <SizesPanel programId={program.id} sizes={sizes} />
-      </Section>
-      <Section
-        id="settings"
-        number={4}
-        label={t("settingsLabel")}
-        title={t("settingsTitle")}
-        lead={t("settingsLead")}
-      >
-        <SettingsPanel
-          programId={program.id}
-          initial={{
-            name: program.name,
-            goal: program.goal,
-            periodModel: program.periodModel,
-            startDate: program.startDate,
-            quarterHorizon: program.quarterHorizon,
-            costPerQuarter: program.costPerQuarter,
-            deviationPct: program.deviationPct,
-          }}
-        />
+      <ProgramTabs programId={program.id} active="backlog" />
+      <Section id="backlog" label={tb("label")} title={tb("title")} lead={tb("lead")}>
+        <BacklogSummary items={views} />
+        <AddItemForm programId={program.id} options={options} />
+        <BacklogList items={views} options={options} milestones={milestones} />
       </Section>
     </div>
   );

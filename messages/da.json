@@ -106,7 +106,7 @@
     "description": "Beskrivelse",
     "scope": "Eget scope (point)",
     "scopePlaceholder": "Beregnes",
-    "scopeHint": "Tomt betyder, at scope beregnes ud fra forretningsmålene. Skriv et tal for at overskrive det.",
+    "scopeHint": "Tomt betyder, at scope beregnes ud fra forretningsmålene og de features, der hører direkte til milepælen. Skriv et tal for at overskrive det.",
     "cumulative": "I alt til og med {code}",
     "points": "{points} point",
     "add": "Tilføj milepæl",
@@ -118,6 +118,123 @@
     "saved": "{code} er gemt",
     "remove": "Fjern",
     "removeQuestion": "Fjern milepæl {code}?",
-    "removeDetail": "Milepælen fjernes, og de efterfølgende rykker et nummer op."
+    "removeDetail": "Milepælen fjernes, og de efterfølgende rykker et nummer op.",
+    "scopeComputed": "{points} beregnet"
+  },
+  "tabs": {
+    "label": "Programmets sider",
+    "backlog": "Backlog",
+    "setup": "Opsætning"
+  },
+  "backlog": {
+    "label": "Backlog",
+    "title": "Forretningsmål og features",
+    "lead": "Arbejdet, som det forstås i dag. Et forretningsmål hører til en milepæl, og features bryder målet ned. Forecastet tæller målets estimat, ikke målet plus dets features.",
+    "summary": {
+      "goals": "Forretningsmål",
+      "features": "Features",
+      "featuresDone": "{done} af {total} færdige",
+      "scope": "Point i alt",
+      "delivered": "Leveret",
+      "deliveredOf": "af {total} point",
+      "warnings": "Advarsler",
+      "warningsNone": "Alt hænger sammen",
+      "warningsSome": "Se markerede kort"
+    },
+    "add": {
+      "title": "Tilføj til backloggen",
+      "kindLabel": "Type",
+      "goal": "Forretningsmål",
+      "feature": "Feature",
+      "titleLabel": "Titel",
+      "goalPlaceholder": "Medlemskab",
+      "featurePlaceholder": "Beskæftigelse",
+      "milestone": "Milepæl",
+      "parent": "Forretningsmål",
+      "none": "Ingen",
+      "submit": "Tilføj",
+      "added": "{title} er tilføjet"
+    },
+    "groups": {
+      "milestone": "{code} · {title}",
+      "noMilestone": "Forretningsmål uden milepæl",
+      "looseFeatures": "Features uden forretningsmål",
+      "empty": "Backloggen er tom. Tilføj det første forretningsmål ovenfor.",
+      "emptyGroup": "Ingen forretningsmål endnu."
+    },
+    "kind": {
+      "goal": "FM",
+      "feature": "F",
+      "goalLong": "Forretningsmål",
+      "featureLong": "Feature"
+    },
+    "track": {
+      "label": "Spor",
+      "business": "Forretning",
+      "technical": "Teknisk"
+    },
+    "status": {
+      "label": "Status",
+      "planned": "Planlagt",
+      "in_progress": "I gang",
+      "done": "Færdig"
+    },
+    "row": {
+      "points": "{points} point",
+      "noPoints": "Ikke estimeret",
+      "unplanned": "Endnu ikke planlagt",
+      "doneIn": "Færdig {period}",
+      "integration": "Kræver en stor integration",
+      "features": "{count, plural, =0 {ingen features} one {# feature} other {# features}}",
+      "featureProgress": "{done} af {total} point leveret",
+      "edit": "Redigér {title}",
+      "close": "Luk",
+      "splitFrom": "Fortsættelse af {title}"
+    },
+    "editor": {
+      "title": "Titel",
+      "description": "Beskrivelse",
+      "size": "Størrelse",
+      "noSize": "Ingen",
+      "points": "Egne point",
+      "pointsPlaceholder": "{points} fra størrelsen",
+      "pointsPlaceholderNone": "Vælg en størrelse",
+      "pointsHint": "Tomt betyder, at størrelsen bestemmer pointene.",
+      "period": "Periode",
+      "doneQuarter": "Lukket i kvartal",
+      "doneNote": "Hvad blev leveret",
+      "integration": "Kræver en stor integration til et andet system",
+      "milestone": "Milepæl",
+      "parent": "Forretningsmål",
+      "none": "Ingen",
+      "save": "Gem",
+      "saved": "{title} er gemt",
+      "delete": "Slet",
+      "deleteQuestion": "Slet {title}?",
+      "deleteDetailGoal": "Forretningsmålet slettes. Dets features bliver liggende uden forretningsmål.",
+      "deleteDetailFeature": "Featuren slettes. Det kan ikke fortrydes.",
+      "split": "Split feature"
+    },
+    "split": {
+      "title": "Split {title}",
+      "lead": "Den nuværende version lukkes som færdig med det, der faktisk blev leveret. Resten bliver en ny version med sit eget estimat.",
+      "delivered": "Leverede point",
+      "doneNote": "Hvad er færdigt",
+      "doneQuarter": "Lukket i kvartal",
+      "newTitle": "Den nye versions titel",
+      "newParent": "Forretningsmål for den nye version",
+      "newSize": "Ny størrelse",
+      "newPoints": "Nye point",
+      "newPeriod": "Periode for den nye version",
+      "submit": "Split",
+      "done": "{title} er splittet",
+      "newTitleDefault": "{title} – næste version"
+    },
+    "warnings": {
+      "noGoal": "Ikke knyttet til et forretningsmål",
+      "noMilestone": "Ikke knyttet til en milepæl",
+      "notEstimated": "Ikke estimeret",
+      "deviation": "Features summerer til {featurePoints} point, {pct} % fra målets estimat på {estimate}"
+    }
   }
 }

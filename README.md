@@ -24,11 +24,18 @@ Early. What works today:
   quarters are shown before the roadmap switches to half-years, a cost per
   quarter and the deviation at which a goal's breakdown is flagged.
 - Sizes and points for business goals (XS–XXL) and features (XS–XL).
-- Milestones M1, M2, … that build on each other.
+- Milestones M1, M2, … that build on each other, their scope computed from
+  the business goals planned for them and overridable by hand.
+- A backlog of business goals and features: link features to goals and
+  goals to milestones, give them a size or points, a track (business or
+  technical), a period, a status and the quarter they closed in, mark big
+  integrations, and split a partly done feature into a new version.
+  Warnings show what does not hang together: a feature without a goal, a
+  goal without a milestone, a card without an estimate, and a goal whose
+  features differ from its estimate by the programme's threshold.
 
-Next: the backlog of business goals and features, the drag-and-drop
-roadmap, the forecast, the risk log and report editions for each steering
-group meeting. [docs/adr](docs/adr/) records the decisions.
+Next: the drag-and-drop roadmap, the forecast, the risk log and report
+editions for each steering group meeting. [docs/adr](docs/adr/) records the decisions.
 
 ## Run it
 

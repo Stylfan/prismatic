@@ -5,6 +5,7 @@ import {
   sqliteTable,
   text,
   uniqueIndex,
+  type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 /**
@@ -93,5 +94,61 @@ export const milestones = sqliteTable(
   ],
 );
 
+export const ITEM_KINDS = ["goal", "feature"] as const;
+export type ItemKind = (typeof ITEM_KINDS)[number];
+
+/** technical: platform work that has no value on its own. business: what the organisation asked for. */
+export const TRACKS = ["business", "technical"] as const;
+export type Track = (typeof TRACKS)[number];
+
+export const ITEM_STATUSES = ["planned", "in_progress", "done"] as const;
+export type ItemStatus = (typeof ITEM_STATUSES)[number];
+
+/**
+ * The backlog: business goals ("forretningsmål") and the features that
+ * break them down. A feature belongs to a goal, a goal to a milestone; a
+ * missing link is a warning, not an error. A feature without a goal may
+ * point at a milestone itself.
+ */
+export const items = sqliteTable(
+  "items",
+  {
+    id: id(),
+    programId: text("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    kind: text("kind").$type<ItemKind>().notNull(),
+    /** The goal a feature breaks down; null for goals and for features not yet linked. */
+    parentId: text("parent_id").references((): AnySQLiteColumn => items.id, {
+      onDelete: "set null",
+    }),
+    milestoneId: text("milestone_id").references(() => milestones.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    track: text("track").$type<Track>().notNull().default("business"),
+    size: text("size").$type<Size>(),
+    /** Points typed on the card; null means what its size is worth in the programme. */
+    pointsOverride: integer("points_override"),
+    /** A big integration with another system is part of this work. */
+    integration: integer("integration", { mode: "boolean" }).notNull().default(false),
+    status: text("status").$type<ItemStatus>().notNull().default("planned"),
+    /** Quarter index the item was closed in; set when it is done. */
+    doneQuarter: integer("done_quarter"),
+    /** What was delivered, written when the item is closed or split. */
+    doneNote: text("done_note").notNull().default(""),
+    /** Quarter index of the period it is planned for; null means not yet planned. */
+    periodIndex: integer("period_index"),
+    /** 1 for a quarter, 2 for a half-year starting at `period_index`. */
+    periodSpan: integer("period_span").notNull().default(1),
+    /** The feature this one was split from, when it is the next version of it. */
+    splitFromId: text("split_from_id").references((): AnySQLiteColumn => items.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => [index("items_program_idx").on(t.programId), index("items_parent_idx").on(t.parentId)],
+);
+
+export type Item = typeof items.$inferSelect;
 export type Program = typeof programs.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;

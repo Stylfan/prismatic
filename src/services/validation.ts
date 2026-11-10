@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PERIOD_MODELS, SIZES, SIZE_LEVELS } from "@/db/schema";
+import { ITEM_KINDS, ITEM_STATUSES, PERIOD_MODELS, SIZES, SIZE_LEVELS, TRACKS } from "@/db/schema";
 import { MAX_POINTS } from "@/domain/sizes";
 
 /** Input schemas for everything a page may write. Lengths are the product's, not the database's. */
@@ -42,3 +42,48 @@ export const MoveMilestoneSchema = z.object({ milestoneId: id, direction: z.enum
 export const MilestoneDoneSchema = z.object({ milestoneId: id, done: z.boolean() });
 export const MilestoneIdSchema = z.object({ milestoneId: id });
 export const ProgramIdSchema = z.object({ programId: id });
+
+const nullableId = id.nullable();
+const period = {
+  periodIndex: z.number().int().min(-200).max(400).nullable(),
+  periodSpan: z.union([z.literal(1), z.literal(2)]),
+};
+
+export const NewItemSchema = z.object({
+  programId: id,
+  kind: z.enum(ITEM_KINDS),
+  title: text(160).min(1),
+  parentId: nullableId,
+  milestoneId: nullableId,
+});
+
+export const UpdateItemSchema = z.object({
+  itemId: id,
+  title: text(160).min(1),
+  description: text(2000),
+  track: z.enum(TRACKS),
+  size: z.enum(SIZES).nullable(),
+  pointsOverride: points.nullable(),
+  integration: z.boolean(),
+  status: z.enum(ITEM_STATUSES),
+  doneQuarter: z.number().int().min(-200).max(400).nullable(),
+  doneNote: text(2000),
+  parentId: nullableId,
+  milestoneId: nullableId,
+  ...period,
+});
+
+export const SplitItemSchema = z.object({
+  itemId: id,
+  deliveredPoints: points,
+  doneNote: text(2000),
+  doneQuarter: z.number().int().min(-200).max(400),
+  newTitle: text(160).min(1),
+  newParentId: nullableId,
+  newSize: z.enum(SIZES).nullable(),
+  newPointsOverride: points.nullable(),
+  newPeriodIndex: period.periodIndex,
+  newPeriodSpan: period.periodSpan,
+});
+
+export const ItemIdSchema = z.object({ itemId: id });
