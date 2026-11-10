@@ -106,3 +106,17 @@ export const SaveQuarterSchema = z.object({
   plannedOverride: points.nullable(),
   comment: text(300),
 });
+
+const scale = z.number().int().min(1).max(10);
+export const NewRiskSchema = z.object({ programId: id, title: text(400).min(1) });
+export const UpdateRiskSchema = z.object({
+  riskId: id,
+  title: text(400).min(1),
+  consequence: text(2000),
+  mitigation: text(2000),
+  changeNote: text(1000),
+  probability: scale,
+  impact: scale,
+  status: z.enum(["open", "closed"]),
+});
+export const RiskIdSchema = z.object({ riskId: id });

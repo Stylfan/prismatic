@@ -233,5 +233,37 @@ export const quarterRecords = sqliteTable(
 );
 
 export type QuarterRecord = typeof quarterRecords.$inferSelect;
+
+export const RISK_STATUSES = ["open", "closed"] as const;
+export type RiskStatus = (typeof RISK_STATUSES)[number];
+
+/**
+ * A risk in the programme's log: "there is a risk that …", what happens if
+ * it does, what is done about it, and its probability and consequence on a
+ * scale of 1 to 10. Risks are numbered in the order they were raised and
+ * keep their number when others are closed.
+ */
+export const risks = sqliteTable(
+  "risks",
+  {
+    id: id(),
+    programId: text("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    number: integer("number").notNull(),
+    title: text("title").notNull(),
+    consequence: text("consequence").notNull().default(""),
+    mitigation: text("mitigation").notNull().default(""),
+    /** What has changed since the last report, in the manager's words. */
+    changeNote: text("change_note").notNull().default(""),
+    probability: integer("probability").notNull().default(5),
+    impact: integer("impact").notNull().default(5),
+    status: text("status").$type<RiskStatus>().notNull().default("open"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("risks_number_uq").on(t.programId, t.number)],
+);
+
+export type Risk = typeof risks.$inferSelect;
 export type Program = typeof programs.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;

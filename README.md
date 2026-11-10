@@ -47,7 +47,10 @@ Early. What works today:
   at what price, and a chart. The arithmetic reproduces the programme's own
   spreadsheet; `tests/forecast.test.ts` checks it against its numbers.
 
-Next: the risk log and report
+- Risici: a numbered risk log (risk, consequence, mitigation, change since
+  last, probability and consequence 1-10, open or closed) and a 10 x 10 matrix.
+
+Next: the report
 editions for each steering group meeting. [docs/adr](docs/adr/) records the decisions.
 
 ## Run it

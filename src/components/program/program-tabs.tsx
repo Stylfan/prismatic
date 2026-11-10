@@ -8,13 +8,14 @@ export async function ProgramTabs({
   active,
 }: {
   programId: string;
-  active: "backlog" | "roadmap" | "forecast" | "setup";
+  active: "backlog" | "roadmap" | "forecast" | "risks" | "setup";
 }) {
   const t = await getTranslations("tabs");
   const tabs = [
     { key: "backlog", href: `/programs/${programId}` },
     { key: "roadmap", href: `/programs/${programId}/roadmap` },
     { key: "forecast", href: `/programs/${programId}/forecast` },
+    { key: "risks", href: `/programs/${programId}/risks` },
     { key: "setup", href: `/programs/${programId}/setup` },
   ] as const;
   return (

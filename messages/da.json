@@ -127,6 +127,7 @@
     "backlog": "Backlog",
     "roadmap": "Roadmap",
     "forecast": "Fremdrift",
+    "risks": "Risici",
     "setup": "Opsætning"
   },
   "backlog": {
@@ -366,5 +367,51 @@
       "resetFor": "Nulstil {quarter}",
       "saved": "{quarter} er gemt"
     }
+  },
+  "risks": {
+    "matrix": {
+      "label": "Risikomatrix",
+      "heading": "Hvor risiciene står",
+      "lead": "Åbne risici efter sandsynlighed og konsekvens på en skala fra 1 til 10. Feltets farve viser, hvor alvorlig kombinationen er.",
+      "title": "Risikomatrix med sandsynlighed vandret og konsekvens lodret",
+      "probability": "Sandsynlighed",
+      "impact": "Konsekvens"
+    },
+    "mostSerious": "Mest alvorlige",
+    "noneOpen": "Ingen åbne risici.",
+    "closedList": "Lukkede eller minimerede: {list}",
+    "log": {
+      "label": "Risikolog",
+      "title": "Risici og hvad der gøres ved dem",
+      "lead": "Hver risiko har et fast nummer. Skriv, hvad der sker, hvis den indtræffer, hvad der gøres for at mindske den, og hvad der er ændret siden sidst."
+    },
+    "add": {
+      "label": "Ny risiko: der er en risiko for, at …",
+      "placeholder": "migrering af data fra MR4 Basis viser sig mere omfangsrigt end forventet",
+      "submit": "Tilføj risiko"
+    },
+    "fields": {
+      "title": "Risiko (der er en risiko for, at …)",
+      "consequence": "Konsekvens (hvis risikoen indtræffer …)",
+      "mitigation": "Mitigerende handling",
+      "probability": "Sandsynlighed (1–10)",
+      "impact": "Konsekvens (1–10)",
+      "status": "Status",
+      "changeNote": "Ændring siden sidst"
+    },
+    "status": {
+      "open": "Åben",
+      "closed": "Lukket eller minimeret"
+    },
+    "band": {
+      "low": "Lav",
+      "medium": "Middel",
+      "high": "Høj"
+    },
+    "scoreLine": "S {p} · K {i}",
+    "saved": "Risiko {number} er gemt",
+    "delete": "Slet",
+    "deleteQuestion": "Slet risiko {number}?",
+    "deleteDetail": "Risikoen slettes fra loggen. Nummeret bliver ikke brugt igen. Vil du bevare historikken, så sæt den til lukket i stedet."
   }
 }
