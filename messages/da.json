@@ -126,6 +126,7 @@
     "label": "Programmets sider",
     "backlog": "Backlog",
     "roadmap": "Roadmap",
+    "forecast": "Fremdrift",
     "setup": "Opsætning"
   },
   "backlog": {
@@ -307,6 +308,63 @@
       "lead": "Kort, der er lukket, samlet efter det kvartal, de blev færdige i.",
       "empty": "Intet er leveret endnu.",
       "points": "{points} point"
+    },
+    "plannedPct": "{points} point planlagt · {pct} % af kapaciteten"
+  },
+  "forecast": {
+    "label": "Fremdrift",
+    "title": "Forecast baseret på det, der er leveret",
+    "lead": "Hastigheden er leverede point divideret med kapaciteten i kvartalet. Fra i dag og frem regnes der med tre tempi: gennemsnittet af de tre laveste, alle og de tre højeste af de sidste fem kvartaler.",
+    "tiles": {
+      "delivered": "Leveret i alt",
+      "low": "Lavt tempo",
+      "avg": "Middel tempo",
+      "high": "Højt tempo"
+    },
+    "chart": {
+      "title": "Leverede point over tid og forecast i tre tempi, med milepælenes scope",
+      "noData": "Forecastet kræver mindst ét afsluttet kvartal med leverede point og en kapacitet over 0 %.",
+      "today": "I dag",
+      "actual": "Leveret",
+      "avg": "Middel tempo",
+      "low": "Lavt tempo",
+      "high": "Højt tempo",
+      "milestones": "Milepælenes scope"
+    },
+    "milestones": {
+      "label": "Milepæle",
+      "title": "Hvornår milepælene nås",
+      "lead": "Det kvartal, hvor hvert tempo når milepælens samlede scope, og hvad programmet har kostet til og med det kvartal.",
+      "milestone": "Milepæl",
+      "scope": "Scope i alt",
+      "low": "Lavt tempo",
+      "avg": "Middel tempo",
+      "high": "Højt tempo",
+      "reached": "Nået i {quarter}",
+      "beyond": "Ud over horisonten",
+      "none": "Ingen milepæle endnu. Opret dem under Opsætning.",
+      "cost": "{amount} kr."
+    },
+    "ledger": {
+      "label": "Kvartaler",
+      "title": "Kapacitet og point pr. kvartal",
+      "lead": "Kapaciteten er den andel af det planlagte hold, der faktisk er der. Pointene beregnes ud fra backloggen: leveret for afsluttede kvartaler, planlagt for resten. Skriv et tal for at overskrive det, og tøm feltet for at gå tilbage til det beregnede.",
+      "quarter": "Kvartal",
+      "capacity": "Kapacitet",
+      "points": "Point",
+      "velocity": "Hastighed",
+      "comment": "Kommentar",
+      "reset": "Nulstil",
+      "delivered": "Leveret",
+      "planned": "Planlagt",
+      "computed": "{points} beregnet",
+      "soFar": "{points} point lukket indtil nu",
+      "capacityFor": "Kapacitet i {quarter}",
+      "deliveredFor": "Leverede point i {quarter}",
+      "plannedFor": "Planlagte point i {quarter}",
+      "commentFor": "Kommentar til {quarter}",
+      "resetFor": "Nulstil {quarter}",
+      "saved": "{quarter} er gemt"
     }
   }
 }

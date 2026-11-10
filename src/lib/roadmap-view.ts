@@ -23,6 +23,8 @@ export type BoardColumn = {
   range: string | null;
   kind: "near" | "far" | "unplanned";
   load: number;
+  /** Planned points as a share of what the average tempo can deliver here; null before a forecast exists. */
+  pct: number | null;
   events: Array<{ id: string; title: string; quarter: string }>;
 };
 
@@ -40,7 +42,12 @@ export type BoardMilestone = {
   later: Array<{ id: string; title: string }>;
 };
 
-export async function buildRoadmapView(full: ProgramFull, rows: Item[], events: ProgramEvent[]) {
+export async function buildRoadmapView(
+  full: ProgramFull,
+  rows: Item[],
+  events: ProgramEvent[],
+  capacity: { avgVelocity: number | null; capacityPct: (quarter: number) => number },
+) {
   const tp = await getTranslations("periods");
   const tr = await getTranslations("roadmap");
   const tm = await getTranslations("milestones");
@@ -52,6 +59,14 @@ export async function buildRoadmapView(full: ProgramFull, rows: Item[], events: 
   const load = columnLoad(sizes, periods, rows);
   const quarterName = (i: number) => formatPeriodLabel(tp, quarterLabel(settings, i));
 
+  const pctOf = (p: { index: number; span: number }, points: number) => {
+    if (capacity.avgVelocity === null) return null;
+    let can = 0;
+    for (let k = 0; k < p.span; k += 1)
+      can += (capacity.avgVelocity * capacity.capacityPct(p.index + k)) / 100;
+    return can > 0 ? Math.round((points / can) * 100) : null;
+  };
+
   const columns: BoardColumn[] = periods.map((p, i) => ({
     key: `${p.index}:${p.span}`,
     periodIndex: p.index,
@@ -60,6 +75,7 @@ export async function buildRoadmapView(full: ProgramFull, rows: Item[], events: 
     range: `${formatDate(p.start)} – ${formatDate(p.end)}`,
     kind: p.span === 1 ? "near" : "far",
     load: load[i] ?? 0,
+    pct: pctOf(p, load[i] ?? 0),
     events: events
       .filter((e) => e.quarterIndex >= p.index && e.quarterIndex < p.index + p.span)
       .map((e) => ({ id: e.id, title: e.title, quarter: quarterName(e.quarterIndex) })),
@@ -72,6 +88,7 @@ export async function buildRoadmapView(full: ProgramFull, rows: Item[], events: 
     range: null,
     kind: "unplanned",
     load: load[periods.length] ?? 0,
+    pct: null,
     events: [],
   });
 

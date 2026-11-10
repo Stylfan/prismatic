@@ -21,10 +21,10 @@ Early. What works today:
 - Accounts with e-mail and password. Each user sees only the programmes
   they made.
 - Several programmes in one installation.
-- Per programme: a period model (calendar quarters, the seasons with autumn
-  from 1 September, or quarters from a start date of your own), how many
-  quarters are shown before the roadmap switches to half-years, a cost per
-  quarter and the deviation at which a goal's breakdown is flagged.
+- Per programme: a period model (calendar quarters, or the seasons with
+  autumn from 1 September), a start date, how many quarters the near horizon
+  shows (1-4) before three half-years, a cost per quarter and the deviation
+  at which a goal's breakdown is flagged.
 - Sizes and points for business goals (XS–XXL) and features (XS–XL).
 - Milestones M1, M2, … that build on each other, their scope computed from
   the business goals planned for them and overridable by hand.
@@ -41,7 +41,13 @@ Early. What works today:
   planned points per column, events in a quarter, a warning when a
   milestone has work planned after it, and the delivered work by quarter.
 
-Next: the forecast, the risk log and report
+- Fremdrift: a quarter ledger with capacity and delivered or planned points
+  (computed from the backlog, typed over when needed), the three tempi from
+  the last five quarters, when each milestone is reached in each tempo and
+  at what price, and a chart. The arithmetic reproduces the programme's own
+  spreadsheet; `tests/forecast.test.ts` checks it against its numbers.
+
+Next: the risk log and report
 editions for each steering group meeting. [docs/adr](docs/adr/) records the decisions.
 
 ## Run it

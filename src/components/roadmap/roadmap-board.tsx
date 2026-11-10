@@ -186,7 +186,9 @@ export function RoadmapBoard({
                 <h3 className="text-[14px] font-semibold leading-snug">{col.label}</h3>
                 {col.range && <span className="tabular text-[11px] text-slate">{col.range}</span>}
                 <span className="tabular mt-1 text-[11px] font-semibold text-ink">
-                  {t("planned", { points: col.load.toLocaleString("da-DK") })}
+                  {col.pct === null
+                    ? t("planned", { points: col.load.toLocaleString("da-DK") })
+                    : t("plannedPct", { points: col.load.toLocaleString("da-DK"), pct: col.pct })}
                 </span>
               </header>
               {col.events.length > 0 && (

@@ -3,6 +3,7 @@ import type { z } from "zod";
 import type { Db } from "@/db/client";
 import { milestones, programSizes, programs } from "@/db/schema";
 import { defaultSizeRows, type SizeTable } from "@/domain/sizes";
+import { remapPeriods } from "./remap-periods";
 import type {
   ProgramInput,
   SetSizePointsSchema,
@@ -96,12 +97,17 @@ export function requireProgram(db: Db, userId: string, programId: string) {
 
 export function updateProgram(db: Db, userId: string, input: z.infer<typeof UpdateProgramSchema>) {
   const { programId, ...fields } = input;
-  const result = db
-    .update(programs)
-    .set(fields)
-    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
-    .run();
-  if (result.changes === 0) throw new NotFound();
+  db.transaction((tx) => {
+    const before = tx
+      .select({ model: programs.periodModel, startDate: programs.startDate })
+      .from(programs)
+      .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
+      .get();
+    if (!before) throw new NotFound();
+    tx.update(programs).set(fields).where(eq(programs.id, programId)).run();
+    // A new start or model would give the stored quarter numbers another meaning.
+    remapPeriods(tx, programId, before, { model: fields.periodModel, startDate: fields.startDate });
+  });
 }
 
 /** Deletes a programme and, through the foreign keys, everything it owns. */

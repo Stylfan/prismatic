@@ -97,3 +97,12 @@ export const NewEventSchema = z.object({
   title: text(120).min(1),
 });
 export const EventIdSchema = z.object({ eventId: id });
+
+export const SaveQuarterSchema = z.object({
+  programId: id,
+  quarterIndex: z.number().int().min(-200).max(400),
+  capacityPct: z.number().int().min(0).max(300),
+  deliveredOverride: points.nullable(),
+  plannedOverride: points.nullable(),
+  comment: text(300),
+});

@@ -8,10 +8,12 @@ import { EventForm } from "@/components/roadmap/event-form";
 import { RoadmapBoard } from "@/components/roadmap/roadmap-board";
 import { PageHeader, Panel, Section } from "@/components/ui/layout";
 import { getDb } from "@/db/client";
+import { buildForecastView } from "@/lib/forecast-view";
 import { buildRoadmapView } from "@/lib/roadmap-view";
 import { listEvents } from "@/services/events";
 import { listItems } from "@/services/items";
 import { getProgram } from "@/services/programs";
+import { listQuarterRecords } from "@/services/quarters";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +34,15 @@ export default async function RoadmapPage({ params }: Params) {
   const { program } = full;
   const t = await getTranslations("program");
   const tr = await getTranslations("roadmap");
-  const view = await buildRoadmapView(full, listItems(db, program.id), listEvents(db, program.id));
+  const items = listItems(db, program.id);
+  const events = listEvents(db, program.id);
+  const records = listQuarterRecords(db, program.id);
+  const forecast = await buildForecastView(full, items, records, events);
+  const capacityPct = (q: number) => records.find((r) => r.quarterIndex === q)?.capacityPct ?? 100;
+  const view = await buildRoadmapView(full, items, events, {
+    avgVelocity: forecast.result.stats?.avg ?? null,
+    capacityPct,
+  });
 
   return (
     <div className="flex flex-col gap-12">

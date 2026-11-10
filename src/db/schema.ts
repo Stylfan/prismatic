@@ -209,5 +209,29 @@ export const programEvents = sqliteTable(
 );
 
 export type ProgramEvent = typeof programEvents.$inferSelect;
+
+/**
+ * One quarter of the programme's ledger: the capacity that quarter (as a
+ * percentage of the intended team), and hand-typed numbers that replace the
+ * computed delivered or planned points. A missing row means 100 % and the
+ * computed numbers.
+ */
+export const quarterRecords = sqliteTable(
+  "quarter_records",
+  {
+    programId: text("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    quarterIndex: integer("quarter_index").notNull(),
+    capacityPct: integer("capacity_pct").notNull().default(100),
+    deliveredOverride: integer("delivered_override"),
+    plannedOverride: integer("planned_override"),
+    comment: text("comment").notNull().default(""),
+    ...timestamps,
+  },
+  (t) => [primaryKey({ columns: [t.programId, t.quarterIndex] })],
+);
+
+export type QuarterRecord = typeof quarterRecords.$inferSelect;
 export type Program = typeof programs.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;
