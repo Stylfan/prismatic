@@ -38,8 +38,43 @@ const timestamps = {
   updatedAt: integer("updated_at").notNull().$defaultFn(now).$onUpdateFn(now),
 };
 
+/** A person who signs in. Passwords are stored only as a scrypt hash (src/auth/password.ts). */
+export const users = sqliteTable(
+  "users",
+  {
+    id: id(),
+    /** Stored lower-cased and trimmed, so one address is one account. */
+    email: text("email").notNull(),
+    name: text("name").notNull().default(""),
+    passwordHash: text("password_hash").notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("users_email_uq").on(t.email)],
+);
+
+/**
+ * A signed-in browser. The id is the SHA-256 of the token in the cookie,
+ * so a copy of the database does not hand out working sessions.
+ */
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: integer("expires_at").notNull(),
+    createdAt: integer("created_at").notNull().$defaultFn(now),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+);
+
+export type User = typeof users.$inferSelect;
+
 export const programs = sqliteTable("programs", {
   id: id(),
+  /** Who the programme belongs to; only they can see or change it. Null only before the first sign-up. */
+  ownerId: text("owner_id").references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   goal: text("goal").notNull().default(""),
   periodModel: text("period_model").$type<PeriodModel>().notNull().default("seasons"),

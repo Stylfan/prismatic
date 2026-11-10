@@ -3,7 +3,7 @@ import type { z } from "zod";
 import type { Db } from "@/db/client";
 import { items, milestones, programs, type Item } from "@/db/schema";
 import { isSizeForLevel } from "@/domain/sizes";
-import { NotFound } from "./programs";
+import { NotFound, requireProgram } from "./programs";
 import type { NewItemSchema, SplitItemSchema, UpdateItemSchema } from "./validation";
 
 /**
@@ -11,9 +11,11 @@ import type { NewItemSchema, SplitItemSchema, UpdateItemSchema } from "./validat
  * the item belongs to: a feature's goal must be a goal in the same
  * programme, a milestone must be one of the programme's, and a goal never
  * has a parent. A feature under a goal counts toward the goal's milestone,
- * so its own milestone is cleared.
+ * so its own milestone is cleared. Every item is reached through a
+ * programme the acting user owns; anything else throws NotFound.
  */
 
+/** The programme's items. Callers pass a programme they have already checked the user owns. */
 export function listItems(db: Db, programId: string): Item[] {
   return db
     .select()
@@ -23,10 +25,15 @@ export function listItems(db: Db, programId: string): Item[] {
     .all();
 }
 
-function requireItem(db: Db, itemId: string): Item {
-  const row = db.select().from(items).where(eq(items.id, itemId)).get();
+function requireItem(db: Db, userId: string, itemId: string): Item {
+  const row = db
+    .select({ item: items })
+    .from(items)
+    .innerJoin(programs, eq(programs.id, items.programId))
+    .where(and(eq(items.id, itemId), eq(programs.ownerId, userId)))
+    .get();
   if (!row) throw new NotFound();
-  return row;
+  return row.item;
 }
 
 function checkGoal(db: Db, programId: string, goalId: string | null) {
@@ -49,13 +56,8 @@ function checkMilestone(db: Db, programId: string, milestoneId: string | null) {
   if (!m) throw new NotFound();
 }
 
-export function createItem(db: Db, input: z.infer<typeof NewItemSchema>): string {
-  const program = db
-    .select({ id: programs.id })
-    .from(programs)
-    .where(eq(programs.id, input.programId))
-    .get();
-  if (!program) throw new NotFound();
+export function createItem(db: Db, userId: string, input: z.infer<typeof NewItemSchema>): string {
+  requireProgram(db, userId, input.programId);
   const parentId = input.kind === "goal" ? null : input.parentId;
   checkGoal(db, input.programId, parentId);
   checkMilestone(db, input.programId, input.milestoneId);
@@ -73,8 +75,12 @@ export function createItem(db: Db, input: z.infer<typeof NewItemSchema>): string
   return row!.id;
 }
 
-export function updateItem(db: Db, input: z.infer<typeof UpdateItemSchema>): string {
-  const row = requireItem(db, input.itemId);
+export function updateItem(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof UpdateItemSchema>,
+): string {
+  const row = requireItem(db, userId, input.itemId);
   const parentId = row.kind === "goal" ? null : input.parentId;
   if (parentId === row.id) throw new NotFound();
   checkGoal(db, row.programId, parentId);
@@ -103,8 +109,8 @@ export function updateItem(db: Db, input: z.infer<typeof UpdateItemSchema>): str
 }
 
 /** Deletes an item. A deleted goal's features stay, without a goal, so nothing is lost silently. */
-export function deleteItem(db: Db, itemId: string): string {
-  const row = requireItem(db, itemId);
+export function deleteItem(db: Db, userId: string, itemId: string): string {
+  const row = requireItem(db, userId, itemId);
   db.delete(items).where(eq(items.id, row.id)).run();
   return row.programId;
 }
@@ -115,8 +121,12 @@ export function deleteItem(db: Db, itemId: string): string {
  * becomes a new feature with its own estimate, which may belong to another
  * goal or to none.
  */
-export function splitFeature(db: Db, input: z.infer<typeof SplitItemSchema>): string {
-  const row = requireItem(db, input.itemId);
+export function splitFeature(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof SplitItemSchema>,
+): string {
+  const row = requireItem(db, userId, input.itemId);
   if (row.kind !== "feature") throw new NotFound();
   checkGoal(db, row.programId, input.newParentId);
   const size =

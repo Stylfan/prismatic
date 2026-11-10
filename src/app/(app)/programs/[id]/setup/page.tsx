@@ -6,6 +6,7 @@ import { MilestonesPanel } from "@/components/program/milestones-panel";
 import { SettingsPanel } from "@/components/program/settings-panel";
 import { SizesPanel } from "@/components/program/sizes-panel";
 import { PageHeader, Section } from "@/components/ui/layout";
+import { requireUser } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { milestoneComputedScope } from "@/domain/backlog";
 import { cumulativeScopes } from "@/domain/scope";
@@ -18,14 +19,16 @@ export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const full = getProgram(getDb(), (await params).id);
+  const user = await requireUser();
+  const full = getProgram(getDb(), user.id, (await params).id);
   return { title: full?.program.name };
 }
 
 /** One programme's set-up: its settings and periods, its milestones and its sizes. */
 export default async function ProgramSetupPage({ params }: Params) {
+  const user = await requireUser();
   const db = getDb();
-  const full = getProgram(db, (await params).id);
+  const full = getProgram(db, user.id, (await params).id);
   if (!full) notFound();
   const rows = listItems(db, full.program.id);
   const { program, sizes, milestones } = full;

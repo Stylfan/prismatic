@@ -18,6 +18,8 @@ The interface is in Danish.
 
 Early. What works today:
 
+- Accounts with e-mail and password. Each user sees only the programmes
+  they made.
 - Several programmes in one installation.
 - Per programme: a period model (calendar quarters, the seasons with autumn
   from 1 September, or quarters from a start date of your own), how many
@@ -49,8 +51,13 @@ pnpm dev        # http://127.0.0.1:3000
 
 Everything you type in is stored in one SQLite file, `data/prismatic.db`,
 created on first start. Back it up by copying it. Set `PRISMATIC_DB` to
-keep it somewhere else. The app listens on 127.0.0.1 only and has no login
-yet: it is meant to run on your own machine.
+keep it somewhere else.
+
+The first person to open the app creates the first account, and any
+programme already in the database becomes theirs. Sign-up then closes; set
+`PRISMATIC_SIGNUP=open` to let more people create accounts. The app listens
+on 127.0.0.1 only: it is meant to run on your own machine until hosting is
+in place.
 
 ```bash
 pnpm test && pnpm lint && pnpm typecheck

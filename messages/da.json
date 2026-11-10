@@ -9,7 +9,8 @@
   "errors": {
     "invalid": "Noget i det du skrev kunne ikke bruges. Se felterne igennem.",
     "notFound": "Det findes ikke længere. Siden er hentet igen.",
-    "generic": "Det gik galt. Prøv igen."
+    "generic": "Det gik galt. Prøv igen.",
+    "unauthorized": "Du er ikke logget ind længere. Log ind igen."
   },
   "common": {
     "cancel": "Annullér",
@@ -235,6 +236,31 @@
       "noMilestone": "Ikke knyttet til en milepæl",
       "notEstimated": "Ikke estimeret",
       "deviation": "Features summerer til {featurePoints} point, {pct} % fra målets estimat på {estimate}"
+    }
+  },
+  "auth": {
+    "logout": "Log ud",
+    "loginLabel": "Log ind",
+    "loginTitle": "Log ind på Prismatic",
+    "registerLabel": "Opret konto",
+    "registerTitle": "Opret din konto",
+    "firstAccount": "Det er den første konto i denne installation. Programmer, der allerede ligger her, bliver dine.",
+    "closedTitle": "Tilmelding er lukket",
+    "closedBody": "Denne installation tager ikke imod nye konti. Den, der driver den, kan åbne for tilmelding.",
+    "name": "Navn",
+    "email": "E-mail",
+    "password": "Kodeord",
+    "passwordHint": "Mindst {count} tegn.",
+    "loginSubmit": "Log ind",
+    "registerSubmit": "Opret konto",
+    "toLogin": "Har du en konto? Log ind",
+    "toRegister": "Ny her? Opret en konto",
+    "errors": {
+      "invalid": "Udfyld felterne. Kodeordet skal have mindst 10 tegn.",
+      "credentials": "E-mail eller kodeord passer ikke.",
+      "tooMany": "For mange forsøg. Vent et kvarter, og prøv igen.",
+      "signupClosed": "Tilmelding er lukket i denne installation.",
+      "emailTaken": "Der findes allerede en konto med den e-mail."
     }
   }
 }

@@ -12,9 +12,11 @@ import type {
 
 /**
  * Programmes, their sizes and milestones. Every function takes the
- * database it works on, so the pages use the app's file and the tests a
- * fresh one in memory. Writes that touch several rows run in one
- * transaction; an id that does not exist throws NotFound.
+ * database it works on and the user acting, so the pages use the app's
+ * file and the tests a fresh one in memory. A programme belongs to one
+ * user: anything that is not theirs is treated as if it does not exist,
+ * and throws NotFound. Writes that touch several rows run in one
+ * transaction.
  */
 
 export class NotFound extends Error {
@@ -23,8 +25,13 @@ export class NotFound extends Error {
   }
 }
 
-export function listPrograms(db: Db) {
-  const rows = db.select().from(programs).orderBy(desc(programs.updatedAt)).all();
+export function listPrograms(db: Db, userId: string) {
+  const rows = db
+    .select()
+    .from(programs)
+    .where(eq(programs.ownerId, userId))
+    .orderBy(desc(programs.updatedAt))
+    .all();
   const counts = db
     .select({ programId: milestones.programId, n: count() })
     .from(milestones)
@@ -36,9 +43,13 @@ export function listPrograms(db: Db) {
   }));
 }
 
-export function createProgram(db: Db, input: ProgramInput): string {
+export function createProgram(db: Db, userId: string, input: ProgramInput): string {
   return db.transaction((tx) => {
-    const [row] = tx.insert(programs).values(input).returning({ id: programs.id }).all();
+    const [row] = tx
+      .insert(programs)
+      .values({ ...input, ownerId: userId })
+      .returning({ id: programs.id })
+      .all();
     const programId = row!.id;
     tx.insert(programSizes)
       .values(defaultSizeRows().map((s) => ({ ...s, programId })))
@@ -47,8 +58,12 @@ export function createProgram(db: Db, input: ProgramInput): string {
   });
 }
 
-export function getProgram(db: Db, programId: string) {
-  const program = db.select().from(programs).where(eq(programs.id, programId)).get();
+export function getProgram(db: Db, userId: string, programId: string) {
+  const program = db
+    .select()
+    .from(programs)
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
+    .get();
   if (!program) return null;
   const sizes: SizeTable = { feature: {}, goal: {} };
   for (const row of db
@@ -69,25 +84,37 @@ export function getProgram(db: Db, programId: string) {
 
 export type ProgramFull = NonNullable<ReturnType<typeof getProgram>>;
 
-function requireProgram(db: Db, programId: string) {
-  const row = db.select({ id: programs.id }).from(programs).where(eq(programs.id, programId)).get();
+/** Throws NotFound unless the programme exists and belongs to the user. */
+export function requireProgram(db: Db, userId: string, programId: string) {
+  const row = db
+    .select({ id: programs.id })
+    .from(programs)
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
+    .get();
   if (!row) throw new NotFound();
 }
 
-export function updateProgram(db: Db, input: z.infer<typeof UpdateProgramSchema>) {
+export function updateProgram(db: Db, userId: string, input: z.infer<typeof UpdateProgramSchema>) {
   const { programId, ...fields } = input;
-  const result = db.update(programs).set(fields).where(eq(programs.id, programId)).run();
+  const result = db
+    .update(programs)
+    .set(fields)
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
+    .run();
   if (result.changes === 0) throw new NotFound();
 }
 
 /** Deletes a programme and, through the foreign keys, everything it owns. */
-export function deleteProgram(db: Db, programId: string) {
-  const result = db.delete(programs).where(eq(programs.id, programId)).run();
+export function deleteProgram(db: Db, userId: string, programId: string) {
+  const result = db
+    .delete(programs)
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
+    .run();
   if (result.changes === 0) throw new NotFound();
 }
 
-export function setSizePoints(db: Db, input: z.infer<typeof SetSizePointsSchema>) {
-  requireProgram(db, input.programId);
+export function setSizePoints(db: Db, userId: string, input: z.infer<typeof SetSizePointsSchema>) {
+  requireProgram(db, userId, input.programId);
   if (input.level === "feature" && input.size === "XXL") throw new NotFound();
   db.insert(programSizes)
     .values(input)
@@ -98,14 +125,20 @@ export function setSizePoints(db: Db, input: z.infer<typeof SetSizePointsSchema>
     .run();
 }
 
-function requireMilestone(db: Db, milestoneId: string) {
-  const row = db.select().from(milestones).where(eq(milestones.id, milestoneId)).get();
+/** The milestone, if it belongs to one of the user's programmes. */
+function requireMilestone(db: Db, userId: string, milestoneId: string) {
+  const row = db
+    .select({ milestone: milestones })
+    .from(milestones)
+    .innerJoin(programs, eq(programs.id, milestones.programId))
+    .where(and(eq(milestones.id, milestoneId), eq(programs.ownerId, userId)))
+    .get();
   if (!row) throw new NotFound();
-  return row;
+  return row.milestone;
 }
 
-export function addMilestone(db: Db, programId: string, title: string) {
-  requireProgram(db, programId);
+export function addMilestone(db: Db, userId: string, programId: string, title: string) {
+  requireProgram(db, userId, programId);
   const last = db
     .select({ max: max(milestones.seq) })
     .from(milestones)
@@ -116,8 +149,12 @@ export function addMilestone(db: Db, programId: string, title: string) {
     .run();
 }
 
-export function updateMilestone(db: Db, input: z.infer<typeof UpdateMilestoneSchema>) {
-  const row = requireMilestone(db, input.milestoneId);
+export function updateMilestone(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof UpdateMilestoneSchema>,
+) {
+  const row = requireMilestone(db, userId, input.milestoneId);
   db.update(milestones)
     .set({ title: input.title, description: input.description, scopeOverride: input.scopeOverride })
     .where(eq(milestones.id, row.id))
@@ -125,8 +162,8 @@ export function updateMilestone(db: Db, input: z.infer<typeof UpdateMilestoneSch
   return row.programId;
 }
 
-export function setMilestoneDone(db: Db, milestoneId: string, done: boolean) {
-  const row = requireMilestone(db, milestoneId);
+export function setMilestoneDone(db: Db, userId: string, milestoneId: string, done: boolean) {
+  const row = requireMilestone(db, userId, milestoneId);
   db.update(milestones)
     .set({ doneAt: done ? Date.now() : null })
     .where(eq(milestones.id, row.id))
@@ -139,8 +176,13 @@ export function setMilestoneDone(db: Db, milestoneId: string, done: boolean) {
  * forbids two rows on one number even for a moment, so the moving row
  * parks on a negative number first.
  */
-export function moveMilestone(db: Db, milestoneId: string, direction: "up" | "down") {
-  const row = requireMilestone(db, milestoneId);
+export function moveMilestone(
+  db: Db,
+  userId: string,
+  milestoneId: string,
+  direction: "up" | "down",
+) {
+  const row = requireMilestone(db, userId, milestoneId);
   return db.transaction((tx) => {
     const neighbour = tx
       .select()
@@ -162,8 +204,8 @@ export function moveMilestone(db: Db, milestoneId: string, direction: "up" | "do
 }
 
 /** Removes a milestone and closes the gap, so the numbers stay M1, M2, M3. */
-export function removeMilestone(db: Db, milestoneId: string) {
-  const row = requireMilestone(db, milestoneId);
+export function removeMilestone(db: Db, userId: string, milestoneId: string) {
+  const row = requireMilestone(db, userId, milestoneId);
   return db.transaction((tx) => {
     tx.delete(milestones).where(eq(milestones.id, row.id)).run();
     const later = tx

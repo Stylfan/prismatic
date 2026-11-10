@@ -30,7 +30,7 @@ import { run, type Result } from "./result";
 function refresh<T>(result: Result<T>, programId?: string | null): Result<T> {
   if (result.ok) {
     revalidatePath("/");
-    if (programId) revalidatePath(`/programs/${programId}`);
+    if (programId) revalidatePath(`/programs/${programId}`, "layout");
   }
   return result;
 }
@@ -38,12 +38,12 @@ function refresh<T>(result: Result<T>, programId?: string | null): Result<T> {
 const idOf = (r: Result<string>) => (r.ok ? r.data : null);
 
 export async function createProgramAction(raw: unknown): Promise<Result<string>> {
-  return refresh(run(ProgramFields, raw, createProgram));
+  return refresh(await run(ProgramFields, raw, createProgram));
 }
 
 export async function updateProgramAction(raw: unknown): Promise<Result<string>> {
-  const r = run(UpdateProgramSchema, raw, (db, input) => {
-    updateProgram(db, input);
+  const r = await run(UpdateProgramSchema, raw, (db, userId, input) => {
+    updateProgram(db, userId, input);
     return input.programId;
   });
   return refresh(r, idOf(r));
@@ -51,49 +51,51 @@ export async function updateProgramAction(raw: unknown): Promise<Result<string>>
 
 export async function deleteProgramAction(raw: unknown): Promise<Result<string>> {
   return refresh(
-    run(ProgramIdSchema, raw, (db, input) => {
-      deleteProgram(db, input.programId);
+    await run(ProgramIdSchema, raw, (db, userId, input) => {
+      deleteProgram(db, userId, input.programId);
       return input.programId;
     }),
   );
 }
 
 export async function setSizePointsAction(raw: unknown): Promise<Result<string>> {
-  const r = run(SetSizePointsSchema, raw, (db, input) => {
-    setSizePoints(db, input);
+  const r = await run(SetSizePointsSchema, raw, (db, userId, input) => {
+    setSizePoints(db, userId, input);
     return input.programId;
   });
   return refresh(r, idOf(r));
 }
 
 export async function addMilestoneAction(raw: unknown): Promise<Result<string>> {
-  const r = run(NewMilestoneSchema, raw, (db, input) => {
-    addMilestone(db, input.programId, input.title);
+  const r = await run(NewMilestoneSchema, raw, (db, userId, input) => {
+    addMilestone(db, userId, input.programId, input.title);
     return input.programId;
   });
   return refresh(r, idOf(r));
 }
 
 export async function updateMilestoneAction(raw: unknown): Promise<Result<string>> {
-  const r = run(UpdateMilestoneSchema, raw, updateMilestone);
+  const r = await run(UpdateMilestoneSchema, raw, updateMilestone);
   return refresh(r, idOf(r));
 }
 
 export async function setMilestoneDoneAction(raw: unknown): Promise<Result<string>> {
-  const r = run(MilestoneDoneSchema, raw, (db, input) =>
-    setMilestoneDone(db, input.milestoneId, input.done),
+  const r = await run(MilestoneDoneSchema, raw, (db, userId, input) =>
+    setMilestoneDone(db, userId, input.milestoneId, input.done),
   );
   return refresh(r, idOf(r));
 }
 
 export async function moveMilestoneAction(raw: unknown): Promise<Result<string>> {
-  const r = run(MoveMilestoneSchema, raw, (db, input) =>
-    moveMilestone(db, input.milestoneId, input.direction),
+  const r = await run(MoveMilestoneSchema, raw, (db, userId, input) =>
+    moveMilestone(db, userId, input.milestoneId, input.direction),
   );
   return refresh(r, idOf(r));
 }
 
 export async function removeMilestoneAction(raw: unknown): Promise<Result<string>> {
-  const r = run(MilestoneIdSchema, raw, (db, input) => removeMilestone(db, input.milestoneId));
+  const r = await run(MilestoneIdSchema, raw, (db, userId, input) =>
+    removeMilestone(db, userId, input.milestoneId),
+  );
   return refresh(r, idOf(r));
 }

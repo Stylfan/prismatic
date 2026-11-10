@@ -56,8 +56,12 @@ session.
   `src/services`: database work, each function taking a `Db`, tested
   against an in-memory database. `src/actions`: server actions that
   validate with zod and call a service. `src/components`, `src/app`: UI.
-- Local first: the server binds to 127.0.0.1 and has no login. Hosting and
-  share links come later and need authentication before they ship.
+- Accounts and sessions (ADR 0002): every service takes the acting user
+  and reaches data only through a programme that user owns; server actions
+  resolve the user in `src/actions/result.ts` before anything else. A new
+  table or service ships with an ownership test in `tests/ownership.test.ts`.
+- Local first: the server binds to 127.0.0.1. Hosting and share links come
+  later.
 
 ## Visual identity
 

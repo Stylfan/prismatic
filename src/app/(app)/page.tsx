@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/controls";
 import { PageHeader, SectionLabel } from "@/components/ui/layout";
+import { requireUser } from "@/auth/session";
 import { getDb } from "@/db/client";
 import { listPrograms } from "@/services/programs";
 
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 /** The front page: every programme, the most recently changed first. */
 export default async function HomePage() {
   const t = await getTranslations("programs");
-  const programs = listPrograms(getDb());
+  const user = await requireUser();
+  const programs = listPrograms(getDb(), user.id);
 
   return (
     <div className="flex flex-col gap-10">
