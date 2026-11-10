@@ -265,5 +265,99 @@ export const risks = sqliteTable(
 );
 
 export type Risk = typeof risks.$inferSelect;
+
+const programRef = () =>
+  text("program_id")
+    .notNull()
+    .references(() => programs.id, { onDelete: "cascade" });
+
+export const GOAL_STATUSES = ["open", "achieved", "partial", "missed"] as const;
+export type GoalStatus = (typeof GOAL_STATUSES)[number];
+
+/** A goal for one quarter, with sub-goals under it and stretch goals marked as such. */
+export const quarterGoals = sqliteTable(
+  "quarter_goals",
+  {
+    id: id(),
+    programId: programRef(),
+    quarterIndex: integer("quarter_index").notNull(),
+    parentId: text("parent_id").references((): AnySQLiteColumn => quarterGoals.id, {
+      onDelete: "cascade",
+    }),
+    title: text("title").notNull(),
+    stretch: integer("stretch", { mode: "boolean" }).notNull().default(false),
+    status: text("status").$type<GoalStatus>().notNull().default("open"),
+    ...timestamps,
+  },
+  (t) => [index("quarter_goals_program_idx").on(t.programId, t.quarterIndex)],
+);
+
+export const CASE_STATUSES = ["open", "decided"] as const;
+export type CaseStatus = (typeof CASE_STATUSES)[number];
+
+/** A case the steering group is asked to decide: problem, background, key points, next steps. */
+export const decisionCases = sqliteTable(
+  "decision_cases",
+  {
+    id: id(),
+    programId: programRef(),
+    title: text("title").notNull(),
+    problem: text("problem").notNull().default(""),
+    background: text("background").notNull().default(""),
+    keyPoints: text("key_points").notNull().default(""),
+    nextSteps: text("next_steps").notNull().default(""),
+    status: text("status").$type<CaseStatus>().notNull().default("open"),
+    ...timestamps,
+  },
+  (t) => [index("decision_cases_program_idx").on(t.programId)],
+);
+
+export const DECISION_EFFECTS = ["simplifying", "complicating", "neutral", "pending"] as const;
+export type DecisionEffect = (typeof DECISION_EFFECTS)[number];
+
+/** A decision taken earlier, kept so the reasons for the plan stay visible. */
+export const decisions = sqliteTable(
+  "decisions",
+  {
+    id: id(),
+    programId: programRef(),
+    title: text("title").notNull(),
+    decidedOn: text("decided_on").notNull().default(""),
+    forum: text("forum").notNull().default(""),
+    decision: text("decision").notNull().default(""),
+    effect: text("effect").$type<DecisionEffect>().notNull().default("pending"),
+    ...timestamps,
+  },
+  (t) => [index("decisions_program_idx").on(t.programId)],
+);
+
+/** The words of the report that are not data: the status of the quarter and the change control. */
+export const reportDrafts = sqliteTable("report_drafts", {
+  programId: programRef().primaryKey(),
+  statusText: text("status_text").notNull().default(""),
+  changeText: text("change_text").notNull().default(""),
+  /** The quarter whose goals the report shows; null means the one that ended last. */
+  goalsQuarter: integer("goals_quarter"),
+  ...timestamps,
+});
+
+/** A published report: everything it showed, frozen as JSON, so it reads the same forever. */
+export const reportEditions = sqliteTable(
+  "report_editions",
+  {
+    id: id(),
+    programId: programRef(),
+    title: text("title").notNull(),
+    publishedAt: integer("published_at").notNull(),
+    data: text("data").notNull(),
+  },
+  (t) => [index("report_editions_program_idx").on(t.programId, t.publishedAt)],
+);
+
+export type QuarterGoal = typeof quarterGoals.$inferSelect;
+export type DecisionCase = typeof decisionCases.$inferSelect;
+export type Decision = typeof decisions.$inferSelect;
+export type ReportDraft = typeof reportDrafts.$inferSelect;
+export type ReportEdition = typeof reportEditions.$inferSelect;
 export type Program = typeof programs.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;

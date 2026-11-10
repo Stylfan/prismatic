@@ -50,8 +50,16 @@ Early. What works today:
 - Risici: a numbered risk log (risk, consequence, mitigation, change since
   last, probability and consequence 1-10, open or closed) and a 10 x 10 matrix.
 
-Next: the report
-editions for each steering group meeting. [docs/adr](docs/adr/) records the decisions.
+- A report for the steering group: status and key figures, the quarter's
+  goals with sub-goals and stretch goals, cases for decision, the roadmap,
+  change control, the forecast, the risks and the decision log. "Udgiv
+  udgave" freezes an edition; the next one shows what changed since: moved,
+  added, re-estimated and closed cards (starred on the roadmap), risks that
+  moved (arrows in the matrix) or are new ("NY"), and shifted forecasts. It
+  prints, or saves as PDF, in A4 landscape.
+
+Next: hosting and a share link for the steering group, import from Excel,
+CSV, DevOps or Jira, and an English interface.
 
 ## Run it
 

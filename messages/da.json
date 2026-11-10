@@ -128,6 +128,7 @@
     "roadmap": "Roadmap",
     "forecast": "Fremdrift",
     "risks": "Risici",
+    "report": "Rapport",
     "setup": "Opsætning"
   },
   "backlog": {
@@ -413,5 +414,161 @@
     "delete": "Slet",
     "deleteQuestion": "Slet risiko {number}?",
     "deleteDetail": "Risikoen slettes fra loggen. Nummeret bliver ikke brugt igen. Vil du bevare historikken, så sæt den til lukket i stedet."
+  },
+  "report": {
+    "kicker": "Statusrapport",
+    "disclaimer": "Roadmap og forecast er et øjebliksbillede af den bedste viden lige nu. De ændrer sig, når indsigten gør, og ændringerne står i change control.",
+    "print": "Print eller gem som PDF",
+    "previewTitle": "Forhåndsvisning",
+    "previewNote": "Sådan ser rapporten ud, hvis du udgiver den nu. Ændringerne er regnet mod den seneste udgave.",
+    "editionNote": "En udgivet udgave. Den ser altid ud, som den gjorde, da den blev udgivet.",
+    "backToEditor": "Til rapportens indhold",
+    "changedSinceLast": "Nyt eller ændret siden sidste udgave",
+    "noStatus": "Der er ikke skrevet en status endnu.",
+    "noGoals": "Der er ingen mål for kvartalet.",
+    "stretch": "Stretch",
+    "sections": {
+      "overview": "Overblik",
+      "goals": "Kvartalets mål · {quarter}",
+      "cases": "Sager til beslutning",
+      "roadmap": "Roadmap",
+      "changes": "Change control",
+      "forecast": "Fremdrift og forecast",
+      "risks": "Risici",
+      "decisions": "Beslutningslog",
+      "delivered": "Færdiggjort arbejde"
+    },
+    "figures": {
+      "delivered": "Leveret",
+      "of": "af {scope} point",
+      "velocity": "Middel tempo",
+      "perQuarter": "point pr. kvartal ved fuld kapacitet",
+      "next": "Næste milepæl",
+      "beyond": "Ud over horisonten",
+      "allReached": "Alle er nået",
+      "risks": "Risici",
+      "open": "åbne"
+    },
+    "goalStatus": {
+      "open": "Ikke vurderet",
+      "achieved": "Opnået",
+      "partial": "Delvist",
+      "missed": "Ikke nået"
+    },
+    "case": {
+      "problem": "Problemstilling",
+      "background": "Baggrund",
+      "keyPoints": "Hovedpointer",
+      "nextSteps": "Beslutning og næste skridt"
+    },
+    "decision": {
+      "title": "Titel",
+      "when": "Hvornår",
+      "forum": "Hvor / hvem",
+      "decision": "Beslutning",
+      "effect": "Konsekvens"
+    },
+    "effects": {
+      "simplifying": "Forenklende",
+      "complicating": "Komplicerende",
+      "neutral": "Neutral",
+      "pending": "Afventer"
+    },
+    "changes": {
+      "noText": "Der er ikke skrevet en forklaring til ændringerne.",
+      "first": "Det er den første udgave, så der er intet at sammenligne med.",
+      "none": "Intet er ændret siden sidste udgave.",
+      "roadmap": "Roadmap",
+      "forecast": "Forecast",
+      "risks": "Risici",
+      "added": "Ny: {title}",
+      "split": "Ny version: {title}",
+      "removed": "Fjernet: {title}",
+      "done": "Færdig: {title}",
+      "moved": "Flyttet: {title}, fra {from} til {to}",
+      "reestimated": "Re-estimeret: {title}, fra {from} til {to} point",
+      "unplanned": "endnu ikke planlagt",
+      "milestone": "{code} ved middel tempo: fra {from} til {to}",
+      "riskNew": "Ny risiko {number}: {title}",
+      "riskClosed": "Lukket: risiko {number}, {title}",
+      "riskMoved": "Risiko {number} flyttet fra {from} til {to} (sandsynlighed/konsekvens)"
+    },
+    "risks": {
+      "arrows": "Pilene viser, hvor risikoen stod ved sidste udgave.",
+      "closed": "Lukkede eller minimerede: {list}",
+      "risk": "Risiko (der er en risiko for, at …)",
+      "consequence": "Konsekvens",
+      "mitigation": "Mitigerende handling",
+      "change": "Ændring siden sidst",
+      "noChange": "Ingen ændring",
+      "new": "NY",
+      "score": "Sandsynlighed {p} · konsekvens {i}"
+    },
+    "publish": {
+      "sectionLabel": "Udgivelse",
+      "title": "Udgiv rapporten",
+      "lead": "Se rapporten, som den ser ud nu, og udgiv den til et styregruppemøde. En udgave fryses, så den altid ser ens ud, og næste udgave viser, hvad der er ændret siden.",
+      "preview": "Se forhåndsvisning",
+      "label": "Udgavens navn",
+      "defaultTitle": "Styregruppemøde {date}",
+      "submit": "Udgiv udgave",
+      "publishing": "Udgiver …",
+      "editions": "Tidligere udgaver"
+    },
+    "editor": {
+      "label": "Tekster",
+      "title": "Det, rapporten siger med ord",
+      "lead": "Status for kvartalet står på forsiden. Forklaringen til ændringerne står ved siden af den automatiske change control.",
+      "statusText": "Status for kvartalet",
+      "statusPlaceholder": "Hvordan kvartalet er gået: milepæle, mål og øvrige fokuspunkter.",
+      "changeText": "Forklaring til ændringerne",
+      "changePlaceholder": "Hvorfor roadmappet eller forecastet har flyttet sig siden sidst.",
+      "goalsQuarter": "Vis mål for",
+      "saveTexts": "Gem tekster",
+      "saved": "Teksterne er gemt"
+    },
+    "goals": {
+      "label": "Kvartalets mål",
+      "title": "Mål, delmål og stretch-mål",
+      "lead": "Målene nummereres 1, 1.1, 2 … i rapporten. Giv hvert mål en status, når kvartalet er gået.",
+      "empty": "Ingen mål for {quarter} endnu.",
+      "new": "Nyt mål for {quarter}",
+      "placeholder": "Vi har en teknisk funktionel applikation, der kan vise katalogdata",
+      "under": "Placering",
+      "topLevel": "Hovedmål",
+      "stretch": "Stretch",
+      "add": "Tilføj mål",
+      "titleFor": "Mål {code}",
+      "statusFor": "Status for mål {code}",
+      "deleteFor": "Slet mål {code}"
+    },
+    "cases": {
+      "label": "Sager til beslutning",
+      "heading": "Det, styregruppen skal tage stilling til",
+      "lead": "Åbne sager står på rapportens forside. Sæt en sag til besluttet, når den er afgjort, og skriv beslutningen i loggen.",
+      "new": "Ny sag",
+      "placeholder": "Indmeldelse af nye medlemmer under 18 år?",
+      "add": "Tilføj sag",
+      "title": "Titel",
+      "status": "Status",
+      "open": "Til beslutning",
+      "decided": "Besluttet",
+      "saved": "Sagen er gemt",
+      "delete": "Slet",
+      "deleteQuestion": "Slet sagen {title}?"
+    },
+    "decisions": {
+      "label": "Beslutningslog",
+      "heading": "Tidligere beslutninger",
+      "lead": "Beslutninger, der former planen, med hvornår og hvor de blev truffet, og om de forenkler eller komplicerer.",
+      "new": "Ny beslutning",
+      "placeholder": "CPR-nummer på alle medlemmer",
+      "add": "Tilføj beslutning",
+      "whenPlaceholder": "Marts 2026",
+      "forumPlaceholder": "Styregruppe",
+      "saved": "Beslutningen er gemt",
+      "delete": "Slet",
+      "deleteQuestion": "Slet beslutningen {title}?"
+    }
   }
 }

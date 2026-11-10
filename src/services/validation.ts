@@ -120,3 +120,47 @@ export const UpdateRiskSchema = z.object({
   status: z.enum(["open", "closed"]),
 });
 export const RiskIdSchema = z.object({ riskId: id });
+
+export const NewGoalSchema = z.object({
+  programId: id,
+  quarterIndex: z.number().int().min(-200).max(400),
+  title: text(400).min(1),
+  parentId: id.nullable(),
+  stretch: z.boolean(),
+});
+export const UpdateGoalSchema = z.object({
+  goalId: id,
+  title: text(400).min(1),
+  stretch: z.boolean(),
+  status: z.enum(["open", "achieved", "partial", "missed"]),
+});
+export const GoalIdSchema = z.object({ goalId: id });
+
+export const NewTitledSchema = z.object({ programId: id, title: text(200).min(1) });
+export const UpdateCaseSchema = z.object({
+  caseId: id,
+  title: text(200).min(1),
+  problem: text(4000),
+  background: text(4000),
+  keyPoints: text(4000),
+  nextSteps: text(4000),
+  status: z.enum(["open", "decided"]),
+});
+export const CaseIdSchema = z.object({ caseId: id });
+export const UpdateDecisionSchema = z.object({
+  decisionId: id,
+  title: text(200).min(1),
+  decidedOn: text(60),
+  forum: text(120),
+  decision: text(4000),
+  effect: z.enum(["simplifying", "complicating", "neutral", "pending"]),
+});
+export const DecisionIdSchema = z.object({ decisionId: id });
+
+export const SaveDraftSchema = z.object({
+  programId: id,
+  statusText: text(8000),
+  changeText: text(8000),
+  goalsQuarter: z.number().int().min(-200).max(400).nullable(),
+});
+export const PublishSchema = z.object({ programId: id, title: text(120).min(1) });

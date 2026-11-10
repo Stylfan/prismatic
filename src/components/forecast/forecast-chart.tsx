@@ -22,7 +22,7 @@ const COLORS = {
   text: "var(--color-slate)",
 };
 
-export async function ForecastChart({ view }: { view: ForecastView }) {
+export async function ForecastChart({ view }: { view: Omit<ForecastView, "rows"> }) {
   const t = await getTranslations("forecast.chart");
   const { result, milestones, currentIndex, axisLabels } = view;
   if (!result.stats) return <p className="text-sm text-slate">{t("noData")}</p>;

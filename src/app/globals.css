@@ -43,6 +43,17 @@
     outline-offset: 2px;
   }
 
+  @media print {
+    html,
+    body {
+      background: white;
+    }
+    @page {
+      size: A4 landscape;
+      margin: 14mm;
+    }
+  }
+
   /* Numbers line up in columns everywhere, so tables and tiles read at a glance. */
   .tabular {
     font-variant-numeric: tabular-nums;

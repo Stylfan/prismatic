@@ -12,7 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const t = await getTranslations("app");
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-hairline bg-paper/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-hairline bg-paper/90 backdrop-blur print:hidden">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-8">
           <Link href="/" className="text-ink" aria-label={t("home")}>
             <Wordmark />
@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </header>
-      <main id="content" className="mx-auto max-w-6xl px-8 py-14">
+      <main id="content" className="mx-auto max-w-6xl px-8 py-14 print:max-w-none print:p-0">
         {children}
       </main>
     </>

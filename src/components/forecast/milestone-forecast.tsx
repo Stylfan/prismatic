@@ -3,7 +3,7 @@ import { TEMPI } from "@/domain/forecast";
 import type { ForecastView } from "@/lib/forecast-view";
 
 /** When each milestone is reached in each tempo, and what the programme has cost by then. */
-export async function MilestoneForecast({ view }: { view: ForecastView }) {
+export async function MilestoneForecast({ view }: { view: Omit<ForecastView, "rows"> }) {
   const t = await getTranslations("forecast.milestones");
   const fmt = (n: number) => n.toLocaleString("da-DK");
   const kr = (n: number | null) => (n === null ? "" : t("cost", { amount: fmt(n) }));
