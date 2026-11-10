@@ -88,3 +88,12 @@ export const SplitItemSchema = z.object({
 });
 
 export const ItemIdSchema = z.object({ itemId: id });
+
+export const MoveItemSchema = z.object({ itemId: id, ...period });
+export const PlaceMilestoneSchema = z.object({ milestoneId: id, ...period });
+export const NewEventSchema = z.object({
+  programId: id,
+  quarterIndex: z.number().int().min(-200).max(400),
+  title: text(120).min(1),
+});
+export const EventIdSchema = z.object({ eventId: id });

@@ -223,3 +223,17 @@ export function removeMilestone(db: Db, userId: string, milestoneId: string) {
     return row.programId;
   });
 }
+
+/** Places a milestone in a column on the roadmap; the manager decides where, not the forecast. */
+export function placeMilestone(
+  db: Db,
+  userId: string,
+  input: { milestoneId: string; periodIndex: number | null; periodSpan: 1 | 2 },
+) {
+  const row = requireMilestone(db, userId, input.milestoneId);
+  db.update(milestones)
+    .set({ periodIndex: input.periodIndex, periodSpan: input.periodSpan })
+    .where(eq(milestones.id, row.id))
+    .run();
+  return row.programId;
+}

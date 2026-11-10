@@ -163,3 +163,17 @@ export function splitFeature(
     return next!.id;
   });
 }
+
+/** Moves a card to another period on the roadmap, or to "not yet planned". */
+export function moveItem(
+  db: Db,
+  userId: string,
+  input: { itemId: string; periodIndex: number | null; periodSpan: 1 | 2 },
+): string {
+  const row = requireItem(db, userId, input.itemId);
+  db.update(items)
+    .set({ periodIndex: input.periodIndex, periodSpan: input.periodSpan })
+    .where(eq(items.id, row.id))
+    .run();
+  return row.programId;
+}

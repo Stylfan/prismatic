@@ -141,3 +141,22 @@ describe("another user", () => {
     ).toThrow("notFound");
   });
 });
+
+describe("the roadmap of another user's programme", () => {
+  it("cannot be rearranged or given events", async () => {
+    const { moveItem: move } = await import("@/services/items");
+    const { placeMilestone } = await import("@/services/programs");
+    const { addEvent, listEvents, removeEvent } = await import("@/services/events");
+    expect(() => move(db, bob, { itemId, periodIndex: 5, periodSpan: 1 })).toThrow("notFound");
+    expect(() => placeMilestone(db, bob, { milestoneId, periodIndex: 5, periodSpan: 1 })).toThrow(
+      "notFound",
+    );
+    expect(() => addEvent(db, bob, { programId, quarterIndex: 5, title: "Strejke" })).toThrow(
+      "notFound",
+    );
+    addEvent(db, alice, { programId, quarterIndex: 5, title: "Onboarding" });
+    const eventId = listEvents(db, programId)[0]!.id;
+    expect(() => removeEvent(db, bob, eventId)).toThrow("notFound");
+    expect(listEvents(db, programId)).toHaveLength(1);
+  });
+});

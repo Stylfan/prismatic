@@ -36,7 +36,12 @@ Early. What works today:
   goal without a milestone, a card without an estimate, and a goal whose
   features differ from its estimate by the programme's threshold.
 
-Next: the drag-and-drop roadmap, the forecast, the risk log and report
+- A roadmap board: near quarters, three half-years and "Endnu ikke planlagt",
+  cards and milestones dragged between columns (or moved from a list), the
+  planned points per column, events in a quarter, a warning when a
+  milestone has work planned after it, and the delivered work by quarter.
+
+Next: the forecast, the risk log and report
 editions for each steering group meeting. [docs/adr](docs/adr/) records the decisions.
 
 ## Run it

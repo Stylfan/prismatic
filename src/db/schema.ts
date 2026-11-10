@@ -121,6 +121,10 @@ export const milestones = sqliteTable(
     /** This milestone's own scope in points, typed by hand; null means computed from its goals. */
     scopeOverride: integer("scope_override"),
     doneAt: integer("done_at"),
+    /** Where the manager placed it on the roadmap: a quarter index, null for not placed. */
+    periodIndex: integer("period_index"),
+    /** 1 for a quarter, 2 for a half-year starting at `period_index`. */
+    periodSpan: integer("period_span").notNull().default(1),
     ...timestamps,
   },
   (t) => [
@@ -185,5 +189,25 @@ export const items = sqliteTable(
 );
 
 export type Item = typeof items.$inferSelect;
+
+/**
+ * Something that happens in a quarter and changes what the team can do:
+ * onboarding, a workshop, an estimation day, holidays, a strike.
+ */
+export const programEvents = sqliteTable(
+  "program_events",
+  {
+    id: id(),
+    programId: text("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    quarterIndex: integer("quarter_index").notNull(),
+    title: text("title").notNull(),
+    ...timestamps,
+  },
+  (t) => [index("program_events_program_idx").on(t.programId, t.quarterIndex)],
+);
+
+export type ProgramEvent = typeof programEvents.$inferSelect;
 export type Program = typeof programs.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;

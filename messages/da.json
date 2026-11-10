@@ -125,6 +125,7 @@
   "tabs": {
     "label": "Programmets sider",
     "backlog": "Backlog",
+    "roadmap": "Roadmap",
     "setup": "Opsætning"
   },
   "backlog": {
@@ -261,6 +262,51 @@
       "tooMany": "For mange forsøg. Vent et kvarter, og prøv igen.",
       "signupClosed": "Tilmelding er lukket i denne installation.",
       "emailTaken": "Der findes allerede en konto med den e-mail."
+    }
+  },
+  "roadmap": {
+    "label": "Roadmap",
+    "title": "Hvornår arbejdet forventes færdigt",
+    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kolonnerne, eller brug listen på kortet. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
+    "viewLabel": "Vis",
+    "view": {
+      "both": "Mål og features",
+      "goals": "Kun forretningsmål",
+      "features": "Kun features"
+    },
+    "kind": {
+      "near": "Kvartal",
+      "far": "Halvår",
+      "unplanned": "Uden periode"
+    },
+    "unplanned": "Endnu ikke planlagt",
+    "planned": "{points} point planlagt",
+    "overdue": "Over tid",
+    "hasWarnings": "Har advarsler",
+    "legendBusiness": "Forretning",
+    "legendTechnical": "Teknisk",
+    "moveTo": "Flyt {title} til",
+    "moveOption": "Flyt til {column}",
+    "placeMilestone": "Placér {code}",
+    "notPlaced": "Ikke placeret",
+    "unplacedMilestones": "Milepæle uden placering. Træk dem til den kolonne, hvor de skal nås.",
+    "milestoneLater": "{count, plural, one {# kort hørende til milepælen ligger senere} other {# kort hørende til milepælen ligger senere}}",
+    "removeEvent": "Fjern {title}",
+    "events": {
+      "label": "Begivenheder",
+      "heading": "Det, der sker i et kvartal",
+      "lead": "Onboarding, skalering, estimeringsdag, workshop, ferie, strejke. De vises i kvartalets kolonne, så en ændring i fremdriften har sin forklaring ved siden af.",
+      "quarter": "Kvartal",
+      "title": "Begivenhed",
+      "placeholder": "Onboarding af to udviklere",
+      "add": "Tilføj"
+    },
+    "delivered": {
+      "label": "Færdiggjort arbejde",
+      "title": "Det, der er leveret",
+      "lead": "Kort, der er lukket, samlet efter det kvartal, de blev færdige i.",
+      "empty": "Intet er leveret endnu.",
+      "points": "{points} point"
     }
   }
 }
