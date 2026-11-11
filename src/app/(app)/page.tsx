@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/controls";
+import { DemoButton } from "@/components/program/demo-button";
 import { SectionLabel } from "@/components/ui/layout";
 import { requireUser } from "@/auth/session";
 import { withUser } from "@/db/client";
@@ -22,11 +23,13 @@ export default async function HomePage() {
         <div className="flex max-w-xl flex-col gap-3 rounded-lg border border-dashed border-hairline p-8">
           <h2 className="text-xl font-semibold">{t("emptyTitle")}</h2>
           <p className="text-sm leading-relaxed text-slate">{t("emptyBody")}</p>
-          <div>
+          <div className="flex flex-wrap items-start gap-2">
             <Link href="/programs/new" className={buttonClass("primary", "sm")}>
               {t("new")}
             </Link>
+            <DemoButton />
           </div>
+          <p className="text-[13px] text-slate">{t("demoHint")}</p>
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -52,7 +55,7 @@ export default async function HomePage() {
               </Link>
             </li>
           ))}
-          <li>
+          <li className="flex flex-col gap-2">
             <Link
               href="/programs/new"
               className="flex h-full min-h-40 items-center justify-center gap-2 rounded-lg border border-dashed border-hairline text-[14px] font-medium text-slate transition-colors hover:border-ink hover:text-ink"
@@ -60,6 +63,7 @@ export default async function HomePage() {
               <Plus className="size-4" aria-hidden />
               {t("new")}
             </Link>
+            <DemoButton />
           </li>
         </ul>
       )}

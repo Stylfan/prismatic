@@ -27,7 +27,10 @@
     "emptyBody": "Et program er det store projekt, du styrer. Giv det et navn, vælg hvordan dets kvartaler løber, og tilføj milepælene.",
     "milestoneCount": "{count, plural, =0 {Ingen milepæle endnu} one {# milepæl} other {# milepæle}}",
     "periodModel": "{model, select, calendar {Kalenderkvartaler} seasons {Årstider} other {Egen startdato}}",
-    "open": "Åbn {name}"
+    "open": "Åbn {name}",
+    "demo": "Se et eksempel",
+    "demoCreating": "Opretter eksemplet …",
+    "demoHint": "Eksemplet er et fuldt program med et års historik, roadmap, forecast, risici og en styregrupperapport. Det bliver dit eget, så du kan ændre i det og slette det igen."
   },
   "create": {
     "label": "Nyt program",

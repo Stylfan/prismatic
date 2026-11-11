@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { createDemoProgram } from "@/demo/create";
 import {
   addMilestone,
   createProgram,
@@ -37,6 +39,11 @@ function refresh<T>(result: Result<T>): Result<T> {
 
 export async function createProgramAction(raw: unknown): Promise<Result<string>> {
   return refresh(await run(ProgramFields, raw, createProgram));
+}
+
+/** The example programme, created afresh for the user to look around in and change. */
+export async function createDemoAction(): Promise<Result<string>> {
+  return refresh(await run(z.object({}), {}, (db, userId) => createDemoProgram(db, userId)));
 }
 
 export async function updateProgramAction(raw: unknown): Promise<Result<string>> {
