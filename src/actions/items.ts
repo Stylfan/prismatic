@@ -20,8 +20,8 @@ function refresh<T>(result: Result<T>, programId: string | null): Result<T> {
 const idOf = (r: Result<string>) => (r.ok ? r.data : null);
 
 export async function createItemAction(raw: unknown): Promise<Result<string>> {
-  const r = await run(NewItemSchema, raw, (db, userId, input) => {
-    createItem(db, userId, input);
+  const r = await run(NewItemSchema, raw, async (db, userId, input) => {
+    await createItem(db, userId, input);
     return input.programId;
   });
   return refresh(r, idOf(r));
@@ -40,8 +40,8 @@ export async function deleteItemAction(raw: unknown): Promise<Result<string>> {
 }
 
 export async function splitFeatureAction(raw: unknown): Promise<Result<string>> {
-  const r = await run(SplitItemSchema, raw, (db, userId, input) => {
-    splitFeature(db, userId, input);
+  const r = await run(SplitItemSchema, raw, async (db, userId, input) => {
+    await splitFeature(db, userId, input);
     return input.itemId;
   });
   // The id here is the item's, not the programme's, so refresh every programme page.

@@ -42,8 +42,8 @@ export async function createProgramAction(raw: unknown): Promise<Result<string>>
 }
 
 export async function updateProgramAction(raw: unknown): Promise<Result<string>> {
-  const r = await run(UpdateProgramSchema, raw, (db, userId, input) => {
-    updateProgram(db, userId, input);
+  const r = await run(UpdateProgramSchema, raw, async (db, userId, input) => {
+    await updateProgram(db, userId, input);
     return input.programId;
   });
   return refresh(r, idOf(r));
@@ -51,24 +51,24 @@ export async function updateProgramAction(raw: unknown): Promise<Result<string>>
 
 export async function deleteProgramAction(raw: unknown): Promise<Result<string>> {
   return refresh(
-    await run(ProgramIdSchema, raw, (db, userId, input) => {
-      deleteProgram(db, userId, input.programId);
+    await run(ProgramIdSchema, raw, async (db, userId, input) => {
+      await deleteProgram(db, userId, input.programId);
       return input.programId;
     }),
   );
 }
 
 export async function setSizePointsAction(raw: unknown): Promise<Result<string>> {
-  const r = await run(SetSizePointsSchema, raw, (db, userId, input) => {
-    setSizePoints(db, userId, input);
+  const r = await run(SetSizePointsSchema, raw, async (db, userId, input) => {
+    await setSizePoints(db, userId, input);
     return input.programId;
   });
   return refresh(r, idOf(r));
 }
 
 export async function addMilestoneAction(raw: unknown): Promise<Result<string>> {
-  const r = await run(NewMilestoneSchema, raw, (db, userId, input) => {
-    addMilestone(db, userId, input.programId, input.title);
+  const r = await run(NewMilestoneSchema, raw, async (db, userId, input) => {
+    await addMilestone(db, userId, input.programId, input.title);
     return input.programId;
   });
   return refresh(r, idOf(r));
