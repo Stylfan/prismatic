@@ -19,12 +19,15 @@ export function RoadmapCard({
   onMove,
   pending,
   drag,
+  compact = false,
 }: {
   card: BoardCard;
   columns: BoardColumn[];
   onMove: (card: BoardCard, column: number) => void;
   pending: boolean;
   drag: Piece;
+  /** One line, for the list of what is not yet planned. */
+  compact?: boolean;
 }) {
   const t = useTranslations("roadmap");
   const tb = useTranslations("backlog");
@@ -37,13 +40,16 @@ export function RoadmapCard({
       onDragOver={drag.onDragOver}
       onDrop={drag.onDrop}
       className={cn(
-        "group relative flex cursor-grab flex-col gap-1.5 rounded-md border border-hairline border-l-[3px] bg-surface px-2.5 py-2 transition-shadow hover:shadow-[0_1px_3px_rgba(31,45,51,0.12)] active:cursor-grabbing",
+        "group relative flex cursor-grab rounded-md border border-hairline border-l-[3px] bg-surface px-2.5 py-2 transition-shadow hover:shadow-[0_1px_3px_rgba(31,45,51,0.12)] active:cursor-grabbing",
+        compact ? "items-center gap-2" : "flex-col gap-1.5",
         card.track === "technical" ? "border-l-technical" : "border-l-business",
         pending && "opacity-60",
         drag.mark,
       )}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div
+        className={cn("flex items-start justify-between gap-2", compact && "order-last shrink-0")}
+      >
         <span
           className={cn(
             "rounded px-1.5 py-px text-[10px] font-semibold tracking-[0.04em]",
@@ -62,28 +68,35 @@ export function RoadmapCard({
           {card.milestoneCode && <span className="ml-1">· {card.milestoneCode}</span>}
         </span>
       </div>
-      <p className={cn("text-[13px] leading-snug", isGoal ? "font-semibold" : "font-medium")}>
+      <p
+        className={cn(
+          "text-[13px] leading-snug",
+          isGoal ? "font-semibold" : "font-medium",
+          compact && "min-w-0 flex-1 truncate",
+        )}
+      >
         {card.title}
       </p>
-      {(card.overdue ||
-        card.integration ||
-        card.warnings.length > 0 ||
-        card.status === "in_progress") && (
-        <div className="flex flex-wrap items-center gap-2 text-[11px]">
-          {card.status === "in_progress" && (
-            <span className="rounded-full bg-technical-soft px-2 py-px font-medium text-technical">
-              {tb("status.in_progress")}
-            </span>
-          )}
-          {card.overdue && <span className="font-semibold text-danger">{t("overdue")}</span>}
-          {card.integration && (
-            <Plug className="size-3.5 text-slate" aria-label={tb("row.integration")} />
-          )}
-          {card.warnings.length > 0 && (
-            <TriangleAlert className="size-3.5 text-warning" aria-label={t("hasWarnings")} />
-          )}
-        </div>
-      )}
+      {!compact &&
+        (card.overdue ||
+          card.integration ||
+          card.warnings.length > 0 ||
+          card.status === "in_progress") && (
+          <div className="flex flex-wrap items-center gap-2 text-[11px]">
+            {card.status === "in_progress" && (
+              <span className="rounded-full bg-technical-soft px-2 py-px font-medium text-technical">
+                {tb("status.in_progress")}
+              </span>
+            )}
+            {card.overdue && <span className="font-semibold text-danger">{t("overdue")}</span>}
+            {card.integration && (
+              <Plug className="size-3.5 text-slate" aria-label={tb("row.integration")} />
+            )}
+            {card.warnings.length > 0 && (
+              <TriangleAlert className="size-3.5 text-warning" aria-label={t("hasWarnings")} />
+            )}
+          </div>
+        )}
       <label className="sr-only" htmlFor={`move-${card.id}`}>
         {t("moveTo", { title: card.title })}
       </label>

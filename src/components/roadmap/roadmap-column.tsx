@@ -1,9 +1,9 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
+import { EventChip } from "./event-chip";
 import { MilestoneChip } from "./milestone-chip";
 import { RoadmapCard } from "./roadmap-card";
 import type { useBoardDrag } from "./use-board-drag";
@@ -65,10 +65,15 @@ export function RoadmapColumn({
       )}
     >
       <header className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className={cn("text-[14px] font-semibold", unplanned ? "text-slate" : "text-ink")}>
-            {col.label}
-          </h3>
+        <h3
+          className={cn(
+            "truncate text-[14px] font-semibold",
+            unplanned ? "text-slate" : "text-ink",
+          )}
+        >
+          {col.label}
+        </h3>
+        <div className="flex">
           {/* What is planned against what the tempo can carry here, both in points. */}
           <span
             className={cn(
@@ -81,6 +86,7 @@ export function RoadmapColumn({
               : t("pointsOf", {
                   points: col.load.toLocaleString("da-DK"),
                   capacity: col.capacity.toLocaleString("da-DK"),
+                  pct: col.pct ?? 0,
                 })}
           </span>
         </div>
@@ -97,30 +103,6 @@ export function RoadmapColumn({
         {!tone && col.range && <span className="text-[11px] text-slate tabular">{col.range}</span>}
       </header>
 
-      {col.events.length > 0 && (
-        <ul className="flex flex-col gap-1">
-          {col.events.map((ev) => (
-            <li
-              key={ev.id}
-              className="flex items-center justify-between gap-1 rounded-md border border-hairline bg-surface px-2 py-1 text-[11px]"
-            >
-              <span>
-                {col.kind === "far" && <span className="text-slate">{ev.quarter} · </span>}
-                {ev.title}
-              </span>
-              <button
-                type="button"
-                aria-label={t("removeEvent", { title: ev.title })}
-                className="rounded p-0.5 text-slate hover:bg-sand hover:text-ink"
-                onClick={() => onRemoveEvent(ev.id)}
-              >
-                <X className="size-3" aria-hidden />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
       <ul className="flex flex-col gap-1.5">
         {cards.map((card) => (
           <RoadmapCard
@@ -134,8 +116,16 @@ export function RoadmapColumn({
         ))}
       </ul>
 
-      {milestones.length > 0 && (
+      {(milestones.length > 0 || col.events.length > 0) && (
         <ul className="mt-auto flex flex-col gap-1.5 pt-1">
+          {col.events.map((ev) => (
+            <EventChip
+              key={ev.id}
+              event={ev}
+              showQuarter={col.kind === "far"}
+              onRemove={() => onRemoveEvent(ev.id)}
+            />
+          ))}
           {milestones.map((m) => (
             <MilestoneChip
               key={m.id}

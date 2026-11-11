@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { ChevronRight } from "lucide-react";
 import { requireUser } from "@/auth/session";
 import { AddRiskForm } from "@/components/risks/add-risk-form";
 import { RiskList } from "@/components/overview/risk-list";
@@ -50,9 +51,18 @@ export default async function RisksPage({ params }: Params) {
               <h2 className="text-[14px] font-semibold text-ink">{tr("openList")}</h2>
               <RiskList risks={open} />
               {closed.length > 0 && (
-                <p className="mt-auto text-[12px] text-slate">
-                  {tr("closedList", { list: closed.map((r) => r.number).join(", ") })}
-                </p>
+                <details className="group mt-auto border-t border-hairline-soft pt-2">
+                  <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[12px] text-slate hover:text-ink [&::-webkit-details-marker]:hidden">
+                    <ChevronRight
+                      className="size-3.5 transition-transform group-open:rotate-90"
+                      aria-hidden
+                    />
+                    {tr("closedList", { count: closed.length })}
+                  </summary>
+                  <div className="pt-1">
+                    <RiskList risks={closed} closed />
+                  </div>
+                </details>
               )}
             </Panel>
           </div>

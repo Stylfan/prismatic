@@ -3,8 +3,11 @@ import type { Risk } from "@/db/schema";
 import { riskBand, riskScore } from "@/domain/risk";
 import { cn } from "@/lib/cn";
 
-/** The open risks in number order beside the matrix, so a number can be read as a risk. */
-export async function RiskList({ risks }: { risks: Risk[] }) {
+/**
+ * Risks in number order beside the matrix, so a number can be read as a
+ * risk. Closed ones are struck through, as in the log.
+ */
+export async function RiskList({ risks, closed = false }: { risks: Risk[]; closed?: boolean }) {
   const t = await getTranslations("overview");
   if (risks.length === 0) return <p className="text-[13px] text-slate">{t("noRisks")}</p>;
   return (
@@ -18,13 +21,21 @@ export async function RiskList({ risks }: { risks: Risk[] }) {
               <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-paper tabular">
                 {r.number}
               </span>
-              <span className="min-w-0 flex-1 leading-snug first-letter:uppercase">{r.title}</span>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 leading-snug first-letter:uppercase",
+                  closed && "text-slate line-through",
+                )}
+              >
+                {r.title}
+              </span>
               <span
                 className={cn(
                   "shrink-0 rounded-full px-2 py-px text-[11px] font-semibold tabular",
-                  band === "high" && "bg-danger-soft text-danger",
-                  band === "medium" && "bg-warning-soft text-warning",
-                  band === "low" && "bg-success-soft text-success",
+                  closed && "bg-sand text-slate",
+                  !closed && band === "high" && "bg-danger-soft text-danger",
+                  !closed && band === "medium" && "bg-warning-soft text-warning",
+                  !closed && band === "low" && "bg-success-soft text-success",
                 )}
               >
                 {riskScore(r.probability, r.impact)}

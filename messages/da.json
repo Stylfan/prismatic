@@ -314,7 +314,7 @@
   "roadmap": {
     "label": "Roadmap",
     "title": "Hvornår arbejdet forventes færdigt",
-    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kolonnerne og op og ned i en kolonne, eller brug listen på kortet. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
+    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kvartalerne og op og ned i et kvartal, eller vælg kvartalet på kortet. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
     "viewLabel": "Vis",
     "view": {
       "both": "Mål og features",
@@ -359,7 +359,7 @@
       "near": "Nær horisont · kvartaler",
       "far": "Fjern horisont · halvår"
     },
-    "pointsOf": "{points} af {capacity} point",
+    "pointsOf": "{points} af {capacity} point ({pct} %)",
     "search": "Søg på roadmappet",
     "statusLabel": "Status",
     "status": {
@@ -371,7 +371,14 @@
       "title": "Milepæle, der endnu ikke er placeret på roadmappet",
       "lead": "Træk dem til den kolonne, hvor du ønsker dem placeret.",
       "empty": "Alle milepæle er placeret. Træk en milepæl hertil for at fjerne dens placering."
-    }
+    },
+    "unplannedList": {
+      "title": "Mål og features, der endnu ikke er planlagt",
+      "lead": "Træk dem til det kvartal, hvor du ønsker dem planlagt, eller vælg kvartalet på kortet.",
+      "empty": "Alt er planlagt. Træk et kort hertil for at fjerne det fra roadmappet igen.",
+      "points": "{points} point"
+    },
+    "eventMark": "Aktivitet eller begivenhed"
   },
   "forecast": {
     "label": "Fremdrift",
@@ -439,7 +446,7 @@
       "probability": "Sandsynlighed",
       "impact": "Konsekvens"
     },
-    "closedList": "Lukkede eller minimerede: {list}",
+    "closedList": "{count, plural, one {# lukket eller minimeret risiko} other {# lukkede eller minimerede risici}}",
     "log": {
       "label": "Risikolog",
       "title": "Risici og hvad der gøres ved dem",

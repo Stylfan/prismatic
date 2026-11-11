@@ -9,6 +9,7 @@ import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view"
 import { RoadmapColumn } from "./roadmap-column";
 import { RoadmapToolbar, type CardStatusFilter, type CardView } from "./roadmap-toolbar";
 import { UnplacedMilestones } from "./unplaced-milestones";
+import { UnplannedCards } from "./unplanned-cards";
 import { useBoardDrag, type DropAim, type Where } from "./use-board-drag";
 
 /** Puts an element just before or after another, or after the last of its column. */
@@ -26,9 +27,9 @@ function insert<T extends { id: string; column: number | null }>(
 }
 
 /**
- * The roadmap: the milestones not yet placed beside the panel for a
- * quarter's events, then the near quarters, and below them the far
- * half-years and "Endnu ikke planlagt". Cards and milestones are dragged
+ * The roadmap: the panel for a quarter's events beside what is not yet on
+ * the roadmap (milestones not placed, goals and features not planned),
+ * then the near quarters and below them the far half-years. Cards and milestones are dragged
  * between columns and up and down within one; each also has a list to
  * move it with the keyboard. Moves show at once and are saved behind.
  */
@@ -134,19 +135,10 @@ export function RoadmapBoard({
       (q === "" || c.title.toLowerCase().includes(q)),
   );
 
+  const unplannedAt = columns.length - 1;
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid items-stretch gap-6 xl:grid-cols-2">
-        <UnplacedMilestones
-          milestones={milestones.filter((m) => m.column === null)}
-          columns={columns}
-          pending={pending}
-          drag={drag}
-          onPlace={placeMilestone}
-        />
-        {eventsPanel}
-      </div>
-
       <RoadmapToolbar
         query={query}
         onQuery={setQuery}
@@ -157,10 +149,29 @@ export function RoadmapBoard({
         message={<StatusMessage status={status} />}
       />
 
+      <div className="grid items-start gap-6 xl:grid-cols-2">
+        {eventsPanel}
+        <div className="flex flex-col gap-6">
+          <UnplacedMilestones
+            milestones={milestones.filter((m) => m.column === null)}
+            columns={columns}
+            pending={pending}
+            drag={drag}
+            onPlace={placeMilestone}
+          />
+          <UnplannedCards
+            index={unplannedAt}
+            cards={visible.filter((c) => c.column === unplannedAt)}
+            columns={columns}
+            pending={pending}
+            drag={drag}
+            onMove={(card, column) => moveCard(card, column)}
+          />
+        </div>
+      </div>
+
       {(["near", "far"] as const).map((band) => {
-        const inBand = columns
-          .map((col, i) => ({ col, i }))
-          .filter(({ col }) => (band === "near" ? col.kind === "near" : col.kind !== "near"));
+        const inBand = columns.map((col, i) => ({ col, i })).filter(({ col }) => col.kind === band);
         if (inBand.length === 0) return null;
         return (
           <div key={band} className="flex flex-col gap-2">
