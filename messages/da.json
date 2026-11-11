@@ -214,7 +214,8 @@
       "deleteQuestion": "Slet {title}?",
       "deleteDetailGoal": "Forretningsmålet slettes. Dets features bliver liggende uden forretningsmål.",
       "deleteDetailFeature": "Featuren slettes. Det kan ikke fortrydes.",
-      "split": "Split feature"
+      "split": "Split feature",
+      "sizeTitle": "{points} point"
     },
     "split": {
       "title": "Split {title}",
@@ -236,6 +237,42 @@
       "noMilestone": "Ikke knyttet til en milepæl",
       "notEstimated": "Ikke estimeret",
       "deviation": "Features summerer til {featurePoints} point, {pct} % fra målets estimat på {estimate}"
+    },
+    "board": {
+      "search": "Søg i backloggen",
+      "status": "Status",
+      "filter": {
+        "open": "Åbne",
+        "all": "Alle",
+        "done": "Færdige"
+      },
+      "show": "Vis",
+      "tree": "Mål og features",
+      "goalsOnly": "Kun mål",
+      "addGoal": "Forretningsmål",
+      "goalTitle": "Nyt forretningsmål",
+      "milestone": "Milepæl",
+      "noMilestone": "Uden milepæl",
+      "add": "Tilføj",
+      "cancel": "Fortryd",
+      "addFeature": "Tilføj feature under {title}",
+      "featurePlaceholder": "Ny feature",
+      "hiddenDone": "{count, plural, one {# færdig feature er skjult} other {# færdige features er skjult}} · Vis",
+      "featureMeta": "{done} af {count} features færdige",
+      "fold": "Fold {title} sammen",
+      "unfold": "Fold {title} ud",
+      "warnings": "{count, plural, one {# advarsel} other {# advarsler}}",
+      "loose": "Features uden forretningsmål",
+      "emptyGroup": "Ingen forretningsmål endnu. Tilføj et med knappen øverst.",
+      "empty": "Backloggen er tom. Tilføj det første forretningsmål med knappen øverst.",
+      "noResults": "Intet passer til filtret.",
+      "col": {
+        "title": "Titel",
+        "period": "Periode",
+        "size": "Str.",
+        "points": "Point",
+        "status": "Status"
+      }
     }
   },
   "auth": {
