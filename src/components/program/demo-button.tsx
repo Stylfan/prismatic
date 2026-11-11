@@ -39,12 +39,13 @@ export function DemoButton({ tile, className }: { tile?: boolean; className?: st
         onClick={open}
         disabled={pending}
         className={cn(
-          "flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-hairline text-[14px] font-medium text-slate transition-colors hover:border-ink hover:text-ink disabled:opacity-60",
+          "relative flex h-full w-full items-center justify-center rounded-lg border border-dashed border-hairline text-[14px] font-medium text-slate transition-colors hover:border-ink hover:text-ink disabled:opacity-60",
           className,
         )}
       >
         <span className="flex items-center gap-2">{label}</span>
-        <StatusMessage status={status} />
+        {/* Out of the flow, so the label stays centred like the tile beside it. */}
+        <StatusMessage status={status} className="absolute inset-x-3 bottom-3 text-center" />
       </button>
     );
   }
