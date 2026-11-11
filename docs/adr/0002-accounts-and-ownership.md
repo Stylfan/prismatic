@@ -1,6 +1,6 @@
 # ADR 0002: Accounts, sessions and programme ownership
 
-Status: accepted · Date: 2026-11-10 · Revises ADR 0001 ("no login")
+Status: accepted, two-step sign-in and passkeys added by ADR 0004 · Date: 2026-11-10 · Revises ADR 0001 ("no login")
 
 ## Context
 

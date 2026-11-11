@@ -1,4 +1,4 @@
-﻿node_modules/
+node_modules/
 .next/
 out/
 build/
@@ -6,7 +6,7 @@ next-env.d.ts
 *.tsbuildinfo
 .env
 .env.local
-# The local database: everything you typed in. Back it up, never commit it.
+# The SQLite files from before Prismatic moved to Postgres. Never commit them.
 data/
 coverage/
 .DS_Store

@@ -18,8 +18,11 @@ The interface is in Danish.
 
 Early. What works today:
 
-- Accounts with e-mail and password. Each user sees only the programmes
-  they made.
+- Accounts with e-mail and password, two-step sign-in with an
+  authenticator app (and recovery codes), and passkeys. Each user sees
+  only the programmes they made, and the database itself enforces it.
+- Under **Konto**: download everything you own as a spreadsheet or as JSON,
+  and delete your account with everything in it.
 - Several programmes in one installation.
 - Per programme: a period model (calendar quarters, or the seasons with
   autumn from 1 September), a start date, how many quarters the near horizon
@@ -58,32 +61,53 @@ Early. What works today:
   moved (arrows in the matrix) or are new ("NY"), and shifted forecasts. It
   prints, or saves as PDF, in A4 landscape.
 
-Next: hosting and a share link for the steering group, import from Excel,
-CSV, DevOps or Jira, and an English interface.
+Next: a share link for the steering group, import from Excel, CSV, DevOps
+or Jira, and an English interface.
 
-## Run it
+## Run it on your own machine
 
-Requirements: Node 22 or newer and pnpm 10.
+Requirements: Node 22 or newer, pnpm 10 and Docker (for Postgres).
 
 ```bash
 git clone https://github.com/Stylfan/prismatic.git && cd prismatic
 pnpm install
-pnpm dev        # http://127.0.0.1:3000
+cp .env.example .env    # then set PRISMATIC_SECRET, see the file
+pnpm db:up              # Postgres in Docker on 127.0.0.1:5433
+pnpm db:migrate
+pnpm dev                # http://127.0.0.1:3000
 ```
 
-Everything you type in is stored in one SQLite file, `data/prismatic.db`,
-created on first start. Back it up by copying it. Set `PRISMATIC_DB` to
-keep it somewhere else.
-
-The first person to open the app creates the first account, and any
-programme already in the database becomes theirs. Sign-up then closes; set
-`PRISMATIC_SIGNUP=open` to let more people create accounts. The app listens
-on 127.0.0.1 only: it is meant to run on your own machine until hosting is
-in place.
+The first person to open the app creates the first account. Sign-up then
+closes; set `PRISMATIC_SIGNUP=open` to let more people create accounts.
 
 ```bash
 pnpm test && pnpm lint && pnpm typecheck
 ```
+
+The tests create and migrate their own database, `prismatic_test`, next to
+the development one.
+
+## Run it on a server
+
+One server, Docker Compose, Postgres, no cloud keys:
+[docs/self-hosting.md](docs/self-hosting.md).
+
+## The rules it lives by
+
+Prismatic follows the seven rules the [Haij](https://haij.dk) tools are
+built by.
+
+| Rule                              | How Prismatic meets it                                                                                                                                                                                                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 Real open source                | AGPL-3.0. What runs anywhere is this repository, nothing more.                                                                                                                                                                                                                 |
+| 2 Self-hosting                    | Docker Compose with one Postgres on one server; no cloud key, no network calls of its own, so it works offline. No language model is used.                                                                                                                                     |
+| 3 Your data, always               | One-click export as spreadsheet or JSON (reports as PDF), and complete deletion of the account and everything it owns.                                                                                                                                                         |
+| 4 EU or self-hosted               | [Who can see what](docs/subprocessors.md): nobody but the hosting you choose.                                                                                                                                                                                                  |
+| 5 The AI helps, the human decides | There is no AI in Prismatic; every number comes from what was typed in and a rule in `src/domain`.                                                                                                                                                                             |
+| 6 Secure from day one             | Row-level security in Postgres with a test proving it (`tests/isolation.test.ts`), an audit log no role can edit, passkeys and two-step sign-in, [SECURITY.md](SECURITY.md) for reporting, secrets only in the environment, CI that scans for secrets and audits dependencies. |
+| 7 Used for real                   | Built from real use on a programme at a customer.                                                                                                                                                                                                                              |
+
+Decisions and the trade-offs behind them are in [docs/adr](docs/adr).
 
 ## Licence and credits
 

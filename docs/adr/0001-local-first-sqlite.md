@@ -1,6 +1,6 @@
 # ADR 0001: A local-first tool on SQLite, started from parts of Ajour
 
-Status: accepted · Date: 2026-11-10
+Status: accepted, SQLite superseded by ADR 0003 · Date: 2026-11-10
 
 ## Context
 

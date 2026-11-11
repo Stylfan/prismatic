@@ -50,18 +50,29 @@ session.
 
 - Next.js 16 (App Router), TypeScript strict, Tailwind 4, next-intl with
   Danish messages in `messages/da.json`. Never hardcode UI strings.
-- SQLite through better-sqlite3 and Drizzle. One file, `data/prismatic.db`
-  (or `PRISMATIC_DB`); migrations in `drizzle/` run on open.
+- Postgres 16 through node-postgres and Drizzle (ADR 0003). Migrations in
+  `drizzle/`, applied by `scripts/migrate.mjs` as the owner; hand-written
+  SQL for roles, RLS, audit triggers and `delete_account()`. The app
+  connects as `prismatic_app` and runs programme work through
+  `withUser()` in `src/db/client.ts`, so row-level security applies.
 - `src/domain`: pure rules (periods, sizes, scope, forecast), fully tested.
   `src/services`: database work, each function taking a `Db`, tested
-  against an in-memory database. `src/actions`: server actions that
+  against the Postgres test database (`tests/db.ts`). `src/actions`: server actions that
   validate with zod and call a service. `src/components`, `src/app`: UI.
-- Accounts and sessions (ADR 0002): every service takes the acting user
-  and reaches data only through a programme that user owns; server actions
-  resolve the user in `src/actions/result.ts` before anything else. A new
-  table or service ships with an ownership test in `tests/ownership.test.ts`.
-- Local first: the server binds to 127.0.0.1. Hosting and share links come
-  later.
+- Accounts and sessions (ADR 0002, 0004): every service takes the acting
+  user and reaches data only through a programme that user owns; server
+  actions resolve the user in `src/actions/result.ts` before anything else.
+  Two-step sign-in (TOTP, recovery codes) and passkeys live in
+  `src/auth` and `src/services/factors.ts`.
+- Every new table that holds programme data ships with `program_id`,
+  forced RLS, an audit trigger, an entry in `delete_account()` if needed,
+  and tests in `tests/ownership.test.ts` and `tests/isolation.test.ts`.
+  The meta-test there fails a table without forced RLS. A new table also
+  goes into the export (`src/services/export.ts`).
+- Self-hosted: `docker-compose.yml` runs Postgres, the migrator and the
+  app on one server (`docs/self-hosting.md`). No network calls of our own,
+  no secrets in the code; `docs/subprocessors.md` lists who can see what
+  and changes before any new third party does.
 
 ## Visual identity
 
@@ -83,3 +94,4 @@ filled button per view.
    naming the trade-off accepted.
 6. Code, comments and docs in English; UI copy in Danish.
 7. Ask before adding a dependency or deleting files.
+8. Never weaken RLS, the audit log or sign-in to make a feature easier.

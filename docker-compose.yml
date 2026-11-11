@@ -1,0 +1,55 @@
+# Prismatic on one server: Postgres, a one-off migration step and the app.
+# No cloud service and no outside key is needed; cut the internet and it
+# keeps working. See docs/self-hosting.md.
+#
+#   cp .env.production.example .env.production   # fill in the three secrets
+#   docker compose --env-file .env.production up -d --build
+#
+# The app listens on 127.0.0.1:3000; put a reverse proxy with HTTPS in
+# front of it (Caddy, nginx, Coolify's Traefik).
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: prismatic
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d prismatic"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: migrator
+    environment:
+      MIGRATION_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/prismatic
+      PRISMATIC_APP_PASSWORD: ${PRISMATIC_APP_PASSWORD:?set PRISMATIC_APP_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    environment:
+      APP_DATABASE_URL: postgres://prismatic_app:${PRISMATIC_APP_PASSWORD}@db:5432/prismatic
+      PRISMATIC_SECRET: ${PRISMATIC_SECRET:?set PRISMATIC_SECRET}
+      PRISMATIC_URL: ${PRISMATIC_URL:?set PRISMATIC_URL}
+      PRISMATIC_SIGNUP: ${PRISMATIC_SIGNUP:-}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
