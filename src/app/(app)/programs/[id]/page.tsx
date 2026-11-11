@@ -89,60 +89,62 @@ export default async function OverviewPage({ params }: Params) {
             }
           />
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat
-              label={t("stats.delivered")}
-              value={fmt(delivered)}
-              note={total > 0 ? t("stats.ofTotal", { total: fmt(total) }) : undefined}
-            />
-            <Stat
-              label={t("stats.tempo", { count: TEMPO_QUARTERS })}
-              value={recent !== null ? fmt(recent) : "–"}
-              note={recent !== null ? t("stats.tempoNote") : t("stats.noTempo")}
-            />
-            <Stat
-              label={t("stats.next")}
-              value={next ? next.title : "–"}
-              note={
-                next
-                  ? t("stats.nextWhen", {
-                      code: next.code,
-                      when: next.at.avg?.label ?? t("stats.beyond"),
-                    })
-                  : forecast.milestones.length === 0
-                    ? t("stats.noMilestones")
-                    : t("stats.allReached")
-              }
-            />
-            <Stat
-              label={t("stats.risks")}
-              value={open.length}
-              note={high.length > 0 ? t("stats.high", { count: high.length }) : t("stats.noHigh")}
-              tone={high.length > 0 ? "danger" : "success"}
-            />
-          </div>
-
-          <Panel className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[14px] font-semibold text-ink">{t("milestones.title")}</h2>
-              <Link href={`${base}/forecast`} className="text-[12px] text-slate hover:text-ink">
-                {t("toForecast")}
-              </Link>
-            </div>
-            <MilestoneProgress milestones={progress} />
-            {total > 0 && (
-              <p className="flex justify-end border-t border-hairline pt-3 text-[13px] text-ink tabular">
-                <span>
-                  <span className="font-semibold">
-                    {t("milestones.total", { done: fmt(delivered), total: fmt(total) })}
-                  </span>{" "}
-                  <span className="text-slate">
-                    {t("milestones.totalPct", { pct: Math.round((delivered / total) * 100) })}
+          {/* The milestones on the left, the four figures two by two on the right. */}
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <Panel className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[14px] font-semibold text-ink">{t("milestones.title")}</h2>
+                <Link href={`${base}/forecast`} className="text-[12px] text-slate hover:text-ink">
+                  {t("toForecast")}
+                </Link>
+              </div>
+              <MilestoneProgress milestones={progress} />
+              {total > 0 && (
+                <p className="flex justify-end border-t border-hairline pt-3 text-[13px] text-ink tabular">
+                  <span>
+                    <span className="font-semibold">
+                      {t("milestones.total", { done: fmt(delivered), total: fmt(total) })}
+                    </span>{" "}
+                    <span className="text-slate">
+                      {t("milestones.totalPct", { pct: Math.round((delivered / total) * 100) })}
+                    </span>
                   </span>
-                </span>
-              </p>
-            )}
-          </Panel>
+                </p>
+              )}
+            </Panel>
+            <div className="grid grid-cols-2 gap-3">
+              <Stat
+                label={t("stats.delivered")}
+                value={fmt(delivered)}
+                note={total > 0 ? t("stats.ofTotal", { total: fmt(total) }) : undefined}
+              />
+              <Stat
+                label={t("stats.tempo", { count: TEMPO_QUARTERS })}
+                value={recent !== null ? fmt(recent) : "–"}
+                note={recent !== null ? t("stats.tempoNote") : t("stats.noTempo")}
+              />
+              <Stat
+                label={t("stats.next")}
+                value={next ? next.title : "–"}
+                note={
+                  next
+                    ? t("stats.nextWhen", {
+                        code: next.code,
+                        when: next.at.avg?.label ?? t("stats.beyond"),
+                      })
+                    : forecast.milestones.length === 0
+                      ? t("stats.noMilestones")
+                      : t("stats.allReached")
+                }
+              />
+              <Stat
+                label={t("stats.risks")}
+                value={open.length}
+                note={high.length > 0 ? t("stats.high", { count: high.length }) : t("stats.noHigh")}
+                tone={high.length > 0 ? "danger" : "success"}
+              />
+            </div>
+          </div>
 
           <Panel className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
