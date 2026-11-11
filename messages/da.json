@@ -255,7 +255,7 @@
       "noMilestone": "Uden milepæl",
       "add": "Tilføj",
       "cancel": "Fortryd",
-      "addFeature": "Tilføj feature under {title}",
+      "addFeature": "Tilføj feature",
       "featurePlaceholder": "Ny feature",
       "hiddenDone": "{count, plural, one {# færdig feature er skjult} other {# færdige features er skjult}} · Vis",
       "featureMeta": "{done} af {count} features færdige",
@@ -272,7 +272,10 @@
         "size": "Str.",
         "points": "Point",
         "status": "Status"
-      }
+      },
+      "reorder": "Flyt {title} i prioriteringen",
+      "reorderHint": "Træk for at flytte op eller ned. Piletasterne virker også.",
+      "reorderFailed": "Rækkefølgen kunne ikke gemmes. Prøv igen."
     }
   },
   "auth": {

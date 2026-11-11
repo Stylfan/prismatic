@@ -129,6 +129,8 @@ export const items = pgTable(
     }),
     milestoneId: text("milestone_id").references(() => milestones.id, { onDelete: "set null" }),
     title: text("title").notNull(),
+    /** A business goal's place in its milestone's priority, 0 first; null sorts after the ranked. */
+    rank: integer("rank"),
     description: text("description").notNull().default(""),
     track: text("track").$type<Track>().notNull().default("business"),
     size: text("size").$type<Size>(),

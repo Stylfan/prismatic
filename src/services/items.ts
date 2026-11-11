@@ -1,10 +1,15 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "@/db/client";
 import { items, milestones, programs, type Item } from "@/db/schema";
 import { isSizeForLevel } from "@/domain/sizes";
 import { NotFound, requireProgram } from "./programs";
-import type { NewItemSchema, SplitItemSchema, UpdateItemSchema } from "./validation";
+import type {
+  NewItemSchema,
+  RankGoalsSchema,
+  SplitItemSchema,
+  UpdateItemSchema,
+} from "./validation";
 
 /**
  * Business goals and features. Links are checked against the programme
@@ -21,7 +26,39 @@ export async function listItems(db: Db, programId: string): Promise<Item[]> {
     .select()
     .from(items)
     .where(eq(items.programId, programId))
-    .orderBy(asc(items.createdAt));
+    // Ranked goals in their order, then everything else as it was added.
+    .orderBy(sql`${items.rank} asc nulls last`, asc(items.createdAt));
+}
+
+/**
+ * Puts a milestone's business goals in a new order of priority. The list
+ * must be exactly that milestone's goals, no more and no fewer, in a
+ * programme the user owns; anything else throws NotFound and changes
+ * nothing.
+ */
+export async function rankGoals(db: Db, userId: string, input: z.infer<typeof RankGoalsSchema>) {
+  await requireProgram(db, userId, input.programId);
+  const goals = await db
+    .select({ id: items.id })
+    .from(items)
+    .where(
+      and(
+        eq(items.programId, input.programId),
+        eq(items.kind, "goal"),
+        input.milestoneId === null
+          ? isNull(items.milestoneId)
+          : eq(items.milestoneId, input.milestoneId),
+      ),
+    );
+  const known = new Set(goals.map((g) => g.id));
+  const asked = new Set(input.goalIds);
+  if (known.size !== asked.size || input.goalIds.some((id) => !known.has(id))) {
+    throw new NotFound();
+  }
+  for (const [rank, id] of input.goalIds.entries()) {
+    await db.update(items).set({ rank }).where(eq(items.id, id));
+  }
+  return input.programId;
 }
 
 async function requireItem(db: Db, userId: string, itemId: string): Promise<Item> {

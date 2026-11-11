@@ -7,7 +7,7 @@ import type { ItemView } from "./types";
 
 /** One grid for the header and every row, so the columns stand under each other. */
 export const TREE_COLS =
-  "grid grid-cols-[1.25rem_minmax(0,1fr)_8.5rem_2.5rem_4rem_6rem_1.25rem] items-center gap-x-3";
+  "grid grid-cols-[1rem_1.25rem_minmax(0,1fr)_12.5rem_2.5rem_4rem_6rem_1.25rem] items-center gap-x-3";
 
 const STATUS_STYLE = {
   planned: "border border-hairline text-slate",
@@ -16,8 +16,9 @@ const STATUS_STYLE = {
 } as const;
 
 /**
- * A business goal or a feature in the backlog tree. A goal can fold its
- * features away; a click on the row opens it in the side panel.
+ * A business goal or a feature in the backlog tree. A goal can be dragged
+ * by its grip and fold its features away; a click on the row opens it in
+ * the side panel.
  */
 export function TreeRow({
   item,
@@ -27,6 +28,7 @@ export function TreeRow({
   expanded,
   onToggle,
   meta,
+  handle,
 }: {
   item: ItemView;
   depth: 0 | 1;
@@ -35,6 +37,8 @@ export function TreeRow({
   expanded?: boolean;
   onToggle?: () => void;
   meta?: string;
+  /** The grip a goal is dragged by; features have none. */
+  handle?: React.ReactNode;
 }) {
   const t = useTranslations("backlog");
   const isGoal = item.kind === "goal";
@@ -49,6 +53,7 @@ export function TreeRow({
       )}
       onClick={onSelect}
     >
+      <span className="flex justify-center">{handle}</span>
       <span className="flex justify-center">
         {onToggle ? (
           <button

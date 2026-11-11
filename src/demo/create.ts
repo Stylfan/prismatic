@@ -115,6 +115,13 @@ export async function createDemoProgram(
   }
 
   const estimates = demoEstimates();
+  // Each milestone's goals ranked in the order they are listed.
+  const goalRank = new Map<string, number>();
+  for (const m of [...DEMO_MILESTONES.map((x) => x.key), undefined]) {
+    DEMO_ITEMS.filter((i) => i.kind === "goal" && i.milestone === m).forEach((g, n) =>
+      goalRank.set(g.key, n),
+    );
+  }
   const itemId = new Map<string, string>();
   for (const item of [...DEMO_ITEMS].sort((a, b) =>
     a.kind === b.kind ? 0 : a.kind === "goal" ? -1 : 1,
@@ -130,6 +137,7 @@ export async function createDemoProgram(
         track: item.track,
         size: item.size,
         pointsOverride: estimates.get(item.key) ?? null,
+        rank: goalRank.get(item.key) ?? null,
         integration: item.integration ?? false,
         parentId: item.parent ? itemId.get(item.parent)! : null,
         milestoneId: item.milestone ? milestoneId.get(item.milestone)! : null,

@@ -1,16 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createItemAction } from "@/actions/items";
-import { Segmented } from "@/components/ui/segmented";
 import { cn } from "@/lib/cn";
-import { AddGoal } from "./add-goal";
 import { AddRow } from "./add-row";
+import { BacklogToolbar, type StatusFilter } from "./backlog-toolbar";
+import { GroupHeader } from "./group-header";
 import { ItemEditor } from "./item-editor";
 import { TREE_COLS, TreeRow } from "./tree-row";
 import type { BacklogOptions, ItemView } from "./types";
+import { useGoalOrder } from "./use-goal-order";
 
 export type BacklogGroup = {
   key: string;
@@ -18,8 +19,6 @@ export type BacklogGroup = {
   progress?: { own: number; done: number };
   goalIds: string[];
 };
-
-type StatusFilter = "open" | "all" | "done";
 
 /**
  * The backlog as a tree, the way backlog tools lay it out: each milestone
@@ -42,8 +41,14 @@ export function BacklogBoard({
   const [filter, setFilter] = useState<StatusFilter>("open");
   const [query, setQuery] = useState("");
   const [goalsOnly, setGoalsOnly] = useState(false);
-  const [folded, setFolded] = useState<Set<string>>(new Set());
+  // Goals start folded; a goal opens to show its features and the row to add one.
+  const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Dragging goals to rank them: the grip arms a goal, the drop says where it lands.
+  const order = useGoalOrder(programId, groups);
+  const [armed, setArmed] = useState<string | null>(null);
+  const [dragging, setDragging] = useState<{ key: string; id: string } | null>(null);
+  const [dropAt, setDropAt] = useState<{ id: string; place: "before" | "after" } | null>(null);
 
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const featuresOf = (goalId: string) =>
@@ -59,27 +64,86 @@ export function BacklogBoard({
   const addFeature = (goalId: string) => (title: string) =>
     createItemAction({ programId, kind: "feature", title, parentId: goalId, milestoneId: null });
   const toggle = (id: string) =>
-    setFolded((prev) => {
+    setUnfolded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
 
-  const goalBlock = (goal: ItemView) => {
+  const goalBlock = (goal: ItemView, groupKey: string) => {
     const kids = featuresOf(goal.id);
     const shown = kids.filter((k) => fitsStatus(k) && (fitsQuery(k) || fitsQuery(goal)));
     const visible = (fitsStatus(goal) && fitsQuery(goal)) || shown.length > 0;
     if (!visible) return null;
     const hiddenDone =
       filter === "open" ? kids.filter((k) => k.status === "done" && fitsQuery(k)).length : 0;
-    const open = !goalsOnly && !folded.has(goal.id);
+    // A search or the finished filter opens the goals it finds something under.
+    const open =
+      !goalsOnly &&
+      (unfolded.has(goal.id) || ((q !== "" || filter === "done") && shown.length > 0));
     const doneCount = kids.filter((k) => k.status === "done").length;
     return (
-      <div key={goal.id} className="border-b border-hairline last:border-b-0">
+      <div
+        key={goal.id}
+        draggable
+        onDragStart={(e) => {
+          // Only the grip starts a drag; anywhere else in the row stays a click.
+          if (armed !== goal.id) return e.preventDefault();
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", goal.id);
+          setDragging({ key: groupKey, id: goal.id });
+        }}
+        onDragEnd={() => {
+          setDragging(null);
+          setDropAt(null);
+          setArmed(null);
+        }}
+        onDragOver={(e) => {
+          if (!dragging || dragging.key !== groupKey || dragging.id === goal.id) return;
+          e.preventDefault();
+          const box = e.currentTarget.getBoundingClientRect();
+          const place = e.clientY < box.top + box.height / 2 ? "before" : "after";
+          if (dropAt?.id !== goal.id || dropAt.place !== place) setDropAt({ id: goal.id, place });
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (dragging && dropAt) order.move(groupKey, dragging.id, dropAt.id, dropAt.place);
+          setDragging(null);
+          setDropAt(null);
+          setArmed(null);
+        }}
+        className={cn(
+          "border-b border-hairline last:border-b-0",
+          dragging?.id === goal.id && "opacity-50",
+          dropAt?.id === goal.id &&
+            (dropAt.place === "before"
+              ? "shadow-[inset_0_2px_0_var(--color-ink)]"
+              : "shadow-[inset_0_-2px_0_var(--color-ink)]"),
+        )}
+      >
         <TreeRow
           item={goal}
           depth={0}
+          handle={
+            <button
+              type="button"
+              aria-label={t("reorder", { title: goal.title })}
+              title={t("reorderHint")}
+              onPointerDown={() => setArmed(goal.id)}
+              onPointerUp={() => !dragging && setArmed(null)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                  order.step(groupKey, goal.id, e.key === "ArrowUp" ? -1 : 1);
+                }
+              }}
+              className="cursor-grab rounded p-0.5 text-slate/60 hover:bg-sand hover:text-ink active:cursor-grabbing"
+            >
+              <GripVertical className="size-3.5" aria-hidden />
+            </button>
+          }
           selected={selectedId === goal.id}
           onSelect={() => setSelectedId(goal.id)}
           expanded={open}
@@ -109,12 +173,13 @@ export function BacklogBoard({
                 )}
               >
                 <span />
+                <span />
                 <span className="pl-5">{t("hiddenDone", { count: hiddenDone })}</span>
               </button>
             )}
             <AddRow
               indent
-              label={t("addFeature", { title: goal.title })}
+              label={t("addFeature")}
               placeholder={t("featurePlaceholder")}
               create={addFeature(goal.id)}
             />
@@ -127,64 +192,35 @@ export function BacklogBoard({
   const looseShown = goalsOnly ? [] : loose.filter((f) => fitsStatus(f) && fitsQuery(f));
   const blocks = groups
     .map((g) => {
-      const goals = g.goalIds.map((id) => byId.get(id)).filter((x): x is ItemView => !!x);
-      const rendered = goals.map(goalBlock).filter(Boolean);
+      const goals = order
+        .orderOf(g.key)
+        .map((id) => byId.get(id))
+        .filter((x): x is ItemView => !!x);
+      const rendered = goals.map((goal) => goalBlock(goal, g.key)).filter(Boolean);
       return { group: g, rendered, empty: goals.length === 0 };
     })
     .filter((b) => b.rendered.length > 0 || (!filtering && b.empty));
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <label className="relative">
-          <span className="sr-only">{t("search")}</span>
-          <Search
-            className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-slate"
-            aria-hidden
-          />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("search")}
-            className="h-8 w-60 rounded-md border border-hairline bg-surface pr-2 pl-8 text-[13px] text-ink placeholder:text-slate/70 focus:border-ink focus:outline-none"
-          />
-        </label>
-        <span className="flex items-center gap-2 text-[12px] text-slate">
-          {t("status")}
-          <Segmented<StatusFilter>
-            name="backlog-status"
-            label={t("status")}
-            value={filter}
-            options={(["open", "all", "done"] as const).map((v) => ({
-              value: v,
-              label: t(`filter.${v}`),
-            }))}
-            onChange={setFilter}
-          />
-        </span>
-        <span className="flex items-center gap-2 text-[12px] text-slate">
-          {t("show")}
-          <Segmented<"tree" | "goals">
-            name="backlog-view"
-            label={t("show")}
-            value={goalsOnly ? "goals" : "tree"}
-            options={[
-              { value: "tree", label: t("tree") },
-              { value: "goals", label: t("goalsOnly") },
-            ]}
-            onChange={(v) => setGoalsOnly(v === "goals")}
-          />
-        </span>
-        <span className="flex-1" />
-        <AddGoal programId={programId} options={options} />
-      </div>
+      <BacklogToolbar
+        programId={programId}
+        options={options}
+        query={query}
+        onQuery={setQuery}
+        filter={filter}
+        onFilter={setFilter}
+        goalsOnly={goalsOnly}
+        onGoalsOnly={setGoalsOnly}
+      />
+      {order.failed && <p className="text-[13px] text-danger">{t("reorderFailed")}</p>}
 
       <div
         className={cn("grid items-start gap-4", selected && "lg:grid-cols-[minmax(0,1fr)_22rem]")}
       >
         <div className="flex min-w-0 flex-col gap-5">
           <div className={cn(TREE_COLS, "px-3 text-[12px] text-slate")} aria-hidden>
+            <span />
             <span />
             <span>{t("col.title")}</span>
             <span>{t("col.period")}</span>
@@ -239,40 +275,6 @@ export function BacklogBoard({
           </aside>
         )}
       </div>
-    </div>
-  );
-}
-
-/** A milestone's name and its own progress, the same figure and bar as on the overview. */
-function GroupHeader({
-  label,
-  progress,
-}: {
-  label: string;
-  progress?: { own: number; done: number };
-}) {
-  const t = useTranslations("backlog.groups");
-  const fmt = (n: number) => Math.round(n).toLocaleString("da-DK");
-  const share = progress && progress.own > 0 ? Math.min(1, progress.done / progress.own) : 0;
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-[14px] font-semibold text-ink">{label}</h2>
-        {progress && progress.own > 0 && (
-          <span className="text-[12px] text-slate tabular">
-            {t("progress", {
-              pct: Math.round(share * 100),
-              done: fmt(progress.done),
-              own: fmt(progress.own),
-            })}
-          </span>
-        )}
-      </div>
-      {progress && progress.own > 0 && (
-        <div className="h-1.5 overflow-hidden rounded-full bg-sand">
-          <div className="h-full rounded-full bg-ink" style={{ width: `${share * 100}%` }} />
-        </div>
-      )}
     </div>
   );
 }

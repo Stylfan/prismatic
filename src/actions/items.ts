@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createItem, deleteItem, splitFeature, updateItem } from "@/services/items";
+import { createItem, deleteItem, rankGoals, splitFeature, updateItem } from "@/services/items";
 import {
   ItemIdSchema,
   NewItemSchema,
+  RankGoalsSchema,
   SplitItemSchema,
   UpdateItemSchema,
 } from "@/services/validation";
@@ -47,4 +48,10 @@ export async function splitFeatureAction(raw: unknown): Promise<Result<string>> 
   // The id here is the item's, not the programme's, so refresh every programme page.
   if (r.ok) revalidatePath("/programs", "layout");
   return r;
+}
+
+/** A milestone's business goals in a new order of priority. */
+export async function rankGoalsAction(raw: unknown): Promise<Result<string>> {
+  const r = await run(RankGoalsSchema, raw, rankGoals);
+  return refresh(r, idOf(r));
 }

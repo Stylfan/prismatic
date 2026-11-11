@@ -89,6 +89,12 @@ export const SplitItemSchema = z.object({
 
 export const ItemIdSchema = z.object({ itemId: id });
 
+export const RankGoalsSchema = z.object({
+  programId: id,
+  milestoneId: id.nullable(),
+  goalIds: z.array(id).min(1).max(500),
+});
+
 export const MoveItemSchema = z.object({ itemId: id, ...period });
 export const PlaceMilestoneSchema = z.object({ milestoneId: id, ...period });
 export const NewEventSchema = z.object({

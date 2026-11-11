@@ -42,6 +42,7 @@ export function AddRow({
           "w-full border-b border-hairline-soft bg-surface px-3 py-1.5 text-left text-[12px] text-slate last:border-b-0 hover:bg-sand/50 hover:text-ink",
         )}
       >
+        <span />
         <span className="flex justify-center">
           <Plus className="size-3.5" aria-hidden />
         </span>
@@ -71,6 +72,7 @@ export function AddRow({
         });
       }}
     >
+      <span />
       <span className="flex justify-center text-slate">
         <Plus className="size-3.5" aria-hidden />
       </span>
