@@ -24,7 +24,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             >
               {t("programs")}
             </Link>
-            <span className="text-[13px] text-slate">{user.name || user.email}</span>
+            <Link
+              href="/account"
+              title={t("account")}
+              className="text-[13px] text-slate underline-offset-4 hover:text-ink hover:underline"
+            >
+              {user.name || user.email}
+            </Link>
             <LogoutButton />
           </nav>
         </div>

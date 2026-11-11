@@ -4,7 +4,8 @@
     "skipToContent": "Spring til indholdet",
     "home": "Prismatic, til forsiden",
     "navLabel": "Hovedmenu",
-    "programs": "Programmer"
+    "programs": "Programmer",
+    "account": "Konto"
   },
   "errors": {
     "invalid": "Noget i det du skrev kunne ikke bruges. Se felterne igennem.",
@@ -248,7 +249,7 @@
     "loginTitle": "Log ind på Prismatic",
     "registerLabel": "Opret konto",
     "registerTitle": "Opret din konto",
-    "firstAccount": "Det er den første konto i denne installation. Programmer, der allerede ligger her, bliver dine.",
+    "firstAccount": "Det er den første konto i denne installation. Bagefter lukker tilmeldingen, medmindre den, der driver installationen, åbner den.",
     "closedTitle": "Tilmelding er lukket",
     "closedBody": "Denne installation tager ikke imod nye konti. Den, der driver den, kan åbne for tilmelding.",
     "name": "Navn",
@@ -569,6 +570,51 @@
       "saved": "Beslutningen er gemt",
       "delete": "Slet",
       "deleteQuestion": "Slet beslutningen {title}?"
+    }
+  },
+  "account": {
+    "label": "Konto",
+    "title": "Din konto",
+    "export": {
+      "label": "Dine data",
+      "title": "Tag alt med dig",
+      "lead": "Hent alt, hvad din konto ejer: programmer, backlog, milepæle, fremdrift, risici, rapporter, udgivne udgaver og ændringsloggen. I åbne formater, som du kan læse uden Prismatic.",
+      "xlsx": "Hent som regneark (.xlsx)",
+      "json": "Hent som JSON",
+      "pdf": "En styregrupperapport gemmes som PDF fra rapportens egen side med »Udskriv / gem som PDF«.",
+      "yes": "ja",
+      "no": "nej",
+      "sheets": {
+        "programs": "Programmer",
+        "sizes": "Størrelser",
+        "milestones": "Milepæle",
+        "items": "Backlog",
+        "events": "Begivenheder",
+        "quarterRecords": "Kvartaler",
+        "risks": "Risici",
+        "quarterGoals": "Kvartalsmål",
+        "decisionCases": "Beslutningssager",
+        "decisions": "Beslutningslog",
+        "reportDrafts": "Rapporttekster",
+        "reportEditions": "Udgaver",
+        "auditLog": "Ændringslog"
+      }
+    },
+    "delete": {
+      "label": "Slet konto",
+      "title": "Forlad Prismatic",
+      "lead": "Sletter din konto og alt, hvad den ejer, også ændringsloggen. Hent dine data først, hvis du vil beholde dem.",
+      "open": "Slet min konto",
+      "question": "Slet din konto for altid?",
+      "detail": "Alle dine programmer, rapporter og udgaver og hele ændringsloggen slettes med det samme. Det kan ikke fortrydes.",
+      "confirmLabel": "Skriv {email} for at bekræfte",
+      "cancel": "Fortryd",
+      "confirm": "Slet alt",
+      "errors": {
+        "unauthorized": "Du er ikke logget ind længere.",
+        "mismatch": "E-mailen passer ikke med din konto.",
+        "generic": "Det lykkedes ikke. Intet er slettet. Prøv igen."
+      }
     }
   }
 }
