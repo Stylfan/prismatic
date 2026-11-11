@@ -16,7 +16,8 @@
     "cancel": "Annullér",
     "save": "Gem",
     "saving": "Gemmer …",
-    "saved": "Gemt"
+    "saved": "Gemt",
+    "howToRead": "Sådan læses siden"
   },
   "programs": {
     "label": "Overblik",
@@ -103,19 +104,18 @@
   "milestones": {
     "label": "Milepæle",
     "title": "Milepæle",
-    "lead": "Milepælene nås i rækkefølge og bygger ovenpå hinanden: M2 er alt i M1 plus det, der er planlagt til M2.",
+    "lead": "Hver milepæl har sit eget guestimat: summen af dens forretningsmål. Forecastet lægger dem sammen i rækkefølge, så M2 nås, når M1 og M2 tilsammen er leveret.",
     "empty": "Ingen milepæle endnu. Tilføj den første herunder.",
     "code": "M{seq}",
     "titleLabel": "Milepælens navn",
     "description": "Beskrivelse",
-    "scope": "Eget scope (point)",
-    "scopePlaceholder": "Beregnes",
-    "scopeHint": "Tomt betyder, at scope beregnes ud fra forretningsmålene og de features, der hører direkte til milepælen. Skriv et tal for at overskrive det.",
+    "scope": "Eget guestimat (point)",
+    "scopeHint": "Tomt betyder, at guestimatet er summen af milepælens forretningsmål og de features, der hører direkte til den. Skriv et tal for at overskrive det.",
     "cumulative": "I alt til og med {code}",
     "points": "{points} point",
     "add": "Tilføj milepæl",
     "addLabel": "Ny milepæl",
-    "addPlaceholder": "Vi kan repræsentere et medlemskab",
+    "addPlaceholder": "Vi kan repræsentere en kunde",
     "up": "Flyt {code} op",
     "down": "Flyt {code} ned",
     "done": "Nået",
@@ -123,7 +123,8 @@
     "remove": "Fjern",
     "removeQuestion": "Fjern milepæl {code}?",
     "removeDetail": "Milepælen fjernes, og de efterfølgende rykker et nummer op.",
-    "scopeComputed": "{points} beregnet"
+    "own": "Guestimat",
+    "fromGoals": "fra forretningsmålene"
   },
   "backlog": {
     "label": "Backlog",
@@ -146,7 +147,7 @@
       "goal": "Forretningsmål",
       "feature": "Feature",
       "titleLabel": "Titel",
-      "goalPlaceholder": "Medlemskab",
+      "goalPlaceholder": "Selvbetjening for kunder",
       "featurePlaceholder": "Beskæftigelse",
       "milestone": "Milepæl",
       "parent": "Forretningsmål",
@@ -155,15 +156,16 @@
       "added": "{title} er tilføjet"
     },
     "groups": {
-      "milestone": "{code} · {title}",
+      "milestone": "{code}: {title}",
       "noMilestone": "Forretningsmål uden milepæl",
       "looseFeatures": "Features uden forretningsmål",
       "empty": "Backloggen er tom. Tilføj det første forretningsmål ovenfor.",
-      "emptyGroup": "Ingen forretningsmål endnu."
+      "emptyGroup": "Ingen forretningsmål endnu.",
+      "progress": "{pct} % · {done} af {own} point"
     },
     "kind": {
-      "goal": "FM",
-      "feature": "F",
+      "goal": "Forretningsmål",
+      "feature": "Feature",
       "goalLong": "Forretningsmål",
       "featureLong": "Feature"
     },
@@ -313,13 +315,12 @@
       "empty": "Intet er leveret endnu.",
       "points": "{points} point"
     },
-    "plannedPct": "{points} point planlagt · {pct} % af kapaciteten",
-    "points": "{points} pt",
-    "capacityPct": "{pct} % af kapaciteten",
+    "points": "{points} point",
     "band": {
       "near": "Nær horisont · kvartaler",
       "far": "Fjern horisont · halvår"
-    }
+    },
+    "pointsOf": "{points} af {capacity} point"
   },
   "forecast": {
     "label": "Fremdrift",
@@ -387,8 +388,6 @@
       "probability": "Sandsynlighed",
       "impact": "Konsekvens"
     },
-    "mostSerious": "Mest alvorlige",
-    "noneOpen": "Ingen åbne risici.",
     "closedList": "Lukkede eller minimerede: {list}",
     "log": {
       "label": "Risikolog",
@@ -397,7 +396,7 @@
     },
     "add": {
       "label": "Ny risiko: der er en risiko for, at …",
-      "placeholder": "migrering af data fra MR4 Basis viser sig mere omfangsrigt end forventet",
+      "placeholder": "migrering af data fra det gamle system viser sig mere omfattende end forventet",
       "submit": "Tilføj risiko"
     },
     "fields": {
@@ -422,7 +421,8 @@
     "saved": "Risiko {number} er gemt",
     "delete": "Slet",
     "deleteQuestion": "Slet risiko {number}?",
-    "deleteDetail": "Risikoen slettes fra loggen. Nummeret bliver ikke brugt igen. Vil du bevare historikken, så sæt den til lukket i stedet."
+    "deleteDetail": "Risikoen slettes fra loggen. Nummeret bliver ikke brugt igen. Vil du bevare historikken, så sæt den til lukket i stedet.",
+    "openList": "Åbne risici"
   },
   "report": {
     "kicker": "Statusrapport",
@@ -449,14 +449,17 @@
     },
     "figures": {
       "delivered": "Leveret",
-      "of": "af {scope} point",
-      "velocity": "Middel tempo",
+      "of": "af {scope} point i forretningsmålene",
+      "velocity": "Gennemsnit",
       "perQuarter": "point pr. kvartal ved fuld kapacitet",
       "next": "Næste milepæl",
       "beyond": "Ud over horisonten",
       "allReached": "Alle er nået",
       "risks": "Risici",
-      "open": "åbne"
+      "open": "åbne",
+      "tempo": "Gennemsnitligt tempo, seneste 3 kvartaler",
+      "tempoNote": "Point leveret pr. kvartal i snit",
+      "nextWhen": "{code} · forecast {when}"
     },
     "goalStatus": {
       "open": "Ikke vurderet",
@@ -497,7 +500,7 @@
       "moved": "Flyttet: {title}, fra {from} til {to}",
       "reestimated": "Re-estimeret: {title}, fra {from} til {to} point",
       "unplanned": "endnu ikke planlagt",
-      "milestone": "{code} ved middel tempo: fra {from} til {to}",
+      "milestone": "{code}, gennemsnit: fra {from} til {to}",
       "riskNew": "Ny risiko {number}: {title}",
       "riskClosed": "Lukket: risiko {number}, {title}",
       "riskMoved": "Risiko {number} flyttet fra {from} til {to} (sandsynlighed/konsekvens)"
@@ -556,7 +559,7 @@
       "heading": "Det, styregruppen skal tage stilling til",
       "lead": "Åbne sager står på rapportens forside. Sæt en sag til besluttet, når den er afgjort, og skriv beslutningen i loggen.",
       "new": "Ny sag",
-      "placeholder": "Indmeldelse af nye medlemmer under 18 år?",
+      "placeholder": "Skal kunder under 18 år kunne oprettes?",
       "add": "Tilføj sag",
       "title": "Titel",
       "status": "Status",
@@ -571,7 +574,7 @@
       "heading": "Tidligere beslutninger",
       "lead": "Beslutninger, der former planen, med hvornår og hvor de blev truffet, og om de forenkler eller komplicerer.",
       "new": "Ny beslutning",
-      "placeholder": "CPR-nummer på alle medlemmer",
+      "placeholder": "Personnummer på alle kunder",
       "add": "Tilføj beslutning",
       "whenPlaceholder": "Marts 2026",
       "forumPlaceholder": "Styregruppe",

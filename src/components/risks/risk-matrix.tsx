@@ -13,6 +13,8 @@ export type MatrixRisk = {
   number: number;
   probability: number;
   impact: number;
+  /** Shown when the mouse rests on the number. */
+  title?: string;
   /** Where it stood in the previous edition, if anywhere else. */
   previous?: { probability: number; impact: number } | null;
 };
@@ -138,7 +140,8 @@ export async function RiskMatrix({ risks }: { risks: MatrixRisk[] }) {
         group.map((r, n) => {
           const { dx, dy } = offset(n, group.length);
           return (
-            <g key={r.id}>
+            <g key={r.id} className="cursor-default">
+              {r.title && <title>{`${r.number}: ${r.title}`}</title>}
               <circle
                 cx={cx(r.probability) + dx}
                 cy={cy(r.impact) + dy}

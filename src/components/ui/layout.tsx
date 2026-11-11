@@ -1,3 +1,5 @@
+import { CircleHelp } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/cn";
 
 /**
@@ -35,10 +37,11 @@ export function SectionLabel({
 
 /**
  * The bar at the top of every page: where you are (the programme, quietly),
- * the page's name, an optional one-line note, and the page's actions.
+ * the page's name, how to read it behind a small question mark, and the
+ * page's actions.
  * Sticky, so the actions stay in reach while the page scrolls.
  */
-export function PageHeader({
+export async function PageHeader({
   label,
   title,
   lead,
@@ -49,6 +52,7 @@ export function PageHeader({
   lead?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
+  const t = await getTranslations("common");
   return (
     <header className="sticky top-0 z-30 -mx-8 flex min-h-14 flex-wrap items-center gap-x-4 gap-y-1 border-b border-hairline bg-paper/95 px-8 py-2.5 backdrop-blur print:hidden">
       <div className="flex min-w-0 items-baseline gap-2.5">
@@ -61,7 +65,18 @@ export function PageHeader({
           </>
         )}
         <h1 className="shrink-0 text-[15px] font-semibold text-ink">{title}</h1>
-        {lead && <span className="hidden truncate text-[13px] text-slate lg:inline">{lead}</span>}
+        {/* How to read the page, folded behind a small question mark until asked for. */}
+        {lead && (
+          <details className="group relative self-center">
+            <summary className="flex size-6 cursor-pointer list-none items-center justify-center rounded-full text-slate hover:bg-sand hover:text-ink group-open:bg-sand group-open:text-ink [&::-webkit-details-marker]:hidden">
+              <CircleHelp className="size-4" aria-hidden />
+              <span className="sr-only">{t("howToRead")}</span>
+            </summary>
+            <div className="absolute top-full left-0 z-40 mt-2 w-96 rounded-lg border border-hairline bg-surface p-4 text-[13px] leading-relaxed text-slate shadow-[0_8px_24px_rgba(31,45,51,0.12)]">
+              {lead}
+            </div>
+          </details>
+        )}
       </div>
       {actions && <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div>}
     </header>

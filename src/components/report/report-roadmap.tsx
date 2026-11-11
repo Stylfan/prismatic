@@ -37,9 +37,12 @@ export async function ReportRoadmap({
             <header className="border-b border-hairline-soft pb-1.5">
               <h4 className="text-[12px] leading-snug font-semibold">{col.label}</h4>
               <p className="tabular text-[10px] text-slate">
-                {col.pct === null
+                {col.capacity === null || col.capacity === undefined
                   ? t("planned", { points: col.load.toLocaleString("da-DK") })
-                  : t("plannedPct", { points: col.load.toLocaleString("da-DK"), pct: col.pct })}
+                  : t("pointsOf", {
+                      points: col.load.toLocaleString("da-DK"),
+                      capacity: col.capacity.toLocaleString("da-DK"),
+                    })}
               </p>
             </header>
             {col.events.map((e) => (

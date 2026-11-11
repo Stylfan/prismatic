@@ -25,6 +25,8 @@ export type BoardColumn = {
   load: number;
   /** Planned points as a share of what the average tempo can deliver here; null before a forecast exists. */
   pct: number | null;
+  /** The points the average tempo can deliver here at the planned capacity; null before a forecast exists. */
+  capacity: number | null;
   events: Array<{ id: string; title: string; quarter: string }>;
 };
 
@@ -59,12 +61,16 @@ export async function buildRoadmapView(
   const load = columnLoad(sizes, periods, rows);
   const quarterName = (i: number) => formatPeriodLabel(tp, quarterLabel(settings, i));
 
-  const pctOf = (p: { index: number; span: number }, points: number) => {
+  const canOf = (p: { index: number; span: number }) => {
     if (capacity.avgVelocity === null) return null;
     let can = 0;
     for (let k = 0; k < p.span; k += 1)
       can += (capacity.avgVelocity * capacity.capacityPct(p.index + k)) / 100;
-    return can > 0 ? Math.round((points / can) * 100) : null;
+    return can > 0 ? Math.round(can) : null;
+  };
+  const pctOf = (p: { index: number; span: number }, points: number) => {
+    const can = canOf(p);
+    return can === null ? null : Math.round((points / can) * 100);
   };
 
   const columns: BoardColumn[] = periods.map((p, i) => ({
@@ -76,6 +82,7 @@ export async function buildRoadmapView(
     kind: p.span === 1 ? "near" : "far",
     load: load[i] ?? 0,
     pct: pctOf(p, load[i] ?? 0),
+    capacity: canOf(p),
     events: events
       .filter((e) => e.quarterIndex >= p.index && e.quarterIndex < p.index + p.span)
       .map((e) => ({ id: e.id, title: e.title, quarter: quarterName(e.quarterIndex) })),
@@ -89,6 +96,7 @@ export async function buildRoadmapView(
     kind: "unplanned",
     load: load[periods.length] ?? 0,
     pct: null,
+    capacity: null,
     events: [],
   });
 

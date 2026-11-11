@@ -3,13 +3,12 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
 import { AddRiskForm } from "@/components/risks/add-risk-form";
+import { RiskList } from "@/components/overview/risk-list";
 import { RiskMatrix } from "@/components/risks/risk-matrix";
 import { RiskRow } from "@/components/risks/risk-row";
 import { PageHeader, Panel, Section } from "@/components/ui/layout";
 import { getDb, withUser } from "@/db/client";
 import { programTitle } from "@/lib/load";
-import { byScore, riskBand, riskScore } from "@/domain/risk";
-import { cn } from "@/lib/cn";
 import { getProgram } from "@/services/programs";
 import { listRisks } from "@/services/risks";
 
@@ -48,36 +47,8 @@ export default async function RisksPage({ params }: Params) {
               <RiskMatrix risks={open} />
             </Panel>
             <Panel className="flex flex-col gap-3">
-              <h2 className="text-[14px] font-semibold text-ink">{tr("mostSerious")}</h2>
-              {open.length === 0 ? (
-                <p className="text-sm text-slate">{tr("noneOpen")}</p>
-              ) : (
-                <ol className="flex flex-col divide-y divide-hairline-soft">
-                  {byScore(open)
-                    .slice(0, 8)
-                    .map((r) => {
-                      const band = riskBand(r.probability, r.impact);
-                      return (
-                        <li key={r.id} className="flex items-center gap-3 py-2 text-[13px]">
-                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-ink text-[11px] font-semibold text-paper tabular">
-                            {r.number}
-                          </span>
-                          <span className="min-w-0 flex-1">{r.title}</span>
-                          <span
-                            className={cn(
-                              "rounded-full px-2 py-0.5 text-[12px] font-semibold tabular",
-                              band === "high" && "bg-danger-soft text-danger",
-                              band === "medium" && "bg-warning-soft text-warning",
-                              band === "low" && "bg-success-soft text-success",
-                            )}
-                          >
-                            {riskScore(r.probability, r.impact)}
-                          </span>
-                        </li>
-                      );
-                    })}
-                </ol>
-              )}
+              <h2 className="text-[14px] font-semibold text-ink">{tr("openList")}</h2>
+              <RiskList risks={open} />
               {closed.length > 0 && (
                 <p className="mt-auto text-[12px] text-slate">
                   {tr("closedList", { list: closed.map((r) => r.number).join(", ") })}

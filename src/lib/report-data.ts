@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { recentTempo } from "@/domain/forecast";
 import { formatPeriodLabel } from "@/components/program/period-label";
 import type { Db } from "@/db/client";
 import type { Decision, DecisionCase, GoalStatus } from "@/db/schema";
@@ -46,7 +47,14 @@ export type ReportData = {
   program: { name: string; goal: string };
   statusText: string;
   changeText: string;
-  figures: { delivered: number; scope: number; avgVelocity: number | null; openRisks: number };
+  figures: {
+    delivered: number;
+    scope: number;
+    avgVelocity: number | null;
+    /** The plain average delivered in the last three ended quarters; missing in older editions. */
+    recentTempo?: number | null;
+    openRisks: number;
+  };
   goals: { quarter: string; list: GoalNode[] };
   cases: Array<Omit<DecisionCase, "programId" | "createdAt" | "updatedAt">>;
   decisions: Array<Omit<Decision, "programId" | "createdAt" | "updatedAt">>;
@@ -132,6 +140,7 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
       delivered: forecast.result.delivered,
       scope,
       avgVelocity: forecast.result.stats?.avg ?? null,
+      recentTempo: recentTempo(forecast.rows),
       openRisks: risks.filter((r) => r.status === "open").length,
     },
     goals: {

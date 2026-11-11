@@ -39,14 +39,28 @@ export async function ReportView({
       note: t("figures.of", { scope: fmt(data.figures.scope) }),
     },
     {
-      label: t("figures.velocity"),
-      value: data.figures.avgVelocity === null ? "–" : fmt(data.figures.avgVelocity),
-      note: t("figures.perQuarter"),
+      // Editions from before the plain tempo keep the number they were published with.
+      label: data.figures.recentTempo !== undefined ? t("figures.tempo") : t("figures.velocity"),
+      value:
+        data.figures.recentTempo !== undefined
+          ? data.figures.recentTempo === null
+            ? "–"
+            : fmt(data.figures.recentTempo)
+          : data.figures.avgVelocity === null
+            ? "–"
+            : fmt(data.figures.avgVelocity),
+      note:
+        data.figures.recentTempo !== undefined ? t("figures.tempoNote") : t("figures.perQuarter"),
     },
     {
       label: t("figures.next"),
-      value: next ? next.code : "–",
-      note: next ? (next.at.avg?.label ?? t("figures.beyond")) : t("figures.allReached"),
+      value: next ? next.title : "–",
+      note: next
+        ? t("figures.nextWhen", {
+            code: next.code,
+            when: next.at.avg?.label ?? t("figures.beyond"),
+          })
+        : t("figures.allReached"),
     },
     { label: t("figures.risks"), value: fmt(data.figures.openRisks), note: t("figures.open") },
   ];

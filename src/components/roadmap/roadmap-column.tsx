@@ -77,8 +77,19 @@ export function RoadmapColumn({
           <h3 className={cn("text-[14px] font-semibold", unplanned ? "text-slate" : "text-ink")}>
             {col.label}
           </h3>
-          <span className="text-[12px] text-slate tabular">
-            {t("points", { points: col.load.toLocaleString("da-DK") })}
+          {/* What is planned against what the tempo can carry here, both in points. */}
+          <span
+            className={cn(
+              "text-[12px] tabular",
+              tone === "danger" ? "font-semibold text-danger" : "text-slate",
+            )}
+          >
+            {col.capacity === null
+              ? t("points", { points: col.load.toLocaleString("da-DK") })
+              : t("pointsOf", {
+                  points: col.load.toLocaleString("da-DK"),
+                  capacity: col.capacity.toLocaleString("da-DK"),
+                })}
           </span>
         </div>
         {tone && (
@@ -89,14 +100,6 @@ export function RoadmapColumn({
                 style={{ width: `${Math.min(100, col.pct ?? 0)}%` }}
               />
             </div>
-            <span
-              className={cn(
-                "text-[11px] tabular",
-                tone === "danger" ? "font-semibold text-danger" : "text-slate",
-              )}
-            >
-              {t("capacityPct", { pct: col.pct ?? 0 })}
-            </span>
           </>
         )}
         {!tone && col.range && <span className="text-[11px] text-slate tabular">{col.range}</span>}

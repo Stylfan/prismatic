@@ -1,9 +1,11 @@
 import { getTranslations } from "next-intl/server";
-import { SectionLabel } from "@/components/ui/layout";
 import { ItemRow } from "./item-row";
 import type { BacklogOptions, ItemView } from "./types";
 
-type Group = { key: string; label: string; goals: ItemView[] };
+type Group = { key: string; label: string; goals: ItemView[]; progress?: MilestoneProgress };
+
+/** A milestone's own points and what is done of them. */
+export type MilestoneProgress = { own: number; done: number };
 
 /**
  * The backlog grouped the way the programme is built: each milestone with
@@ -15,10 +17,12 @@ export async function BacklogList({
   items,
   options,
   milestones,
+  progress = {},
 }: {
   items: ItemView[];
   options: BacklogOptions;
   milestones: Array<{ id: string; seq: number; title: string }>;
+  progress?: Record<string, MilestoneProgress>;
 }) {
   const t = await getTranslations("backlog.groups");
   const tm = await getTranslations("milestones");
@@ -31,6 +35,7 @@ export async function BacklogList({
     key: m.id,
     label: t("milestone", { code: tm("code", { seq: m.seq }), title: m.title }),
     goals: goals.filter((g) => g.milestoneId === m.id),
+    progress: progress[m.id],
   }));
   const orphans = goals.filter((g) => g.milestoneId === null);
   if (orphans.length > 0) groups.push({ key: "none", label: t("noMilestone"), goals: orphans });
@@ -47,7 +52,7 @@ export async function BacklogList({
     <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <section key={group.key} className="flex flex-col gap-3" aria-label={group.label}>
-          <SectionLabel>{group.label}</SectionLabel>
+          <GroupHeader label={group.label} progress={group.progress} />
           {group.goals.length === 0 ? (
             <p className="text-sm text-slate">{t("emptyGroup")}</p>
           ) : (
@@ -71,13 +76,41 @@ export async function BacklogList({
       ))}
       {loose.length > 0 && (
         <section className="flex flex-col gap-3" aria-label={t("looseFeatures")}>
-          <SectionLabel>{t("looseFeatures")}</SectionLabel>
+          <GroupHeader label={t("looseFeatures")} />
           <ul className="divide-y divide-hairline-soft overflow-hidden rounded-lg border border-hairline bg-surface">
             {loose.map((f) => (
               <ItemRow key={f.id} item={f} options={options} />
             ))}
           </ul>
         </section>
+      )}
+    </div>
+  );
+}
+
+/** A group's name, and for a milestone its own progress: the same figure and bar as on the overview. */
+async function GroupHeader({ label, progress }: { label: string; progress?: MilestoneProgress }) {
+  const t = await getTranslations("backlog.groups");
+  const fmt = (n: number) => Math.round(n).toLocaleString("da-DK");
+  const share = progress && progress.own > 0 ? Math.min(1, progress.done / progress.own) : 0;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="text-[14px] font-semibold text-ink">{label}</h2>
+        {progress && progress.own > 0 && (
+          <span className="text-[12px] text-slate tabular">
+            {t("progress", {
+              pct: Math.round(share * 100),
+              done: fmt(progress.done),
+              own: fmt(progress.own),
+            })}
+          </span>
+        )}
+      </div>
+      {progress && progress.own > 0 && (
+        <div className="h-1.5 overflow-hidden rounded-full bg-sand">
+          <div className="h-full rounded-full bg-ink" style={{ width: `${share * 100}%` }} />
+        </div>
       )}
     </div>
   );

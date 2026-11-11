@@ -126,3 +126,13 @@ describe("the example programme", () => {
     }
   });
 });
+
+describe("the app's own texts", () => {
+  it("name nothing of the organisation the example came from either", async () => {
+    const { readFileSync } = await import("node:fs");
+    const text = readFileSync("messages/da.json", "utf8").toLowerCase();
+    for (const word of ["djøf", "fagforening", "medlem", "kontingent", "mr4", "cbrain", "unison"]) {
+      expect(text, word).not.toContain(word);
+    }
+  });
+});

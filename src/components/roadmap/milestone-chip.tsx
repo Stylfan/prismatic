@@ -1,6 +1,6 @@
 "use client";
 
-import { Flag, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 import type { BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
@@ -33,16 +33,17 @@ export function MilestoneChip({
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "group relative flex cursor-grab flex-col gap-1 rounded-md px-2.5 py-2 active:cursor-grabbing",
-        warn ? "border border-warning bg-warning-soft text-ink" : "bg-ink text-paper",
+        "group relative flex cursor-grab flex-col gap-1 rounded-lg border bg-surface px-2 py-1.5 active:cursor-grabbing",
+        warn ? "border-warning bg-warning-soft" : "border-hairline",
         pending && "opacity-60",
       )}
     >
-      <p className="flex items-start gap-2 text-[12px] font-semibold leading-snug">
-        <Flag className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-        <span>
-          {milestone.code} · {milestone.title}
+      {/* The same mark as in the forecast chart: the code in a dark badge, then the name. */}
+      <p className="flex items-center gap-1.5 text-[12px] leading-snug font-medium text-ink">
+        <span className="shrink-0 rounded-full bg-ink px-1.5 text-[10px] leading-4 font-semibold text-paper tabular">
+          {milestone.code}
         </span>
+        <span>{milestone.title}</span>
       </p>
       {warn && (
         <p className="flex items-start gap-1.5 text-[11px] text-warning">

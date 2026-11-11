@@ -7,6 +7,8 @@ import { BacklogSummary } from "@/components/backlog/backlog-summary";
 import { PageHeader } from "@/components/ui/layout";
 import { requireUser } from "@/auth/session";
 import { getDb, withUser } from "@/db/client";
+import { milestoneComputedScope, milestoneDone } from "@/domain/backlog";
+import { cumulativeScopes } from "@/domain/scope";
 import { programTitle } from "@/lib/load";
 import { buildBacklogView } from "@/lib/backlog-view";
 import { listItems } from "@/services/items";
@@ -31,7 +33,26 @@ export default async function ProgramBacklogPage({ params }: Params) {
       if (!full) notFound();
       const { program, milestones } = full;
       const tb = await getTranslations("backlog");
-      const { views, options } = await buildBacklogView(full, await listItems(db, program.id));
+      const rows = await listItems(db, program.id);
+      const { views, options } = await buildBacklogView(full, rows);
+      // Each milestone's own points and what is done of them, as on the overview.
+      const scopes = cumulativeScopes(
+        milestones.map((m) => ({
+          id: m.id,
+          seq: m.seq,
+          scopeOverride: m.scopeOverride,
+          computed: milestoneComputedScope(full.sizes, m.id, rows),
+        })),
+      );
+      const progress = Object.fromEntries(
+        milestones.map((m) => [
+          m.id,
+          {
+            own: scopes.find((s) => s.id === m.id)?.own ?? 0,
+            done: milestoneDone(full.sizes, m.id, rows),
+          },
+        ]),
+      );
 
       return (
         <div className="flex flex-col gap-5">
@@ -42,7 +63,12 @@ export default async function ProgramBacklogPage({ params }: Params) {
           />
           <BacklogSummary items={views} />
           <AddItemForm programId={program.id} options={options} />
-          <BacklogList items={views} options={options} milestones={milestones} />
+          <BacklogList
+            items={views}
+            options={options}
+            milestones={milestones}
+            progress={progress}
+          />
         </div>
       );
     },

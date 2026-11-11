@@ -33,11 +33,11 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
           aria-controls={editorId}
           aria-label={t("row.edit", { title: item.title })}
           onClick={() => setOpen((v) => !v)}
-          className="grid flex-1 grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 gap-y-0.5 px-4 py-2 text-left transition-colors hover:bg-paper"
+          className="grid flex-1 grid-cols-[7rem_minmax(0,1fr)_8rem_10rem_1rem] items-center gap-x-4 gap-y-0.5 px-4 py-2 text-left transition-colors hover:bg-paper"
         >
           <span
             className={cn(
-              "tabular w-9 rounded py-0.5 text-center text-[11px] font-semibold tracking-[0.04em]",
+              "w-28 shrink-0 rounded py-0.5 text-center text-[11px] font-medium",
               isGoal
                 ? item.track === "technical"
                   ? "bg-technical-soft text-technical"
@@ -77,7 +77,7 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
                 : t("row.points", { points: item.points.toLocaleString("da-DK") })}
             </span>
           </span>
-          <span className="flex items-center gap-2">
+          <span className="flex items-center justify-end gap-2">
             {item.integration && (
               <Plug className="size-4 text-slate" aria-label={t("row.integration")} />
             )}

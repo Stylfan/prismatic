@@ -22,6 +22,7 @@ export async function ReportRisks({
           risks={open.map((r) => ({
             id: r.id,
             number: r.number,
+            title: r.title,
             probability: r.probability,
             impact: r.impact,
             previous: previous[r.id]

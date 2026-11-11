@@ -72,13 +72,23 @@ export function MilestoneRow({
   return (
     <li className="flex flex-col gap-4 py-5 first:pt-0">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="tabular rounded-sm bg-ink px-2 py-1 text-[12px] font-bold tracking-[0.08em] text-paper">
-          {code}
+        <span className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
+          <span className="rounded-full bg-ink px-1.5 text-[11px] leading-5 font-semibold text-paper tabular">
+            {code}
+          </span>
+          {milestone.title}
         </span>
+        {/* Its own guestimate first; the running total is what the forecast measures against. */}
         <span className="flex-1 text-[13px] text-slate">
-          {t("cumulative", { code })}:{" "}
-          <span className="tabular font-semibold text-ink">
-            {t("points", { points: milestone.cumulative.toLocaleString("da-DK") })}
+          {t("own")}:{" "}
+          <span className="font-semibold text-ink tabular">
+            {t("points", {
+              points: (milestone.scopeOverride ?? milestone.computed).toLocaleString("da-DK"),
+            })}
+          </span>
+          {milestone.scopeOverride === null && ` · ${t("fromGoals")}`}
+          <span className="ml-3 text-slate/80">
+            {t("cumulative", { code })}: {milestone.cumulative.toLocaleString("da-DK")}
           </span>
         </span>
         <label className="flex items-center gap-2 text-[13px] text-ink">
@@ -154,7 +164,7 @@ export function MilestoneRow({
             max={MAX_POINTS}
             inputMode="numeric"
             className="tabular"
-            placeholder={t("scopeComputed", { points: milestone.computed.toLocaleString("da-DK") })}
+            placeholder={milestone.computed.toLocaleString("da-DK")}
             value={scope}
             aria-invalid={!scopeValid}
             aria-describedby={id("scope-hint")}
