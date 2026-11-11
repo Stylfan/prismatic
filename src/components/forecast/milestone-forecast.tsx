@@ -17,7 +17,7 @@ export async function MilestoneForecast({ view }: { view: Omit<ForecastView, "ro
   if (view.milestones.length === 0) return <p className="text-sm text-slate">{t("none")}</p>;
   // One grid for the header and every row, so the columns line up without a table,
   // and the opened description can run the full width underneath.
-  const cols = "grid grid-cols-[minmax(13rem,16rem)_7rem_repeat(3,minmax(0,1fr))] items-center";
+  const cols = "grid grid-cols-[minmax(0,2fr)_8rem_repeat(3,minmax(0,1fr))] items-center";
   return (
     <div className="overflow-hidden rounded-lg border border-hairline bg-surface text-[13px]">
       <div
