@@ -333,14 +333,13 @@
       "unit": "point pr. kvartal ved fuld kapacitet"
     },
     "chart": {
-      "title": "Leverede point over tid og forecast i tre tempi, med milepælenes scope",
+      "title": "Leveret pr. kvartal og i alt, og forecast i tre tempi mod milepælene",
       "noData": "Forecastet kræver mindst ét afsluttet kvartal med leverede point og en kapacitet over 0 %.",
-      "today": "I dag",
-      "actual": "Leveret",
+      "actual": "Leveret i alt",
       "avg": "Gennemsnit",
       "low": "Under gennemsnit",
       "high": "Over gennemsnit",
-      "milestones": "Milepælenes scope"
+      "perQuarter": "Leveret i kvartalet"
     },
     "milestones": {
       "label": "Milepæle",

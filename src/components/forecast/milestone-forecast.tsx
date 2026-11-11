@@ -52,7 +52,7 @@ export async function MilestoneForecast({ view }: { view: Omit<ForecastView, "ro
                       className="size-3.5 shrink-0 text-slate transition-transform group-open:rotate-90"
                       aria-hidden
                     />
-                    {m.code} · {m.title}
+                    {m.code}: {m.title}
                   </summary>
                   <p className="mt-1.5 ml-5 max-w-md text-[13px] leading-relaxed text-slate">
                     {m.description || t("noDescription")}

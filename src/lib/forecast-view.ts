@@ -61,12 +61,10 @@ export type ForecastView = {
   result: ForecastResult;
   milestones: MilestoneRow[];
   currentIndex: number;
-  /** Short labels for the chart's x axis, by quarter index. */
+  /** The quarters' full names for the chart's x axis, by quarter index. */
   axisLabels: Record<number, string>;
   costPerQuarter: number | null;
 };
-
-const shorten = (label: string) => label.replace(/\b20(\d\d)\b/g, "$1");
 
 export async function buildForecastView(
   full: ProgramFull,
@@ -155,8 +153,8 @@ export async function buildForecastView(
   });
 
   const axisLabels: Record<number, string> = {};
-  for (const p of result.series) axisLabels[p.index] = shorten(label(p.index));
-  for (const r of rows) axisLabels[r.index] ??= shorten(r.label);
+  for (const p of result.series) axisLabels[p.index] = label(p.index);
+  for (const r of rows) axisLabels[r.index] ??= r.label;
 
   return {
     rows,
