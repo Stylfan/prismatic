@@ -8,6 +8,8 @@ import { TotpPanel } from "@/components/account/totp-panel";
 import { buttonClass } from "@/components/ui/controls";
 import { PageHeader, Panel, Section, SettingRow } from "@/components/ui/layout";
 import { getDb } from "@/db/client";
+import { operator } from "@/lib/operator";
+import Link from "next/link";
 import { listPasskeys, recoveryCodesLeft } from "@/services/factors";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +24,8 @@ export default async function AccountPage() {
   const user = await requireUser();
   const t = await getTranslations("account");
   const db = getDb();
+  const op = operator();
+  const tl = await getTranslations("legal");
   const [passkeys, codesLeft] = await Promise.all([
     listPasskeys(db, user.id),
     recoveryCodesLeft(db, user.id),
@@ -64,6 +68,20 @@ export default async function AccountPage() {
             </SettingRow>
           </Panel>
         </Section>
+
+        {op && (
+          <Section id="about" label={tl("accountLabel")}>
+            <Panel className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+              <span className="text-slate">{tl("accountBody", { name: op.name })}</span>
+              <Link href="/privatliv" className="underline underline-offset-4">
+                {tl("privacyLink")}
+              </Link>
+              <Link href="/vilkaar" className="underline underline-offset-4">
+                {tl("termsLink")}
+              </Link>
+            </Panel>
+          </Section>
+        )}
 
         <Section id="leave" label={t("delete.label")}>
           <Panel className="border-danger/30 py-0 sm:py-0">

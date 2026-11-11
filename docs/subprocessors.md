@@ -25,6 +25,18 @@ it builds or runs the development server. The Docker image switches it off
 | Your hosting provider | Everything stored on the server, and the traffic to it | When you run Prismatic on a server. Choose an EU-owned provider on EU soil to stay within Haij's fourth rule. |
 | Your backup storage   | The database backups                                   | If you back up off the server ([docs/self-hosting.md](self-hosting.md))                                       |
 
+## When you host it for others
+
+Run Prismatic for other people and you are responsible for their data.
+Set `PRISMATIC_OPERATOR_NAME`, `PRISMATIC_OPERATOR_EMAIL`, and if you
+like `PRISMATIC_OPERATOR_ADDRESS` and `PRISMATIC_HOSTING`: the sign-in
+pages then link to a privacy policy (`/privatliv`) and terms
+(`/vilkaar`) in your name, which name your hosting provider as the one
+who runs the server and backups. Make a data processing agreement with
+that provider. The texts are in `messages/da.json` under `legal`; have
+them read by someone who knows the law where you are before you open the
+doors.
+
 ## Passkeys and authenticator apps: on your own devices
 
 A passkey's private key stays with the device or password manager that

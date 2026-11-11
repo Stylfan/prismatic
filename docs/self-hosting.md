@@ -46,6 +46,15 @@ Open the address. The first person to sign up gets the first account;
 sign-up then closes unless `PRISMATIC_SIGNUP=open`. Turn on two-step
 sign-in or add a passkey under **Konto**.
 
+## Hosting it for others
+
+To let other people sign up, set `PRISMATIC_SIGNUP=open`. Before you do,
+say who runs the installation with `PRISMATIC_OPERATOR_NAME` and
+`PRISMATIC_OPERATOR_EMAIL` (and `PRISMATIC_OPERATOR_ADDRESS`,
+`PRISMATIC_HOSTING`): Prismatic then shows a privacy policy and terms in
+that name and links them from the sign-in pages and the account page. See
+[who can see what](subprocessors.md).
+
 ## Backups
 
 Everything lives in the `pgdata` volume. Back it up with `pg_dump`, for

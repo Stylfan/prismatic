@@ -7,6 +7,7 @@ import { currentUser } from "@/auth/session";
 import { AuthForm } from "@/components/auth/auth-form";
 import { SectionLabel } from "@/components/ui/layout";
 import { getDb } from "@/db/client";
+import { operator } from "@/lib/operator";
 import { signupOpen } from "@/services/users";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,22 @@ export default async function RegisterPage() {
         {first && <p className="text-sm leading-relaxed text-slate">{t("firstAccount")}</p>}
       </div>
       <AuthForm mode="register" minPassword={MIN_PASSWORD_LENGTH} />
+      {operator() && (
+        <p className="text-[12px] leading-relaxed text-slate">
+          {(await getTranslations("legal")).rich("registerNote", {
+            terms: (chunks) => (
+              <Link href="/vilkaar" className="underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href="/privatliv" className="underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
+      )}
     </div>
   );
 }

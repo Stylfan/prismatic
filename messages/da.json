@@ -803,5 +803,164 @@
       "totalPct": "({pct} % i alt)"
     },
     "noRisks": "Ingen åbne risici."
+  },
+  "legal": {
+    "privacyLink": "Privatlivspolitik",
+    "termsLink": "Vilkår",
+    "updated": "Senest ændret 11. november 2026",
+    "backToStart": "Til forsiden",
+    "registerNote": "Når du opretter en konto, accepterer du <terms>vilkårene</terms> og har læst <privacy>privatlivspolitikken</privacy>.",
+    "accountLabel": "Om denne installation",
+    "accountBody": "Prismatic køres her af {name}. Sådan behandles dine data, og det er reglerne for at bruge den:",
+    "privacy": {
+      "title": "Privatlivspolitik",
+      "lead": "Sådan behandler {name} dine oplysninger, når du bruger Prismatic på denne adresse. Kort fortalt: kun det, der skal til for at give dig en konto og dine programmer, ingen sporing, og du kan altid tage alt med dig og slette det.",
+      "hostingNamed": "Serveren og dens sikkerhedskopier drives af {hosting} som databehandler for {name}. Data forlader ikke EU og EØS.",
+      "hostingSelf": "Serveren og dens sikkerhedskopier drives af {name} selv. Data forlader ikke EU og EØS.",
+      "sections": [
+        {
+          "title": "Hvem er ansvarlig",
+          "body": [
+            "{name} er dataansvarlig for de oplysninger, der hører til din konto. {address}",
+            "Skriv til {email}, hvis du har spørgsmål om dine data, eller vil bruge dine rettigheder."
+          ]
+        },
+        {
+          "title": "Hvad der gemmes",
+          "list": [
+            "Din konto: e-mailadresse, navn hvis du skriver et, og din adgangskode gemt som en hash, aldrig i klartekst.",
+            "Totrinslogin, hvis du slår det til: hemmeligheden til din app gemmes krypteret, gendannelseskoder som hash, og fra passkeys gemmes kun den offentlige nøgle.",
+            "Det, du selv lægger ind: programmer, backlog, roadmap, risici, mål, sager, beslutninger og rapporter.",
+            "En ændringslog over, hvem der har ændret hvad og hvornår i dine programmer. Den kan ikke redigeres, så ændringer altid kan spores.",
+            "En sessionscookie, så du forbliver logget ind."
+          ],
+          "body": [
+            "Din IP-adresse bruges kun et øjeblik i serverens hukommelse for at bremse gentagne loginforsøg og gemmes ikke i databasen. Serverens webproxy kan føre almindelige tekniske logs med IP-adresser i en kort periode, for at fejl og angreb kan findes."
+          ]
+        },
+        {
+          "title": "Hvorfor og med hvilken ret",
+          "body": [
+            "Oplysningerne bruges til at give dig den tjeneste, du har bedt om: en konto og dine programmer. Grundlaget er aftalen med dig (GDPR artikel 6, stk. 1, litra b).",
+            "Ændringsloggen, begrænsningen af loginforsøg og de tekniske logs bruges til at holde tjenesten sikker. Grundlaget er en legitim interesse i at beskytte dig og andre brugere (artikel 6, stk. 1, litra f).",
+            "Oplysningerne bruges ikke til noget andet: ingen reklame, ingen analyse af din adfærd, ingen kunstig intelligens, og der sendes ingen mails."
+          ]
+        },
+        {
+          "title": "Oplysninger om andre",
+          "body": [
+            "Skriver du oplysninger om andre personer ind, fx navne i en risiko eller en beslutning, er det dig eller din organisation, der er ansvarlig for at måtte det. {name} behandler den slags indhold kun på dine vegne, for at du kan bruge Prismatic.",
+            "Læg ikke følsomme oplysninger ind, fx om helbred, CPR-numre eller andet, der kræver særlig beskyttelse."
+          ]
+        },
+        {
+          "title": "Hvem der kan se dine data",
+          "body": [
+            "Kun du, når du er logget ind. Programmer er adskilt i databasen, så én bruger ikke kan se en andens.",
+            "{hostingSentence}",
+            "{name} kigger ikke i dit indhold, medmindre du beder om hjælp, eller det er nødvendigt for at rette en fejl eller stoppe misbrug."
+          ]
+        },
+        {
+          "title": "Hvor længe",
+          "body": [
+            "Så længe du har en konto. Sletter du kontoen under Konto, slettes alt, hvad den ejer, straks fra databasen, også ændringsloggen for dine programmer. Sikkerhedskopierne slettes af sig selv inden for 7 dage."
+          ]
+        },
+        {
+          "title": "Dine rettigheder",
+          "list": [
+            "Indsigt: se alt, hvad der er gemt om dig.",
+            "Dataportabilitet: hent alt som regneark eller JSON under Konto.",
+            "Berigtigelse: ret dine oplysninger og dit indhold selv.",
+            "Sletning: slet din konto med alt indhold under Konto.",
+            "Begrænsning og indsigelse: skriv til {email}."
+          ],
+          "body": [
+            "Er du utilfreds med, hvordan dine oplysninger behandles, kan du klage til Datatilsynet, datatilsynet.dk."
+          ]
+        },
+        {
+          "title": "Cookies",
+          "body": [
+            "Prismatic bruger kun én cookie: den, der holder dig logget ind. Den er nødvendig for, at tjenesten virker, og der er ingen sporing. Derfor er der ingen cookiebanner."
+          ]
+        },
+        {
+          "title": "Sikkerhed",
+          "body": [
+            "Forbindelsen er krypteret med HTTPS. Programmer er adskilt i databasen, totrinslogin og passkeys kan slås til, og ændringsloggen kan ikke redigeres. Prismatic er open source, så alle kan se, hvordan det er bygget."
+          ]
+        },
+        {
+          "title": "Ændringer",
+          "body": [
+            "Ændres politikken, står datoen øverst. Væsentlige ændringer varsles her mindst 30 dage, før de gælder."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Vilkår",
+      "lead": "Reglerne for at bruge Prismatic på denne adresse, som {name} driver. De er skrevet, så de kan læses.",
+      "sections": [
+        {
+          "title": "Tjenesten",
+          "body": [
+            "{name} stiller Prismatic til rådighed på denne adresse. Prismatic er open source under licensen AGPL-3.0: koden kan hentes fra GitHub og køres af alle selv. Vilkårene her gælder brugen af denne installation."
+          ]
+        },
+        {
+          "title": "Din konto",
+          "body": [
+            "En konto er til én person. Hold din adgangskode for dig selv, og slå gerne totrinslogin eller en passkey til. Opdager du, at andre har fået adgang til din konto, så skriv til {email}."
+          ]
+        },
+        {
+          "title": "Dit indhold",
+          "body": [
+            "Det, du lægger ind, er dit. Du kan altid hente det som regneark eller JSON og slette det. Du er selv ansvarlig for indholdet og for at have lov til at lægge det ind, også når det handler om andre personer.",
+            "Læg ikke følsomme oplysninger ind, fx om helbred eller CPR-numre."
+          ]
+        },
+        {
+          "title": "God brug",
+          "body": [
+            "Brug Prismatic lovligt. Forsøg ikke at få adgang til andres data, overbelaste eller angribe tjenesten, eller bruge den til at sprede skadeligt indhold. Finder du et sikkerhedshul, så meld det som beskrevet i SECURITY.md på GitHub i stedet for at udnytte det."
+          ]
+        },
+        {
+          "title": "Pris",
+          "body": [
+            "Tjenesten er gratis. Skal det ændres, varsles det mindst 30 dage før, så du kan nå at hente dine data og slette din konto."
+          ]
+        },
+        {
+          "title": "Drift og ansvar",
+          "body": [
+            "Prismatic leveres, som den er. {name} gør sig umage for, at den kører stabilt og sikkert, og der tages daglige sikkerhedskopier, men der er ingen garanti for, at den altid er tilgængelig eller fri for fejl. Hent selv en eksport af det, der er vigtigt for dig.",
+            "{name} er ikke ansvarlig for indirekte tab, fx tabt arbejdstid, og ansvaret er i øvrigt begrænset, så langt dansk ret tillader det."
+          ]
+        },
+        {
+          "title": "Ophør",
+          "body": [
+            "Du kan altid slette din konto under Konto. {name} kan lukke en konto, der bryder vilkårene, og kan lukke tjenesten med mindst 30 dages varsel, så alle kan nå at hente deres data."
+          ]
+        },
+        {
+          "title": "Databehandling",
+          "body": [
+            "Privatlivspolitikken beskriver, hvordan oplysninger behandles. Skal din organisation have en databehandleraftale, så skriv til {email}."
+          ]
+        },
+        {
+          "title": "Ændringer og lov",
+          "body": [
+            "Ændres vilkårene, står datoen øverst, og væsentlige ændringer varsles her mindst 30 dage før. Vilkårene følger dansk ret, og en eventuel tvist afgøres ved de danske domstole."
+          ]
+        }
+      ]
+    }
   }
 }
