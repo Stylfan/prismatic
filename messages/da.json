@@ -28,9 +28,9 @@
     "milestoneCount": "{count, plural, =0 {Ingen milepæle endnu} one {# milepæl} other {# milepæle}}",
     "periodModel": "{model, select, calendar {Kalenderkvartaler} seasons {Årstider} other {Egen startdato}}",
     "open": "Åbn {name}",
-    "demo": "Se et eksempel",
-    "demoCreating": "Opretter eksemplet …",
-    "demoHint": "Eksemplet er et fuldt program med et års historik, roadmap, forecast, risici og en styregrupperapport. Det bliver dit eget, så du kan ændre i det og slette det igen."
+    "demo": "Se en demo af Prismatic",
+    "demoCreating": "Opretter demoen …",
+    "demoHint": "Demoen er et fuldt program med et års historik, roadmap, forecast, risici og en styregrupperapport. Det bliver dit eget, så du kan ændre i det og slette det igen."
   },
   "create": {
     "label": "Nyt program",
