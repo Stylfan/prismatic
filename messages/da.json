@@ -698,11 +698,6 @@
     "toForecast": "Til fremdrift",
     "toRisks": "Til risici",
     "risksTitle": "Risici",
-    "health": {
-      "good": "Grøn · på sporet",
-      "watch": "Gul · hold øje",
-      "bad": "Rød · kræver handling"
-    },
     "stats": {
       "delivered": "Leveret",
       "ofTotal": "af {total} point i forretningsmålene",
@@ -732,15 +727,6 @@
       "forecast": "Forecast",
       "total": "Leveret {done} af {total} point tilknyttet forretningsmålene",
       "totalPct": "({pct} % i alt)"
-    },
-    "attention": {
-      "title": "Kræver handling",
-      "none": "Intet kræver handling lige nu.",
-      "highRisk": "Risiko {number} er høj: {title}",
-      "overloaded": "{period} er planlagt til {pct} % af tempoet",
-      "slipping": "{code} har {count, plural, one {# kort} other {# kort}} planlagt efter milepælen",
-      "warnings": "{count, plural, one {# advarsel} other {# advarsler}} i backloggen",
-      "cases": "{count, plural, one {# sag} other {# sager}} venter på beslutning"
     },
     "noRisks": "Ingen åbne risici."
   }
