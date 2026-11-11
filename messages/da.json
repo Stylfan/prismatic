@@ -340,7 +340,8 @@
       "low": "Under gennemsnit",
       "high": "Over gennemsnit",
       "perQuarter": "Leveret i kvartalet",
-      "legend": "Forklaring"
+      "legend": "Forklaring",
+      "hoverReached": "{code}: {title} er nået"
     },
     "milestones": {
       "label": "Milepæle",

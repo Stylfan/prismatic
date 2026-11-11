@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ForecastView } from "@/lib/forecast-view";
+import { ChartHover } from "./chart-hover";
 import { chartScale, spreadLabels } from "./chart-scale";
 
 /**
@@ -149,6 +150,24 @@ export async function ForecastChart({ view }: { view: Omit<ForecastView, "rows">
                 style={{ left: pct(fx(p.index)), top: pct(fy(p.actual!)) }}
               />
             ))}
+            <ChartHover
+              points={points.map((p) => ({
+                index: p.index,
+                label: axisLabels[p.index] ?? "",
+                actual: p.actual,
+                // A quarter that has ended has one number: what was delivered.
+                high: p.actual === null ? p.high : null,
+                avg: p.actual === null ? p.avg : null,
+                low: p.actual === null ? p.low : null,
+              }))}
+              maxIndex={maxIndex}
+              yMax={yMax}
+              milestones={milestones.map((m) => ({
+                code: m.code,
+                title: m.title,
+                threshold: m.threshold,
+              }))}
+            />
           </div>
 
           {/* Each milestone's line runs on into its name, nudged apart where they would touch. */}
