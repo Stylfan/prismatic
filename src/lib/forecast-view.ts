@@ -50,6 +50,7 @@ export type MilestoneRow = {
   id: string;
   code: string;
   title: string;
+  description: string;
   threshold: number;
   reached: string | null;
   at: Record<Tempo, { label: string; cost: number | null } | null>;
@@ -146,6 +147,7 @@ export async function buildForecastView(
       id: m.id,
       code: tm("code", { seq: m.seq }),
       title: m.title,
+      description: m.description,
       threshold: f.threshold,
       reached: f.reachedAt === null ? null : label(f.reachedAt),
       at,

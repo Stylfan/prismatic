@@ -327,33 +327,34 @@
     "lead": "Hastigheden er leverede point divideret med kapaciteten i kvartalet. Fra i dag og frem regnes der med tre tempi: gennemsnittet af de tre laveste, alle og de tre højeste af de sidste fem kvartaler.",
     "tiles": {
       "delivered": "Leveret i alt",
-      "low": "Lavt tempo",
-      "avg": "Middel tempo",
-      "high": "Højt tempo"
+      "low": "Under gennemsnit",
+      "avg": "Gennemsnit",
+      "high": "Over gennemsnit",
+      "unit": "point pr. kvartal ved fuld kapacitet"
     },
     "chart": {
       "title": "Leverede point over tid og forecast i tre tempi, med milepælenes scope",
       "noData": "Forecastet kræver mindst ét afsluttet kvartal med leverede point og en kapacitet over 0 %.",
       "today": "I dag",
       "actual": "Leveret",
-      "avg": "Middel tempo",
-      "low": "Lavt tempo",
-      "high": "Højt tempo",
+      "avg": "Gennemsnit",
+      "low": "Under gennemsnit",
+      "high": "Over gennemsnit",
       "milestones": "Milepælenes scope"
     },
     "milestones": {
       "label": "Milepæle",
-      "title": "Hvornår milepælene nås",
-      "lead": "Det kvartal, hvor hvert tempo når milepælens samlede scope, og hvad programmet har kostet til og med det kvartal.",
+      "title": "Hvornår forecastet indikerer, at milepælene nås",
       "milestone": "Milepæl",
-      "scope": "Scope i alt",
-      "low": "Lavt tempo",
-      "avg": "Middel tempo",
-      "high": "Højt tempo",
+      "scope": "Guestimat i alt",
+      "low": "Under gennemsnit",
+      "avg": "Gennemsnit",
+      "high": "Over gennemsnit",
       "reached": "Nået i {quarter}",
       "beyond": "Ud over horisonten",
       "none": "Ingen milepæle endnu. Opret dem under Opsætning.",
-      "cost": "{amount} kr."
+      "describe": "Om {title}",
+      "noDescription": "Ingen beskrivelse endnu. Den skrives under Indstillinger → Milepæle."
     },
     "ledger": {
       "label": "Kvartaler",
@@ -720,7 +721,7 @@
       "reached": "Nået i {when}",
       "beyond": "ud over horisonten",
       "tempo": {
-        "high": "Bedre end gennemsnit",
+        "high": "Over gennemsnit",
         "avg": "Gennemsnit",
         "low": "Under gennemsnit"
       },

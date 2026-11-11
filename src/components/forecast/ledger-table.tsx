@@ -142,29 +142,31 @@ function LedgerRowView({
         </div>
       </td>
       <td className="px-4 py-2.5 align-top">
-        <span className="mb-1 block text-[11px] font-semibold text-slate">
-          {row.phase === "past" ? t("delivered") : t("planned")}
-        </span>
-        <label htmlFor={id("pts")} className="sr-only">
-          {row.phase === "past"
-            ? t("deliveredFor", { quarter: row.label })
-            : t("plannedFor", { quarter: row.label })}
-        </label>
-        <Input
-          id={id("pts")}
-          type="number"
-          min={0}
-          className="tabular h-9 w-28"
-          placeholder={t("computed", { points: row.computed.toLocaleString("da-DK") })}
-          value={v.points}
-          onChange={(e) => setV({ ...v, points: e.target.value })}
-          onBlur={blurSave}
-        />
-        {row.phase === "current" && row.deliveredSoFar > 0 && (
-          <span className="mt-1 block text-[11px] text-slate">
-            {t("soFar", { points: row.deliveredSoFar.toLocaleString("da-DK") })}
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <label htmlFor={id("pts")} className="sr-only">
+            {row.phase === "past"
+              ? t("deliveredFor", { quarter: row.label })
+              : t("plannedFor", { quarter: row.label })}
+          </label>
+          <Input
+            id={id("pts")}
+            type="number"
+            min={0}
+            className="tabular h-9 w-28"
+            placeholder={t("computed", { points: row.computed.toLocaleString("da-DK") })}
+            value={v.points}
+            onChange={(e) => setV({ ...v, points: e.target.value })}
+            onBlur={blurSave}
+          />
+          <span className="text-[12px] text-slate">
+            {row.phase === "past" ? t("delivered") : t("planned")}
           </span>
-        )}
+          {row.phase === "current" && row.deliveredSoFar > 0 && (
+            <span className="basis-full text-[11px] text-slate">
+              {t("soFar", { points: row.deliveredSoFar.toLocaleString("da-DK") })}
+            </span>
+          )}
+        </div>
       </td>
       <td className="tabular px-4 py-2.5 text-right align-top">
         {row.velocity !== null ? Math.round(row.velocity).toLocaleString("da-DK") : ""}

@@ -5,8 +5,7 @@ import { requireUser } from "@/auth/session";
 import { ForecastChart } from "@/components/forecast/forecast-chart";
 import { LedgerTable } from "@/components/forecast/ledger-table";
 import { MilestoneForecast } from "@/components/forecast/milestone-forecast";
-import { PageHeader, Panel, Section, Stat } from "@/components/ui/layout";
-import { TEMPI } from "@/domain/forecast";
+import { PageHeader, Panel, Section } from "@/components/ui/layout";
 import { getDb, withUser } from "@/db/client";
 import { programTitle } from "@/lib/load";
 import { buildForecastView } from "@/lib/forecast-view";
@@ -43,12 +42,11 @@ export default async function ForecastPage({ params }: Params) {
       const stats = view.result.stats;
       const fmt = (n: number) => Math.round(n).toLocaleString("da-DK");
 
-      const next = view.milestones.find((m) => !m.reached);
-      const tempoTiles = TEMPI.map((tempo) => ({
+      // Better than average first, as everywhere the tempi are listed.
+      const tempoTiles = (["high", "avg", "low"] as const).map((tempo) => ({
         tempo,
         label: tf(`tiles.${tempo}`),
         value: stats ? fmt(stats[tempo]) : "–",
-        note: next ? `${next.code}: ${next.at[tempo]?.label ?? tf("milestones.beyond")}` : null,
       }));
 
       return (
@@ -58,22 +56,28 @@ export default async function ForecastPage({ params }: Params) {
             title={(await getTranslations("nav"))("forecast")}
             lead={tf("lead")}
           />
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label={tf("tiles.delivered")} value={fmt(view.result.delivered)} />
+          <dl className="flex flex-wrap divide-x divide-hairline rounded-lg border border-hairline bg-surface py-3">
+            <div className="flex items-baseline gap-2 px-5">
+              <dt className="text-[13px] text-slate">{tf("tiles.delivered")}</dt>
+              <dd className="text-[17px] font-semibold text-ink tabular">
+                {fmt(view.result.delivered)}
+              </dd>
+            </div>
             {tempoTiles.map((tile) => (
-              <div
-                key={tile.tempo}
-                className="flex min-w-0 flex-col gap-1 rounded-lg border border-hairline border-t-[3px] bg-surface px-4 py-3"
-                style={{ borderTopColor: `var(--color-tempo-${tile.tempo})` }}
-              >
-                <span className="text-[12px] text-slate">{tile.label}</span>
-                <span className="text-xl leading-tight font-semibold text-ink tabular">
-                  {tile.value}
-                </span>
-                {tile.note && <span className="text-[12px] text-slate">{tile.note}</span>}
+              <div key={tile.tempo} className="flex items-baseline gap-2 px-5">
+                <dt className="flex items-center gap-1.5 text-[13px] text-slate">
+                  <span
+                    aria-hidden
+                    className="size-2.5 self-center rounded-full"
+                    style={{ background: `var(--color-tempo-${tile.tempo})` }}
+                  />
+                  {tile.label}
+                </dt>
+                <dd className="text-[17px] font-semibold text-ink tabular">{tile.value}</dd>
               </div>
             ))}
-          </div>
+            <p className="ml-auto self-center px-5 text-[12px] text-slate">{tf("tiles.unit")}</p>
+          </dl>
           <Panel>
             <ForecastChart view={view} />
           </Panel>
