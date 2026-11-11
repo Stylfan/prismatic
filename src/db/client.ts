@@ -1,35 +1,54 @@
-import { mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
-import Database from "better-sqlite3";
-import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { sql, type ExtractTablesWithRelations } from "drizzle-orm";
+import { drizzle, type NodePgDatabase, type NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
+import type { PgTransaction } from "drizzle-orm/pg-core";
+import { Pool } from "pg";
 import * as schema from "./schema";
 
 /**
- * The database is one file, `data/prismatic.db` unless PRISMATIC_DB says
- * otherwise. Opening it applies any migration it has not seen yet, so a
- * fresh checkout needs no setup step: start the app and the file appears.
+ * The connection to Postgres. The application connects as prismatic_app,
+ * a role that owns nothing, so row-level security applies to everything it
+ * does. Work on a programme runs through withUser(), which opens a
+ * transaction and tells the database who is acting; the policies in
+ * drizzle/0001_roles_rls_audit.sql do the rest.
  */
 
-export type Db = BetterSQLite3Database<typeof schema>;
+export type Database = NodePgDatabase<typeof schema>;
+export type Tx = PgTransaction<
+  NodePgQueryResultHKT,
+  typeof schema,
+  ExtractTablesWithRelations<typeof schema>
+>;
+/** What services take: the database itself, or a transaction with a user set. */
+export type Db = Database | Tx;
 
-export const DEFAULT_DB_PATH = join(process.cwd(), "data", "prismatic.db");
-
-export function openDb(path: string): Db {
-  if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
-  const sqlite = new Database(path);
-  // Cascading deletes depend on this, and SQLite leaves it off by default.
-  sqlite.pragma("foreign_keys = ON");
-  if (path !== ":memory:") sqlite.pragma("journal_mode = WAL");
-  const db = drizzle(sqlite, { schema });
-  migrate(db, { migrationsFolder: join(process.cwd(), "drizzle") });
-  return db;
+export function createDb(url: string): Database {
+  return drizzle(new Pool({ connectionString: url, max: 10 }), { schema });
 }
 
-// One connection per server process, kept across hot reloads in development.
-const globalForDb = globalThis as unknown as { prismaticDb?: Db };
+// One pool per server process, kept across hot reloads in development.
+const globalForDb = globalThis as unknown as { prismaticDb?: Database };
 
-export function getDb(): Db {
-  globalForDb.prismaticDb ??= openDb(process.env.PRISMATIC_DB ?? DEFAULT_DB_PATH);
+export function getDb(): Database {
+  if (!globalForDb.prismaticDb) {
+    const url = process.env.APP_DATABASE_URL;
+    if (!url) throw new Error("APP_DATABASE_URL is not set; see .env.example");
+    globalForDb.prismaticDb = createDb(url);
+  }
   return globalForDb.prismaticDb;
+}
+
+/**
+ * Runs `fn` in a transaction acting as `userId`. The setting is local to
+ * the transaction, so a pooled connection never carries one user's identity
+ * into another's request.
+ */
+export async function withUser<T>(
+  userId: string,
+  fn: (tx: Tx) => Promise<T>,
+  db: Database = getDb(),
+): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select set_config('app.user_id', ${userId}, true)`);
+    return fn(tx);
+  });
 }

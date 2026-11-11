@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
 import { PrintButton } from "@/components/report/publish-form";
 import { ReportView } from "@/components/report/report-view";
-import { getDb } from "@/db/client";
+import { withUser } from "@/db/client";
 import type { ReportData } from "@/lib/report-data";
 import { NotFound } from "@/services/programs";
 import { getEdition } from "@/services/report-content";
@@ -14,9 +14,9 @@ export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string; editionId: string }> };
 
-function load(userId: string, programId: string, editionId: string) {
+async function load(userId: string, programId: string, editionId: string) {
   try {
-    return getEdition(getDb(), userId, programId, editionId);
+    return await withUser(userId, (tx) => getEdition(tx, userId, programId, editionId));
   } catch (error) {
     if (error instanceof NotFound) return null;
     throw error;
@@ -26,14 +26,14 @@ function load(userId: string, programId: string, editionId: string) {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const user = await requireUser();
   const { id, editionId } = await params;
-  return { title: load(user.id, id, editionId)?.title };
+  return { title: (await load(user.id, id, editionId))?.title };
 }
 
 /** A published edition, exactly as it was when it was published. */
 export default async function EditionPage({ params }: Params) {
   const user = await requireUser();
   const { id, editionId } = await params;
-  const edition = load(user.id, id, editionId);
+  const edition = await load(user.id, id, editionId);
   if (!edition) notFound();
   const t = await getTranslations("report");
   const data = JSON.parse(edition.data) as ReportData;

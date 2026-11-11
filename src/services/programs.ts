@@ -13,8 +13,8 @@ import type {
 
 /**
  * Programmes, their sizes and milestones. Every function takes the
- * database it works on and the user acting, so the pages use the app's
- * file and the tests a fresh one in memory. A programme belongs to one
+ * database it works on and the user acting: the pages a transaction from
+ * withUser(), the tests the test database. A programme belongs to one
  * user: anything that is not theirs is treated as if it does not exist,
  * and throws NotFound. Writes that touch several rows run in one
  * transaction.
@@ -26,154 +26,150 @@ export class NotFound extends Error {
   }
 }
 
-export function listPrograms(db: Db, userId: string) {
-  const rows = db
+export async function listPrograms(db: Db, userId: string) {
+  const rows = await db
     .select()
     .from(programs)
     .where(eq(programs.ownerId, userId))
-    .orderBy(desc(programs.updatedAt))
-    .all();
-  const counts = db
+    .orderBy(desc(programs.updatedAt));
+  const counts = await db
     .select({ programId: milestones.programId, n: count() })
     .from(milestones)
-    .groupBy(milestones.programId)
-    .all();
+    .groupBy(milestones.programId);
   return rows.map((p) => ({
     ...p,
     milestoneCount: counts.find((c) => c.programId === p.id)?.n ?? 0,
   }));
 }
 
-export function createProgram(db: Db, userId: string, input: ProgramInput): string {
-  return db.transaction((tx) => {
-    const [row] = tx
+export async function createProgram(db: Db, userId: string, input: ProgramInput): Promise<string> {
+  return db.transaction(async (tx) => {
+    const [row] = await tx
       .insert(programs)
       .values({ ...input, ownerId: userId })
-      .returning({ id: programs.id })
-      .all();
+      .returning({ id: programs.id });
     const programId = row!.id;
-    tx.insert(programSizes)
-      .values(defaultSizeRows().map((s) => ({ ...s, programId })))
-      .run();
+    await tx.insert(programSizes).values(defaultSizeRows().map((s) => ({ ...s, programId })));
     return programId;
   });
 }
 
-export function getProgram(db: Db, userId: string, programId: string) {
-  const program = db
+export async function getProgram(db: Db, userId: string, programId: string) {
+  const [program] = await db
     .select()
     .from(programs)
-    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)));
   if (!program) return null;
   const sizes: SizeTable = { feature: {}, goal: {} };
-  for (const row of db
+  for (const row of await db
     .select()
     .from(programSizes)
-    .where(eq(programSizes.programId, programId))
-    .all()) {
+    .where(eq(programSizes.programId, programId))) {
     sizes[row.level][row.size] = row.points;
   }
-  const ms = db
+  const ms = await db
     .select()
     .from(milestones)
     .where(eq(milestones.programId, programId))
-    .orderBy(asc(milestones.seq))
-    .all();
+    .orderBy(asc(milestones.seq));
   return { program, sizes, milestones: ms };
 }
 
-export type ProgramFull = NonNullable<ReturnType<typeof getProgram>>;
+export type ProgramFull = NonNullable<Awaited<ReturnType<typeof getProgram>>>;
 
 /** Throws NotFound unless the programme exists and belongs to the user. */
-export function requireProgram(db: Db, userId: string, programId: string) {
-  const row = db
+export async function requireProgram(db: Db, userId: string, programId: string) {
+  const [row] = await db
     .select({ id: programs.id })
     .from(programs)
-    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)));
   if (!row) throw new NotFound();
 }
 
-export function updateProgram(db: Db, userId: string, input: z.infer<typeof UpdateProgramSchema>) {
+export async function updateProgram(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof UpdateProgramSchema>,
+) {
   const { programId, ...fields } = input;
-  db.transaction((tx) => {
-    const before = tx
+  await db.transaction(async (tx) => {
+    const [before] = await tx
       .select({ model: programs.periodModel, startDate: programs.startDate })
       .from(programs)
-      .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
-      .get();
+      .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)));
     if (!before) throw new NotFound();
-    tx.update(programs).set(fields).where(eq(programs.id, programId)).run();
+    await tx.update(programs).set(fields).where(eq(programs.id, programId));
     // A new start or model would give the stored quarter numbers another meaning.
-    remapPeriods(tx, programId, before, { model: fields.periodModel, startDate: fields.startDate });
+    await remapPeriods(tx, programId, before, {
+      model: fields.periodModel,
+      startDate: fields.startDate,
+    });
   });
 }
 
 /** Deletes a programme and, through the foreign keys, everything it owns. */
-export function deleteProgram(db: Db, userId: string, programId: string) {
-  const result = db
+export async function deleteProgram(db: Db, userId: string, programId: string) {
+  const result = await db
     .delete(programs)
-    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)))
-    .run();
-  if (result.changes === 0) throw new NotFound();
+    .where(and(eq(programs.id, programId), eq(programs.ownerId, userId)));
+  if (result.rowCount === 0) throw new NotFound();
 }
 
-export function setSizePoints(db: Db, userId: string, input: z.infer<typeof SetSizePointsSchema>) {
-  requireProgram(db, userId, input.programId);
+export async function setSizePoints(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof SetSizePointsSchema>,
+) {
+  await requireProgram(db, userId, input.programId);
   if (input.level === "feature" && input.size === "XXL") throw new NotFound();
-  db.insert(programSizes)
+  await db
+    .insert(programSizes)
     .values(input)
     .onConflictDoUpdate({
       target: [programSizes.programId, programSizes.level, programSizes.size],
       set: { points: input.points },
-    })
-    .run();
+    });
 }
 
 /** The milestone, if it belongs to one of the user's programmes. */
-function requireMilestone(db: Db, userId: string, milestoneId: string) {
-  const row = db
+async function requireMilestone(db: Db, userId: string, milestoneId: string) {
+  const [row] = await db
     .select({ milestone: milestones })
     .from(milestones)
     .innerJoin(programs, eq(programs.id, milestones.programId))
-    .where(and(eq(milestones.id, milestoneId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(milestones.id, milestoneId), eq(programs.ownerId, userId)));
   if (!row) throw new NotFound();
   return row.milestone;
 }
 
-export function addMilestone(db: Db, userId: string, programId: string, title: string) {
-  requireProgram(db, userId, programId);
-  const last = db
+export async function addMilestone(db: Db, userId: string, programId: string, title: string) {
+  await requireProgram(db, userId, programId);
+  const [last] = await db
     .select({ max: max(milestones.seq) })
     .from(milestones)
-    .where(eq(milestones.programId, programId))
-    .get();
-  db.insert(milestones)
-    .values({ programId, title, seq: (last?.max ?? 0) + 1 })
-    .run();
+    .where(eq(milestones.programId, programId));
+  await db.insert(milestones).values({ programId, title, seq: (last?.max ?? 0) + 1 });
 }
 
-export function updateMilestone(
+export async function updateMilestone(
   db: Db,
   userId: string,
   input: z.infer<typeof UpdateMilestoneSchema>,
 ) {
-  const row = requireMilestone(db, userId, input.milestoneId);
-  db.update(milestones)
+  const row = await requireMilestone(db, userId, input.milestoneId);
+  await db
+    .update(milestones)
     .set({ title: input.title, description: input.description, scopeOverride: input.scopeOverride })
-    .where(eq(milestones.id, row.id))
-    .run();
+    .where(eq(milestones.id, row.id));
   return row.programId;
 }
 
-export function setMilestoneDone(db: Db, userId: string, milestoneId: string, done: boolean) {
-  const row = requireMilestone(db, userId, milestoneId);
-  db.update(milestones)
+export async function setMilestoneDone(db: Db, userId: string, milestoneId: string, done: boolean) {
+  const row = await requireMilestone(db, userId, milestoneId);
+  await db
+    .update(milestones)
     .set({ doneAt: done ? Date.now() : null })
-    .where(eq(milestones.id, row.id))
-    .run();
+    .where(eq(milestones.id, row.id));
   return row.programId;
 }
 
@@ -182,15 +178,15 @@ export function setMilestoneDone(db: Db, userId: string, milestoneId: string, do
  * forbids two rows on one number even for a moment, so the moving row
  * parks on a negative number first.
  */
-export function moveMilestone(
+export async function moveMilestone(
   db: Db,
   userId: string,
   milestoneId: string,
   direction: "up" | "down",
 ) {
-  const row = requireMilestone(db, userId, milestoneId);
-  return db.transaction((tx) => {
-    const neighbour = tx
+  const row = await requireMilestone(db, userId, milestoneId);
+  return db.transaction(async (tx) => {
+    const [neighbour] = await tx
       .select()
       .from(milestones)
       .where(
@@ -199,47 +195,45 @@ export function moveMilestone(
           direction === "up" ? lt(milestones.seq, row.seq) : gt(milestones.seq, row.seq),
         ),
       )
-      .orderBy(direction === "up" ? desc(milestones.seq) : asc(milestones.seq))
-      .get();
+      .orderBy(direction === "up" ? desc(milestones.seq) : asc(milestones.seq));
     if (!neighbour) return row.programId;
-    tx.update(milestones).set({ seq: -row.seq }).where(eq(milestones.id, row.id)).run();
-    tx.update(milestones).set({ seq: row.seq }).where(eq(milestones.id, neighbour.id)).run();
-    tx.update(milestones).set({ seq: neighbour.seq }).where(eq(milestones.id, row.id)).run();
+    await tx.update(milestones).set({ seq: -row.seq }).where(eq(milestones.id, row.id));
+    await tx.update(milestones).set({ seq: row.seq }).where(eq(milestones.id, neighbour.id));
+    await tx.update(milestones).set({ seq: neighbour.seq }).where(eq(milestones.id, row.id));
     return row.programId;
   });
 }
 
 /** Removes a milestone and closes the gap, so the numbers stay M1, M2, M3. */
-export function removeMilestone(db: Db, userId: string, milestoneId: string) {
-  const row = requireMilestone(db, userId, milestoneId);
-  return db.transaction((tx) => {
-    tx.delete(milestones).where(eq(milestones.id, row.id)).run();
-    const later = tx
+export async function removeMilestone(db: Db, userId: string, milestoneId: string) {
+  const row = await requireMilestone(db, userId, milestoneId);
+  return db.transaction(async (tx) => {
+    await tx.delete(milestones).where(eq(milestones.id, row.id));
+    const later = await tx
       .select({ id: milestones.id, seq: milestones.seq })
       .from(milestones)
       .where(and(eq(milestones.programId, row.programId), gt(milestones.seq, row.seq)))
-      .orderBy(asc(milestones.seq))
-      .all();
+      .orderBy(asc(milestones.seq));
     for (const m of later) {
-      tx.update(milestones)
+      await tx
+        .update(milestones)
         .set({ seq: m.seq - 1 })
-        .where(eq(milestones.id, m.id))
-        .run();
+        .where(eq(milestones.id, m.id));
     }
     return row.programId;
   });
 }
 
 /** Places a milestone in a column on the roadmap; the manager decides where, not the forecast. */
-export function placeMilestone(
+export async function placeMilestone(
   db: Db,
   userId: string,
   input: { milestoneId: string; periodIndex: number | null; periodSpan: 1 | 2 },
 ) {
-  const row = requireMilestone(db, userId, input.milestoneId);
-  db.update(milestones)
+  const row = await requireMilestone(db, userId, input.milestoneId);
+  await db
+    .update(milestones)
     .set({ periodIndex: input.periodIndex, periodSpan: input.periodSpan })
-    .where(eq(milestones.id, row.id))
-    .run();
+    .where(eq(milestones.id, row.id));
   return row.programId;
 }

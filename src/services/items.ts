@@ -16,52 +16,52 @@ import type { NewItemSchema, SplitItemSchema, UpdateItemSchema } from "./validat
  */
 
 /** The programme's items. Callers pass a programme they have already checked the user owns. */
-export function listItems(db: Db, programId: string): Item[] {
-  return db
+export async function listItems(db: Db, programId: string): Promise<Item[]> {
+  return await db
     .select()
     .from(items)
     .where(eq(items.programId, programId))
-    .orderBy(asc(items.createdAt))
-    .all();
+    .orderBy(asc(items.createdAt));
 }
 
-function requireItem(db: Db, userId: string, itemId: string): Item {
-  const row = db
+async function requireItem(db: Db, userId: string, itemId: string): Promise<Item> {
+  const [row] = await db
     .select({ item: items })
     .from(items)
     .innerJoin(programs, eq(programs.id, items.programId))
-    .where(and(eq(items.id, itemId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(items.id, itemId), eq(programs.ownerId, userId)));
   if (!row) throw new NotFound();
   return row.item;
 }
 
-function checkGoal(db: Db, programId: string, goalId: string | null) {
+async function checkGoal(db: Db, programId: string, goalId: string | null) {
   if (goalId === null) return;
-  const goal = db
+  const [goal] = await db
     .select({ id: items.id })
     .from(items)
-    .where(and(eq(items.id, goalId), eq(items.programId, programId), eq(items.kind, "goal")))
-    .get();
+    .where(and(eq(items.id, goalId), eq(items.programId, programId), eq(items.kind, "goal")));
   if (!goal) throw new NotFound();
 }
 
-function checkMilestone(db: Db, programId: string, milestoneId: string | null) {
+async function checkMilestone(db: Db, programId: string, milestoneId: string | null) {
   if (milestoneId === null) return;
-  const m = db
+  const [m] = await db
     .select({ id: milestones.id })
     .from(milestones)
-    .where(and(eq(milestones.id, milestoneId), eq(milestones.programId, programId)))
-    .get();
+    .where(and(eq(milestones.id, milestoneId), eq(milestones.programId, programId)));
   if (!m) throw new NotFound();
 }
 
-export function createItem(db: Db, userId: string, input: z.infer<typeof NewItemSchema>): string {
-  requireProgram(db, userId, input.programId);
+export async function createItem(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof NewItemSchema>,
+): Promise<string> {
+  await requireProgram(db, userId, input.programId);
   const parentId = input.kind === "goal" ? null : input.parentId;
-  checkGoal(db, input.programId, parentId);
-  checkMilestone(db, input.programId, input.milestoneId);
-  const [row] = db
+  await checkGoal(db, input.programId, parentId);
+  await checkMilestone(db, input.programId, input.milestoneId);
+  const [row] = await db
     .insert(items)
     .values({
       programId: input.programId,
@@ -70,24 +70,24 @@ export function createItem(db: Db, userId: string, input: z.infer<typeof NewItem
       parentId,
       milestoneId: parentId ? null : input.milestoneId,
     })
-    .returning({ id: items.id })
-    .all();
+    .returning({ id: items.id });
   return row!.id;
 }
 
-export function updateItem(
+export async function updateItem(
   db: Db,
   userId: string,
   input: z.infer<typeof UpdateItemSchema>,
-): string {
-  const row = requireItem(db, userId, input.itemId);
+): Promise<string> {
+  const row = await requireItem(db, userId, input.itemId);
   const parentId = row.kind === "goal" ? null : input.parentId;
   if (parentId === row.id) throw new NotFound();
-  checkGoal(db, row.programId, parentId);
-  checkMilestone(db, row.programId, input.milestoneId);
+  await checkGoal(db, row.programId, parentId);
+  await checkMilestone(db, row.programId, input.milestoneId);
   const size = input.size !== null && isSizeForLevel(row.kind, input.size) ? input.size : null;
   const done = input.status === "done";
-  db.update(items)
+  await db
+    .update(items)
     .set({
       title: input.title,
       description: input.description,
@@ -103,15 +103,14 @@ export function updateItem(
       periodIndex: input.periodIndex,
       periodSpan: input.periodSpan,
     })
-    .where(eq(items.id, row.id))
-    .run();
+    .where(eq(items.id, row.id));
   return row.programId;
 }
 
 /** Deletes an item. A deleted goal's features stay, without a goal, so nothing is lost silently. */
-export function deleteItem(db: Db, userId: string, itemId: string): string {
-  const row = requireItem(db, userId, itemId);
-  db.delete(items).where(eq(items.id, row.id)).run();
+export async function deleteItem(db: Db, userId: string, itemId: string): Promise<string> {
+  const row = await requireItem(db, userId, itemId);
+  await db.delete(items).where(eq(items.id, row.id));
   return row.programId;
 }
 
@@ -121,27 +120,27 @@ export function deleteItem(db: Db, userId: string, itemId: string): string {
  * becomes a new feature with its own estimate, which may belong to another
  * goal or to none.
  */
-export function splitFeature(
+export async function splitFeature(
   db: Db,
   userId: string,
   input: z.infer<typeof SplitItemSchema>,
-): string {
-  const row = requireItem(db, userId, input.itemId);
+): Promise<string> {
+  const row = await requireItem(db, userId, input.itemId);
   if (row.kind !== "feature") throw new NotFound();
-  checkGoal(db, row.programId, input.newParentId);
+  await checkGoal(db, row.programId, input.newParentId);
   const size =
     input.newSize !== null && isSizeForLevel("feature", input.newSize) ? input.newSize : null;
-  return db.transaction((tx) => {
-    tx.update(items)
+  return db.transaction(async (tx) => {
+    await tx
+      .update(items)
       .set({
         status: "done",
         pointsOverride: input.deliveredPoints,
         doneQuarter: input.doneQuarter,
         doneNote: input.doneNote,
       })
-      .where(eq(items.id, row.id))
-      .run();
-    const [next] = tx
+      .where(eq(items.id, row.id));
+    const [next] = await tx
       .insert(items)
       .values({
         programId: row.programId,
@@ -158,22 +157,21 @@ export function splitFeature(
         periodSpan: input.newPeriodSpan,
         splitFromId: row.id,
       })
-      .returning({ id: items.id })
-      .all();
+      .returning({ id: items.id });
     return next!.id;
   });
 }
 
 /** Moves a card to another period on the roadmap, or to "not yet planned". */
-export function moveItem(
+export async function moveItem(
   db: Db,
   userId: string,
   input: { itemId: string; periodIndex: number | null; periodSpan: 1 | 2 },
-): string {
-  const row = requireItem(db, userId, input.itemId);
-  db.update(items)
+): Promise<string> {
+  const row = await requireItem(db, userId, input.itemId);
+  await db
+    .update(items)
     .set({ periodIndex: input.periodIndex, periodSpan: input.periodSpan })
-    .where(eq(items.id, row.id))
-    .run();
+    .where(eq(items.id, row.id));
   return row.programId;
 }

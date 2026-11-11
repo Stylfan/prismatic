@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { createItem, deleteItem, listItems, splitFeature, updateItem } from "@/services/items";
 import { addMilestone, createProgram, getProgram } from "@/services/programs";
 import { seedUser } from "./helpers";
@@ -26,8 +27,8 @@ const base = {
   deviationPct: 10,
 };
 
-const edit = (itemId: string) => {
-  const row = listItems(db, programId).find((i) => i.id === itemId)!;
+const edit = async (itemId: string) => {
+  const row = (await listItems(db, programId)).find((i) => i.id === itemId)!;
   return {
     itemId,
     title: row.title,
@@ -46,46 +47,46 @@ const edit = (itemId: string) => {
   };
 };
 
-beforeEach(() => {
-  db = openDb(":memory:");
-  owner = seedUser(db, "owner@example.com");
-  programId = createProgram(db, owner, base);
-  addMilestone(db, owner, programId, "Medlemskab");
-  milestoneId = getProgram(db, owner, programId)!.milestones[0]!.id;
+beforeEach(async () => {
+  db = await freshDb();
+  owner = await seedUser(db, "owner@example.com");
+  programId = await createProgram(db, owner, base);
+  await addMilestone(db, owner, programId, "Medlemskab");
+  milestoneId = (await getProgram(db, owner, programId))!.milestones[0]!.id;
 });
 
 describe("creating", () => {
-  it("links a goal to a milestone and a feature to a goal", () => {
-    const goal = createItem(db, owner, {
+  it("links a goal to a milestone and a feature to a goal", async () => {
+    const goal = await createItem(db, owner, {
       programId,
       kind: "goal",
       title: "Medlemskab",
       parentId: null,
       milestoneId,
     });
-    const feature = createItem(db, owner, {
+    const feature = await createItem(db, owner, {
       programId,
       kind: "feature",
       title: "Beskæftigelse",
       parentId: goal,
       milestoneId,
     });
-    const rows = listItems(db, programId);
+    const rows = await listItems(db, programId);
     expect(rows.find((r) => r.id === goal)).toMatchObject({ milestoneId, parentId: null });
     // The feature counts through its goal, so its own milestone is cleared.
     expect(rows.find((r) => r.id === feature)).toMatchObject({ parentId: goal, milestoneId: null });
   });
 
-  it("refuses a goal or milestone from another programme", () => {
-    const other = createProgram(db, owner, { ...base, name: "Andet" });
-    const foreignGoal = createItem(db, owner, {
+  it("refuses a goal or milestone from another programme", async () => {
+    const other = await createProgram(db, owner, { ...base, name: "Andet" });
+    const foreignGoal = await createItem(db, owner, {
       programId: other,
       kind: "goal",
       title: "Fremmed",
       parentId: null,
       milestoneId: null,
     });
-    expect(() =>
+    await expect(
       createItem(db, owner, {
         programId,
         kind: "feature",
@@ -93,8 +94,8 @@ describe("creating", () => {
         parentId: foreignGoal,
         milestoneId: null,
       }),
-    ).toThrow("notFound");
-    expect(() =>
+    ).rejects.toThrow("notFound");
+    await expect(
       createItem(db, owner, {
         programId: other,
         kind: "goal",
@@ -102,69 +103,79 @@ describe("creating", () => {
         parentId: null,
         milestoneId,
       }),
-    ).toThrow("notFound");
+    ).rejects.toThrow("notFound");
   });
 });
 
 describe("editing", () => {
-  it("stores the closing quarter only while the item is done, and keeps a feature's size in range", () => {
-    const f = createItem(db, owner, {
+  it("stores the closing quarter only while the item is done, and keeps a feature's size in range", async () => {
+    const f = await createItem(db, owner, {
       programId,
       kind: "feature",
       title: "F",
       parentId: null,
       milestoneId: null,
     });
-    updateItem(db, owner, { ...edit(f), status: "done", doneQuarter: 4, size: "XXL" });
-    expect(listItems(db, programId)[0]).toMatchObject({
+    await updateItem(db, owner, {
+      ...(await edit(f)),
+      status: "done",
+      doneQuarter: 4,
+      size: "XXL",
+    });
+    expect((await listItems(db, programId))[0]).toMatchObject({
       status: "done",
       doneQuarter: 4,
       size: null,
     });
-    updateItem(db, owner, { ...edit(f), status: "in_progress", doneQuarter: 4 });
-    expect(listItems(db, programId)[0]).toMatchObject({ status: "in_progress", doneQuarter: null });
+    await updateItem(db, owner, { ...(await edit(f)), status: "in_progress", doneQuarter: 4 });
+    expect((await listItems(db, programId))[0]).toMatchObject({
+      status: "in_progress",
+      doneQuarter: null,
+    });
   });
 });
 
 describe("deleting a goal", () => {
-  it("keeps its features, now without a goal", () => {
-    const goal = createItem(db, owner, {
+  it("keeps its features, now without a goal", async () => {
+    const goal = await createItem(db, owner, {
       programId,
       kind: "goal",
       title: "G",
       parentId: null,
       milestoneId,
     });
-    const f = createItem(db, owner, {
+    const f = await createItem(db, owner, {
       programId,
       kind: "feature",
       title: "F",
       parentId: goal,
       milestoneId: null,
     });
-    deleteItem(db, owner, goal);
-    expect(listItems(db, programId)).toEqual([expect.objectContaining({ id: f, parentId: null })]);
+    await deleteItem(db, owner, goal);
+    expect(await listItems(db, programId)).toEqual([
+      expect.objectContaining({ id: f, parentId: null }),
+    ]);
   });
 });
 
 describe("splitting a feature", () => {
-  it("closes the original with what was delivered and carries the rest as a new version", () => {
-    const goal = createItem(db, owner, {
+  it("closes the original with what was delivered and carries the rest as a new version", async () => {
+    const goal = await createItem(db, owner, {
       programId,
       kind: "goal",
       title: "G",
       parentId: null,
       milestoneId,
     });
-    const f = createItem(db, owner, {
+    const f = await createItem(db, owner, {
       programId,
       kind: "feature",
       title: "Background Jobs v0",
       parentId: goal,
       milestoneId: null,
     });
-    updateItem(db, owner, { ...edit(f), size: "L", periodIndex: 4 });
-    const next = splitFeature(db, owner, {
+    await updateItem(db, owner, { ...(await edit(f)), size: "L", periodIndex: 4 });
+    const next = await splitFeature(db, owner, {
       itemId: f,
       deliveredPoints: 60,
       doneNote: "Jobs kører; retry mangler",
@@ -176,7 +187,7 @@ describe("splitting a feature", () => {
       newPeriodIndex: 5,
       newPeriodSpan: 1,
     });
-    const rows = listItems(db, programId);
+    const rows = await listItems(db, programId);
     expect(rows.find((r) => r.id === f)).toMatchObject({
       status: "done",
       pointsOverride: 60,

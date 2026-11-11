@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { createItem, deleteItem, listItems, splitFeature, updateItem } from "@/services/items";
 import {
   addMilestone,
@@ -38,14 +39,14 @@ const base = {
   deviationPct: 10,
 };
 
-beforeEach(() => {
-  db = openDb(":memory:");
-  alice = seedUser(db, "alice@example.com");
-  bob = seedUser(db, "bob@example.com");
-  programId = createProgram(db, alice, base);
-  addMilestone(db, alice, programId, "M1");
-  milestoneId = getProgram(db, alice, programId)!.milestones[0]!.id;
-  itemId = createItem(db, alice, {
+beforeEach(async () => {
+  db = await freshDb();
+  alice = await seedUser(db, "alice@example.com");
+  bob = await seedUser(db, "bob@example.com");
+  programId = await createProgram(db, alice, base);
+  await addMilestone(db, alice, programId, "M1");
+  milestoneId = (await getProgram(db, alice, programId))!.milestones[0]!.id;
+  itemId = await createItem(db, alice, {
     programId,
     kind: "feature",
     title: "Alices feature",
@@ -55,34 +56,34 @@ beforeEach(() => {
 });
 
 describe("another user", () => {
-  it("does not see the programme", () => {
-    expect(listPrograms(db, bob)).toEqual([]);
-    expect(getProgram(db, bob, programId)).toBeNull();
+  it("does not see the programme", async () => {
+    expect(await listPrograms(db, bob)).toEqual([]);
+    expect(await getProgram(db, bob, programId)).toBeNull();
   });
 
-  it("cannot change or delete the programme or its sizes", () => {
-    expect(() => updateProgram(db, bob, { ...base, programId, name: "Kapret" })).toThrow(
+  it("cannot change or delete the programme or its sizes", async () => {
+    await expect(updateProgram(db, bob, { ...base, programId, name: "Kapret" })).rejects.toThrow(
       "notFound",
     );
-    expect(() =>
+    await expect(
       setSizePoints(db, bob, { programId, level: "feature", size: "S", points: 1 }),
-    ).toThrow("notFound");
-    expect(() => deleteProgram(db, bob, programId)).toThrow("notFound");
-    expect(getProgram(db, alice, programId)!.program.name).toBe("Alices program");
+    ).rejects.toThrow("notFound");
+    await expect(deleteProgram(db, bob, programId)).rejects.toThrow("notFound");
+    expect((await getProgram(db, alice, programId))!.program.name).toBe("Alices program");
   });
 
-  it("cannot touch its milestones", () => {
-    expect(() => addMilestone(db, bob, programId, "M2")).toThrow("notFound");
-    expect(() =>
+  it("cannot touch its milestones", async () => {
+    await expect(addMilestone(db, bob, programId, "M2")).rejects.toThrow("notFound");
+    await expect(
       updateMilestone(db, bob, { milestoneId, title: "x", description: "", scopeOverride: 1 }),
-    ).toThrow("notFound");
-    expect(() => moveMilestone(db, bob, milestoneId, "down")).toThrow("notFound");
-    expect(() => removeMilestone(db, bob, milestoneId)).toThrow("notFound");
-    expect(getProgram(db, alice, programId)!.milestones).toHaveLength(1);
+    ).rejects.toThrow("notFound");
+    await expect(moveMilestone(db, bob, milestoneId, "down")).rejects.toThrow("notFound");
+    await expect(removeMilestone(db, bob, milestoneId)).rejects.toThrow("notFound");
+    expect((await getProgram(db, alice, programId))!.milestones).toHaveLength(1);
   });
 
-  it("cannot add, change, split or delete its business goals and features", () => {
-    expect(() =>
+  it("cannot add, change, split or delete its business goals and features", async () => {
+    await expect(
       createItem(db, bob, {
         programId,
         kind: "goal",
@@ -90,9 +91,9 @@ describe("another user", () => {
         parentId: null,
         milestoneId: null,
       }),
-    ).toThrow("notFound");
-    const row = listItems(db, programId)[0]!;
-    expect(() =>
+    ).rejects.toThrow("notFound");
+    const row = (await listItems(db, programId))[0]!;
+    await expect(
       updateItem(db, bob, {
         itemId,
         title: "Kapret",
@@ -109,8 +110,8 @@ describe("another user", () => {
         periodIndex: null,
         periodSpan: 1,
       }),
-    ).toThrow("notFound");
-    expect(() =>
+    ).rejects.toThrow("notFound");
+    await expect(
       splitFeature(db, bob, {
         itemId,
         deliveredPoints: 1,
@@ -123,14 +124,14 @@ describe("another user", () => {
         newPeriodIndex: null,
         newPeriodSpan: 1,
       }),
-    ).toThrow("notFound");
-    expect(() => deleteItem(db, bob, itemId)).toThrow("notFound");
-    expect(listItems(db, programId).map((i) => i.title)).toEqual(["Alices feature"]);
+    ).rejects.toThrow("notFound");
+    await expect(deleteItem(db, bob, itemId)).rejects.toThrow("notFound");
+    expect((await listItems(db, programId)).map((i) => i.title)).toEqual(["Alices feature"]);
   });
 
-  it("cannot link its own work to the programme's milestone", () => {
-    const bobs = createProgram(db, bob, { ...base, name: "Bobs program" });
-    expect(() =>
+  it("cannot link its own work to the programme's milestone", async () => {
+    const bobs = await createProgram(db, bob, { ...base, name: "Bobs program" });
+    await expect(
       createItem(db, bob, {
         programId: bobs,
         kind: "goal",
@@ -138,7 +139,7 @@ describe("another user", () => {
         parentId: null,
         milestoneId,
       }),
-    ).toThrow("notFound");
+    ).rejects.toThrow("notFound");
   });
 });
 
@@ -147,16 +148,18 @@ describe("the roadmap of another user's programme", () => {
     const { moveItem: move } = await import("@/services/items");
     const { placeMilestone } = await import("@/services/programs");
     const { addEvent, listEvents, removeEvent } = await import("@/services/events");
-    expect(() => move(db, bob, { itemId, periodIndex: 5, periodSpan: 1 })).toThrow("notFound");
-    expect(() => placeMilestone(db, bob, { milestoneId, periodIndex: 5, periodSpan: 1 })).toThrow(
+    await expect(move(db, bob, { itemId, periodIndex: 5, periodSpan: 1 })).rejects.toThrow(
       "notFound",
     );
-    expect(() => addEvent(db, bob, { programId, quarterIndex: 5, title: "Strejke" })).toThrow(
-      "notFound",
-    );
-    addEvent(db, alice, { programId, quarterIndex: 5, title: "Onboarding" });
-    const eventId = listEvents(db, programId)[0]!.id;
-    expect(() => removeEvent(db, bob, eventId)).toThrow("notFound");
-    expect(listEvents(db, programId)).toHaveLength(1);
+    await expect(
+      placeMilestone(db, bob, { milestoneId, periodIndex: 5, periodSpan: 1 }),
+    ).rejects.toThrow("notFound");
+    await expect(
+      addEvent(db, bob, { programId, quarterIndex: 5, title: "Strejke" }),
+    ).rejects.toThrow("notFound");
+    await addEvent(db, alice, { programId, quarterIndex: 5, title: "Onboarding" });
+    const eventId = (await listEvents(db, programId))[0]!.id;
+    await expect(removeEvent(db, bob, eventId)).rejects.toThrow("notFound");
+    expect(await listEvents(db, programId)).toHaveLength(1);
   });
 });

@@ -8,33 +8,31 @@ import { NotFound, requireProgram } from "./programs";
  * roadmap so a dip or a jump in delivery has its reason beside it.
  */
 
-export function listEvents(db: Db, programId: string): ProgramEvent[] {
-  return db
+export async function listEvents(db: Db, programId: string): Promise<ProgramEvent[]> {
+  return await db
     .select()
     .from(programEvents)
     .where(eq(programEvents.programId, programId))
-    .orderBy(asc(programEvents.quarterIndex), asc(programEvents.createdAt))
-    .all();
+    .orderBy(asc(programEvents.quarterIndex), asc(programEvents.createdAt));
 }
 
-export function addEvent(
+export async function addEvent(
   db: Db,
   userId: string,
   input: { programId: string; quarterIndex: number; title: string },
-): string {
-  requireProgram(db, userId, input.programId);
-  db.insert(programEvents).values(input).run();
+): Promise<string> {
+  await requireProgram(db, userId, input.programId);
+  await db.insert(programEvents).values(input);
   return input.programId;
 }
 
-export function removeEvent(db: Db, userId: string, eventId: string): string {
-  const row = db
+export async function removeEvent(db: Db, userId: string, eventId: string): Promise<string> {
+  const [row] = await db
     .select({ event: programEvents })
     .from(programEvents)
     .innerJoin(programs, eq(programs.id, programEvents.programId))
-    .where(and(eq(programEvents.id, eventId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(programEvents.id, eventId), eq(programs.ownerId, userId)));
   if (!row) throw new NotFound();
-  db.delete(programEvents).where(eq(programEvents.id, eventId)).run();
+  await db.delete(programEvents).where(eq(programEvents.id, eventId));
   return row.event.programId;
 }

@@ -79,9 +79,12 @@ export async function saveDraftAction(raw: unknown) {
  */
 export async function publishAction(raw: unknown): Promise<Result<string>> {
   const r = await run(PublishSchema, raw, async (db, userId, input) => {
-    const full = getProgram(db, userId, input.programId);
+    const full = await getProgram(db, userId, input.programId);
     if (!full) throw new NotFound();
-    const data = freeze(previousEdition(db, input.programId), await buildReportData(db, full));
+    const data = freeze(
+      await previousEdition(db, input.programId),
+      await buildReportData(db, full),
+    );
     return saveEdition(db, userId, {
       programId: input.programId,
       title: input.title,

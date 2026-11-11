@@ -1,54 +1,19 @@
 {
   "version": "7",
-  "dialect": "sqlite",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "6",
-      "when": 1794317449716,
+      "version": "7",
+      "when": 1794379466477,
       "tag": "0000_foundation",
       "breakpoints": true
     },
     {
       "idx": 1,
-      "version": "6",
-      "when": 1794319104754,
-      "tag": "0001_items",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1794320686011,
-      "tag": "0002_users",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1794321050799,
-      "tag": "0003_roadmap",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1794321466560,
-      "tag": "0004_quarters",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1794321988724,
-      "tag": "0005_risks",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1794322181191,
-      "tag": "0006_report",
+      "version": "7",
+      "when": 1794379467199,
+      "tag": "0001_roles_rls_audit",
       "breakpoints": true
     }
   ]

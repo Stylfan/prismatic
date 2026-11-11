@@ -1,6 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+try {
+  process.loadEnvFile(".env");
+} catch {}
+
 export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
@@ -8,7 +12,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    // Each service test opens its own throwaway database file.
-    env: { PRISMATIC_DB: ":memory:" },
+    // One shared test database (see tests/db.ts), emptied before each test,
+    // so the files run one after another.
+    globalSetup: ["tests/global-setup.ts"],
+    fileParallelism: false,
   },
 });

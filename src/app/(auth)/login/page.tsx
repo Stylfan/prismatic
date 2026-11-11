@@ -19,7 +19,7 @@ export default async function LoginPage() {
   if (await currentUser()) redirect("/");
   // An empty installation has nobody to sign in as: start with the account.
   const db = getDb();
-  if (signupOpen(db, "closed")) redirect("/register");
+  if (await signupOpen(db, "closed")) redirect("/register");
   const t = await getTranslations("auth");
   return (
     <div className="flex flex-col gap-6">

@@ -1,18 +1,23 @@
 import {
+  bigint,
+  boolean,
   index,
+  jsonb,
   integer,
+  pgTable,
   primaryKey,
-  sqliteTable,
   text,
   uniqueIndex,
-  type AnySQLiteColumn,
-} from "drizzle-orm/sqlite-core";
+  type AnyPgColumn,
+} from "drizzle-orm/pg-core";
 
 /**
- * Prismatic's data. One SQLite file holds every programme; a programme is
- * the unit everything else hangs off, and deleting it deletes what it owns.
- * Dates are ISO strings (yyyy-mm-dd); instants are milliseconds since the
- * epoch, so they sort and compare without parsing.
+ * Prismatic's data, in Postgres. A programme is the unit everything else
+ * hangs off, and deleting it deletes what it owns. Row-level security
+ * keys every programme table on the programme's owner (drizzle/*_rls.sql),
+ * so the database itself hides one account's data from another, and an
+ * append-only audit log records every change. Dates are ISO strings
+ * (yyyy-mm-dd); instants are milliseconds since the epoch.
  */
 
 /** calendar: Q1–Q4 from 1 January. seasons: autumn from 1 September. custom: from `start_date`. */
@@ -34,12 +39,12 @@ const id = () =>
 const now = () => Date.now();
 
 const timestamps = {
-  createdAt: integer("created_at").notNull().$defaultFn(now),
-  updatedAt: integer("updated_at").notNull().$defaultFn(now).$onUpdateFn(now),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(now),
+  updatedAt: bigint("updated_at", { mode: "number" }).notNull().$defaultFn(now).$onUpdateFn(now),
 };
 
 /** A person who signs in. Passwords are stored only as a scrypt hash (src/auth/password.ts). */
-export const users = sqliteTable(
+export const users = pgTable(
   "users",
   {
     id: id(),
@@ -56,25 +61,27 @@ export const users = sqliteTable(
  * A signed-in browser. The id is the SHA-256 of the token in the cookie,
  * so a copy of the database does not hand out working sessions.
  */
-export const sessions = sqliteTable(
+export const sessions = pgTable(
   "sessions",
   {
     id: text("id").primaryKey(),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    expiresAt: integer("expires_at").notNull(),
-    createdAt: integer("created_at").notNull().$defaultFn(now),
+    expiresAt: bigint("expires_at", { mode: "number" }).notNull(),
+    createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(now),
   },
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
 export type User = typeof users.$inferSelect;
 
-export const programs = sqliteTable("programs", {
+export const programs = pgTable("programs", {
   id: id(),
-  /** Who the programme belongs to; only they can see or change it. Null only before the first sign-up. */
-  ownerId: text("owner_id").references(() => users.id, { onDelete: "cascade" }),
+  /** Who the programme belongs to; only they can see or change it, and the database enforces it. */
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   goal: text("goal").notNull().default(""),
   periodModel: text("period_model").$type<PeriodModel>().notNull().default("seasons"),
@@ -90,7 +97,7 @@ export const programs = sqliteTable("programs", {
 });
 
 /** Points per size, per programme and level. A card may still override its own points. */
-export const programSizes = sqliteTable(
+export const programSizes = pgTable(
   "program_sizes",
   {
     programId: text("program_id")
@@ -107,7 +114,7 @@ export const programSizes = sqliteTable(
  * A milestone. No date: the forecast gives it one. Milestones are
  * cumulative in `seq` order, so M2's scope is M1's plus its own.
  */
-export const milestones = sqliteTable(
+export const milestones = pgTable(
   "milestones",
   {
     id: id(),
@@ -120,7 +127,7 @@ export const milestones = sqliteTable(
     description: text("description").notNull().default(""),
     /** This milestone's own scope in points, typed by hand; null means computed from its goals. */
     scopeOverride: integer("scope_override"),
-    doneAt: integer("done_at"),
+    doneAt: bigint("done_at", { mode: "number" }),
     /** Where the manager placed it on the roadmap: a quarter index, null for not placed. */
     periodIndex: integer("period_index"),
     /** 1 for a quarter, 2 for a half-year starting at `period_index`. */
@@ -149,7 +156,7 @@ export type ItemStatus = (typeof ITEM_STATUSES)[number];
  * missing link is a warning, not an error. A feature without a goal may
  * point at a milestone itself.
  */
-export const items = sqliteTable(
+export const items = pgTable(
   "items",
   {
     id: id(),
@@ -158,7 +165,7 @@ export const items = sqliteTable(
       .references(() => programs.id, { onDelete: "cascade" }),
     kind: text("kind").$type<ItemKind>().notNull(),
     /** The goal a feature breaks down; null for goals and for features not yet linked. */
-    parentId: text("parent_id").references((): AnySQLiteColumn => items.id, {
+    parentId: text("parent_id").references((): AnyPgColumn => items.id, {
       onDelete: "set null",
     }),
     milestoneId: text("milestone_id").references(() => milestones.id, { onDelete: "set null" }),
@@ -169,7 +176,7 @@ export const items = sqliteTable(
     /** Points typed on the card; null means what its size is worth in the programme. */
     pointsOverride: integer("points_override"),
     /** A big integration with another system is part of this work. */
-    integration: integer("integration", { mode: "boolean" }).notNull().default(false),
+    integration: boolean("integration").notNull().default(false),
     status: text("status").$type<ItemStatus>().notNull().default("planned"),
     /** Quarter index the item was closed in; set when it is done. */
     doneQuarter: integer("done_quarter"),
@@ -180,7 +187,7 @@ export const items = sqliteTable(
     /** 1 for a quarter, 2 for a half-year starting at `period_index`. */
     periodSpan: integer("period_span").notNull().default(1),
     /** The feature this one was split from, when it is the next version of it. */
-    splitFromId: text("split_from_id").references((): AnySQLiteColumn => items.id, {
+    splitFromId: text("split_from_id").references((): AnyPgColumn => items.id, {
       onDelete: "set null",
     }),
     ...timestamps,
@@ -194,7 +201,7 @@ export type Item = typeof items.$inferSelect;
  * Something that happens in a quarter and changes what the team can do:
  * onboarding, a workshop, an estimation day, holidays, a strike.
  */
-export const programEvents = sqliteTable(
+export const programEvents = pgTable(
   "program_events",
   {
     id: id(),
@@ -216,7 +223,7 @@ export type ProgramEvent = typeof programEvents.$inferSelect;
  * computed delivered or planned points. A missing row means 100 % and the
  * computed numbers.
  */
-export const quarterRecords = sqliteTable(
+export const quarterRecords = pgTable(
   "quarter_records",
   {
     programId: text("program_id")
@@ -243,7 +250,7 @@ export type RiskStatus = (typeof RISK_STATUSES)[number];
  * scale of 1 to 10. Risks are numbered in the order they were raised and
  * keep their number when others are closed.
  */
-export const risks = sqliteTable(
+export const risks = pgTable(
   "risks",
   {
     id: id(),
@@ -275,17 +282,17 @@ export const GOAL_STATUSES = ["open", "achieved", "partial", "missed"] as const;
 export type GoalStatus = (typeof GOAL_STATUSES)[number];
 
 /** A goal for one quarter, with sub-goals under it and stretch goals marked as such. */
-export const quarterGoals = sqliteTable(
+export const quarterGoals = pgTable(
   "quarter_goals",
   {
     id: id(),
     programId: programRef(),
     quarterIndex: integer("quarter_index").notNull(),
-    parentId: text("parent_id").references((): AnySQLiteColumn => quarterGoals.id, {
+    parentId: text("parent_id").references((): AnyPgColumn => quarterGoals.id, {
       onDelete: "cascade",
     }),
     title: text("title").notNull(),
-    stretch: integer("stretch", { mode: "boolean" }).notNull().default(false),
+    stretch: boolean("stretch").notNull().default(false),
     status: text("status").$type<GoalStatus>().notNull().default("open"),
     ...timestamps,
   },
@@ -296,7 +303,7 @@ export const CASE_STATUSES = ["open", "decided"] as const;
 export type CaseStatus = (typeof CASE_STATUSES)[number];
 
 /** A case the steering group is asked to decide: problem, background, key points, next steps. */
-export const decisionCases = sqliteTable(
+export const decisionCases = pgTable(
   "decision_cases",
   {
     id: id(),
@@ -316,7 +323,7 @@ export const DECISION_EFFECTS = ["simplifying", "complicating", "neutral", "pend
 export type DecisionEffect = (typeof DECISION_EFFECTS)[number];
 
 /** A decision taken earlier, kept so the reasons for the plan stay visible. */
-export const decisions = sqliteTable(
+export const decisions = pgTable(
   "decisions",
   {
     id: id(),
@@ -332,7 +339,7 @@ export const decisions = sqliteTable(
 );
 
 /** The words of the report that are not data: the status of the quarter and the change control. */
-export const reportDrafts = sqliteTable("report_drafts", {
+export const reportDrafts = pgTable("report_drafts", {
   programId: programRef().primaryKey(),
   statusText: text("status_text").notNull().default(""),
   changeText: text("change_text").notNull().default(""),
@@ -342,13 +349,13 @@ export const reportDrafts = sqliteTable("report_drafts", {
 });
 
 /** A published report: everything it showed, frozen as JSON, so it reads the same forever. */
-export const reportEditions = sqliteTable(
+export const reportEditions = pgTable(
   "report_editions",
   {
     id: id(),
     programId: programRef(),
     title: text("title").notNull(),
-    publishedAt: integer("published_at").notNull(),
+    publishedAt: bigint("published_at", { mode: "number" }).notNull(),
     data: text("data").notNull(),
   },
   (t) => [index("report_editions_program_idx").on(t.programId, t.publishedAt)],
@@ -361,3 +368,28 @@ export type ReportDraft = typeof reportDrafts.$inferSelect;
 export type ReportEdition = typeof reportEditions.$inferSelect;
 export type Program = typeof programs.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;
+
+/**
+ * Every change to a programme's data, written by a database trigger
+ * (drizzle/*_audit.sql), never by the application. The application role
+ * may only read the rows of its own programmes; nobody may update or
+ * delete a row, except the account-deletion function erasing an account
+ * completely.
+ */
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    at: bigint("at", { mode: "number" }).notNull(),
+    actorUserId: text("actor_user_id"),
+    tableName: text("table_name").notNull(),
+    operation: text("operation").notNull(),
+    rowId: text("row_id"),
+    programId: text("program_id"),
+    before: jsonb("before"),
+    after: jsonb("after"),
+  },
+  (t) => [index("audit_log_program_idx").on(t.programId, t.at)],
+);
+
+export type AuditEntry = typeof auditLog.$inferSelect;

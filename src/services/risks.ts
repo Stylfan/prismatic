@@ -5,40 +5,37 @@ import { NotFound, requireProgram } from "./programs";
 
 /** The programme's risk log. Every risk is reached through a programme the acting user owns. */
 
-export function listRisks(db: Db, programId: string): Risk[] {
-  return db
+export async function listRisks(db: Db, programId: string): Promise<Risk[]> {
+  return await db
     .select()
     .from(risks)
     .where(eq(risks.programId, programId))
-    .orderBy(asc(risks.number))
-    .all();
+    .orderBy(asc(risks.number));
 }
 
-function requireRisk(db: Db, userId: string, riskId: string): Risk {
-  const row = db
+async function requireRisk(db: Db, userId: string, riskId: string): Promise<Risk> {
+  const [row] = await db
     .select({ risk: risks })
     .from(risks)
     .innerJoin(programs, eq(programs.id, risks.programId))
-    .where(and(eq(risks.id, riskId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(risks.id, riskId), eq(programs.ownerId, userId)));
   if (!row) throw new NotFound();
   return row.risk;
 }
 
-export function addRisk(
+export async function addRisk(
   db: Db,
   userId: string,
   input: { programId: string; title: string },
-): string {
-  requireProgram(db, userId, input.programId);
-  const last = db
+): Promise<string> {
+  await requireProgram(db, userId, input.programId);
+  const [last] = await db
     .select({ max: max(risks.number) })
     .from(risks)
-    .where(eq(risks.programId, input.programId))
-    .get();
-  db.insert(risks)
-    .values({ programId: input.programId, title: input.title, number: (last?.max ?? 0) + 1 })
-    .run();
+    .where(eq(risks.programId, input.programId));
+  await db
+    .insert(risks)
+    .values({ programId: input.programId, title: input.title, number: (last?.max ?? 0) + 1 });
   return input.programId;
 }
 
@@ -53,15 +50,15 @@ export type RiskInput = {
   status: RiskStatus;
 };
 
-export function updateRisk(db: Db, userId: string, input: RiskInput): string {
-  const row = requireRisk(db, userId, input.riskId);
+export async function updateRisk(db: Db, userId: string, input: RiskInput): Promise<string> {
+  const row = await requireRisk(db, userId, input.riskId);
   const { riskId, ...fields } = input;
-  db.update(risks).set(fields).where(eq(risks.id, riskId)).run();
+  await db.update(risks).set(fields).where(eq(risks.id, riskId));
   return row.programId;
 }
 
-export function deleteRisk(db: Db, userId: string, riskId: string): string {
-  const row = requireRisk(db, userId, riskId);
-  db.delete(risks).where(eq(risks.id, row.id)).run();
+export async function deleteRisk(db: Db, userId: string, riskId: string): Promise<string> {
+  const row = await requireRisk(db, userId, riskId);
+  await db.delete(risks).where(eq(risks.id, row.id));
   return row.programId;
 }

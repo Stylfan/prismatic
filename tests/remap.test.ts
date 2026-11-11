@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { addEvent, listEvents } from "@/services/events";
 import { createItem, listItems, moveItem } from "@/services/items";
 import {
@@ -30,28 +31,28 @@ const settings = {
   deviationPct: 10,
 };
 
-beforeEach(() => {
-  db = openDb(":memory:");
-  owner = seedUser(db, "owner@example.com");
+beforeEach(async () => {
+  db = await freshDb();
+  owner = await seedUser(db, "owner@example.com");
   // Starts in Efterår 2026, so Vinter 2026/27 is quarter 1.
-  programId = createProgram(db, owner, { ...settings, startDate: "2026-11-10" });
+  programId = await createProgram(db, owner, { ...settings, startDate: "2026-11-10" });
 });
 
 describe("moving the start back a year", () => {
-  it("moves every period number so nothing changes place in time", () => {
-    const item = createItem(db, owner, {
+  it("moves every period number so nothing changes place in time", async () => {
+    const item = await createItem(db, owner, {
       programId,
       kind: "feature",
       title: "F",
       parentId: null,
       milestoneId: null,
     });
-    moveItem(db, owner, { itemId: item, periodIndex: 1, periodSpan: 1 });
-    addMilestone(db, owner, programId, "M1");
-    const m = getProgram(db, owner, programId)!.milestones[0]!;
-    placeMilestone(db, owner, { milestoneId: m.id, periodIndex: 2, periodSpan: 2 });
-    addEvent(db, owner, { programId, quarterIndex: 1, title: "Onboarding" });
-    saveQuarter(db, owner, {
+    await moveItem(db, owner, { itemId: item, periodIndex: 1, periodSpan: 1 });
+    await addMilestone(db, owner, programId, "M1");
+    const m = (await getProgram(db, owner, programId))!.milestones[0]!;
+    await placeMilestone(db, owner, { milestoneId: m.id, periodIndex: 2, periodSpan: 2 });
+    await addEvent(db, owner, { programId, quarterIndex: 1, title: "Onboarding" });
+    await saveQuarter(db, owner, {
       programId,
       quarterIndex: 0,
       capacityPct: 60,
@@ -61,29 +62,34 @@ describe("moving the start back a year", () => {
     });
 
     // From Efterår 2025, Vinter 2026/27 is quarter 5.
-    updateProgram(db, owner, { ...settings, programId, startDate: "2025-09-01" });
+    await updateProgram(db, owner, { ...settings, programId, startDate: "2025-09-01" });
 
-    expect(listItems(db, programId)[0]!.periodIndex).toBe(5);
-    expect(getProgram(db, owner, programId)!.milestones[0]).toMatchObject({
+    expect((await listItems(db, programId))[0]!.periodIndex).toBe(5);
+    expect((await getProgram(db, owner, programId))!.milestones[0]).toMatchObject({
       periodIndex: 6,
       periodSpan: 2,
     });
-    expect(listEvents(db, programId)[0]!.quarterIndex).toBe(5);
-    expect(listQuarterRecords(db, programId).map((r) => [r.quarterIndex, r.capacityPct])).toEqual([
-      [4, 60],
-    ]);
+    expect((await listEvents(db, programId))[0]!.quarterIndex).toBe(5);
+    expect(
+      (await listQuarterRecords(db, programId)).map((r) => [r.quarterIndex, r.capacityPct]),
+    ).toEqual([[4, 60]]);
   });
 
-  it("leaves everything alone when only other settings change", () => {
-    const item = createItem(db, owner, {
+  it("leaves everything alone when only other settings change", async () => {
+    const item = await createItem(db, owner, {
       programId,
       kind: "feature",
       title: "F",
       parentId: null,
       milestoneId: null,
     });
-    moveItem(db, owner, { itemId: item, periodIndex: 1, periodSpan: 1 });
-    updateProgram(db, owner, { ...settings, programId, startDate: "2026-11-10", name: "Nyt navn" });
-    expect(listItems(db, programId)[0]!.periodIndex).toBe(1);
+    await moveItem(db, owner, { itemId: item, periodIndex: 1, periodSpan: 1 });
+    await updateProgram(db, owner, {
+      ...settings,
+      programId,
+      startDate: "2026-11-10",
+      name: "Nyt navn",
+    });
+    expect((await listItems(db, programId))[0]!.periodIndex).toBe(1);
   });
 });

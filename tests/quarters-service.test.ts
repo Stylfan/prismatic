@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { openDb, type Db } from "@/db/client";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { createProgram } from "@/services/programs";
 import { listQuarterRecords, saveQuarter } from "@/services/quarters";
 import { seedUser } from "./helpers";
@@ -10,10 +11,10 @@ let db: Db;
 let owner: string;
 let programId: string;
 
-beforeEach(() => {
-  db = openDb(":memory:");
-  owner = seedUser(db, "owner@example.com");
-  programId = createProgram(db, owner, {
+beforeEach(async () => {
+  db = await freshDb();
+  owner = await seedUser(db, "owner@example.com");
+  programId = await createProgram(db, owner, {
     name: "P",
     goal: "",
     periodModel: "seasons",
@@ -27,16 +28,16 @@ beforeEach(() => {
 const base = { capacityPct: 100, deliveredOverride: null, plannedOverride: null, comment: "" };
 
 describe("the quarter ledger", () => {
-  it("stores capacity and typed numbers per quarter, and updates in place", () => {
-    saveQuarter(db, owner, {
+  it("stores capacity and typed numbers per quarter, and updates in place", async () => {
+    await saveQuarter(db, owner, {
       ...base,
       programId,
       quarterIndex: 0,
       capacityPct: 45,
       deliveredOverride: 180,
     });
-    saveQuarter(db, owner, { ...base, programId, quarterIndex: 1, capacityPct: 40 });
-    saveQuarter(db, owner, {
+    await saveQuarter(db, owner, { ...base, programId, quarterIndex: 1, capacityPct: 40 });
+    await saveQuarter(db, owner, {
       ...base,
       programId,
       quarterIndex: 0,
@@ -44,7 +45,7 @@ describe("the quarter ledger", () => {
       deliveredOverride: 178,
     });
     expect(
-      listQuarterRecords(db, programId).map((r) => [
+      (await listQuarterRecords(db, programId)).map((r) => [
         r.quarterIndex,
         r.capacityPct,
         r.deliveredOverride,
@@ -55,16 +56,16 @@ describe("the quarter ledger", () => {
     ]);
   });
 
-  it("forgets a quarter that is reset to the defaults, and leaves the others", () => {
-    saveQuarter(db, owner, { ...base, programId, quarterIndex: 0, capacityPct: 45 });
-    saveQuarter(db, owner, { ...base, programId, quarterIndex: 1, capacityPct: 40 });
-    saveQuarter(db, owner, { ...base, programId, quarterIndex: 0 });
-    expect(listQuarterRecords(db, programId).map((r) => r.quarterIndex)).toEqual([1]);
+  it("forgets a quarter that is reset to the defaults, and leaves the others", async () => {
+    await saveQuarter(db, owner, { ...base, programId, quarterIndex: 0, capacityPct: 45 });
+    await saveQuarter(db, owner, { ...base, programId, quarterIndex: 1, capacityPct: 40 });
+    await saveQuarter(db, owner, { ...base, programId, quarterIndex: 0 });
+    expect((await listQuarterRecords(db, programId)).map((r) => r.quarterIndex)).toEqual([1]);
   });
 
-  it("refuses another user", () => {
-    const other = seedUser(db, "other@example.com");
-    expect(() => saveQuarter(db, other, { ...base, programId, quarterIndex: 0 })).toThrow(
+  it("refuses another user", async () => {
+    const other = await seedUser(db, "other@example.com");
+    await expect(saveQuarter(db, other, { ...base, programId, quarterIndex: 0 })).rejects.toThrow(
       "notFound",
     );
   });

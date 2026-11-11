@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { hashPassword, verifyPassword } from "@/auth/password";
 import { allowAttempt } from "@/auth/rate-limit";
-import { openDb, type Db } from "@/db/client";
-import { programs } from "@/db/schema";
+import type { Db } from "@/db/client";
+import { freshDb } from "./db";
 import { listPrograms } from "@/services/programs";
 import {
   authenticate,
@@ -14,16 +14,16 @@ import {
 } from "@/services/users";
 
 /**
- * Accounts: passwords are only ever stored hashed, the first account takes
- * over the programmes made before accounts existed, sign-up then closes,
+ * Accounts: passwords are only ever stored hashed, the first account gets
+ * in, sign-up then closes,
  * and a session is valid until it expires or is ended.
  */
 
 let db: Db;
 const pw = "korrekt-hest-batteri";
 
-beforeEach(() => {
-  db = openDb(":memory:");
+beforeEach(async () => {
+  db = await freshDb();
 });
 
 describe("passwords", () => {
@@ -39,21 +39,20 @@ describe("passwords", () => {
 });
 
 describe("signing up", () => {
-  it("lets the first account in and gives it the programmes already there", async () => {
-    db.insert(programs).values({ name: "Fra før", startDate: "2025-09-01" }).run();
-    expect(signupOpen(db, undefined)).toBe(true);
+  it("lets the first account in", async () => {
+    expect(await signupOpen(db, undefined)).toBe(true);
     const user = await registerUser(
       db,
       { email: " Stefan@Example.com ", name: "Stefan", password: pw },
       undefined,
     );
     expect(user.email).toBe("stefan@example.com");
-    expect(listPrograms(db, user.id).map((p) => p.name)).toEqual(["Fra før"]);
+    expect(await listPrograms(db, user.id)).toEqual([]);
   });
 
   it("closes after the first account unless the installation opens it", async () => {
     await registerUser(db, { email: "a@example.com", name: "", password: pw }, undefined);
-    expect(signupOpen(db, undefined)).toBe(false);
+    expect(await signupOpen(db, undefined)).toBe(false);
     await expect(
       registerUser(db, { email: "b@example.com", name: "", password: pw }, undefined),
     ).rejects.toThrow("signupClosed");
@@ -63,7 +62,7 @@ describe("signing up", () => {
       "open",
     );
     // Only the first account takes over unowned programmes.
-    expect(listPrograms(db, second.id)).toEqual([]);
+    expect(await listPrograms(db, second.id)).toEqual([]);
   });
 
   it("refuses a second account on the same address", async () => {
@@ -82,7 +81,7 @@ describe("signing in", () => {
     expect(await authenticate(db, "ingen@example.com", pw)).toBeNull();
   });
 
-  it("limits repeated attempts for one address", () => {
+  it("limits repeated attempts for one address", async () => {
     const key = `limit-${Math.random()}`;
     const results = Array.from({ length: 9 }, () => allowAttempt(key));
     expect(results.filter(Boolean)).toHaveLength(8);
@@ -96,11 +95,11 @@ describe("sessions", () => {
       { email: "a@example.com", name: "", password: pw },
       undefined,
     );
-    const token = createSession(db, user.id, 1_000);
-    expect(userForSession(db, token, 2_000)?.id).toBe(user.id);
-    expect(userForSession(db, token, 1_000 + 31 * 86_400_000)).toBeNull();
-    expect(userForSession(db, "forfalsket", 2_000)).toBeNull();
-    deleteSession(db, token);
-    expect(userForSession(db, token, 2_000)).toBeNull();
+    const token = await createSession(db, user.id, 1_000);
+    expect((await userForSession(db, token, 2_000))?.id).toBe(user.id);
+    expect(await userForSession(db, token, 1_000 + 31 * 86_400_000)).toBeNull();
+    expect(await userForSession(db, "forfalsket", 2_000)).toBeNull();
+    await deleteSession(db, token);
+    expect(await userForSession(db, token, 2_000)).toBeNull();
   });
 });

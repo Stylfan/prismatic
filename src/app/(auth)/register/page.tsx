@@ -20,8 +20,8 @@ export default async function RegisterPage() {
   if (await currentUser()) redirect("/");
   const db = getDb();
   const t = await getTranslations("auth");
-  const first = signupOpen(db, "closed");
-  if (!signupOpen(db)) {
+  const first = await signupOpen(db, "closed");
+  if (!(await signupOpen(db))) {
     return (
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-semibold tracking-[-0.02em]">{t("closedTitle")}</h1>

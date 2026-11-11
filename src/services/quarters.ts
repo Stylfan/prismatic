@@ -9,13 +9,12 @@ import { requireProgram } from "./programs";
  * is removed again, so resetting a quarter leaves no trace.
  */
 
-export function listQuarterRecords(db: Db, programId: string): QuarterRecord[] {
-  return db
+export async function listQuarterRecords(db: Db, programId: string): Promise<QuarterRecord[]> {
+  return await db
     .select()
     .from(quarterRecords)
     .where(eq(quarterRecords.programId, programId))
-    .orderBy(asc(quarterRecords.quarterIndex))
-    .all();
+    .orderBy(asc(quarterRecords.quarterIndex));
 }
 
 export type QuarterInput = {
@@ -27,8 +26,8 @@ export type QuarterInput = {
   comment: string;
 };
 
-export function saveQuarter(db: Db, userId: string, input: QuarterInput): string {
-  requireProgram(db, userId, input.programId);
+export async function saveQuarter(db: Db, userId: string, input: QuarterInput): Promise<string> {
+  await requireProgram(db, userId, input.programId);
   const comment = input.comment.trim();
   const isDefault =
     input.capacityPct === 100 &&
@@ -36,17 +35,18 @@ export function saveQuarter(db: Db, userId: string, input: QuarterInput): string
     input.plannedOverride === null &&
     comment === "";
   if (isDefault) {
-    db.delete(quarterRecords)
+    await db
+      .delete(quarterRecords)
       .where(
         and(
           eq(quarterRecords.programId, input.programId),
           eq(quarterRecords.quarterIndex, input.quarterIndex),
         ),
-      )
-      .run();
+      );
     return input.programId;
   }
-  db.insert(quarterRecords)
+  await db
+    .insert(quarterRecords)
     .values({ ...input, comment })
     .onConflictDoUpdate({
       target: [quarterRecords.programId, quarterRecords.quarterIndex],
@@ -56,7 +56,6 @@ export function saveQuarter(db: Db, userId: string, input: QuarterInput): string
         plannedOverride: input.plannedOverride,
         comment,
       },
-    })
-    .run();
+    });
   return input.programId;
 }

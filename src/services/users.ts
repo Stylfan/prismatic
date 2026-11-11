@@ -1,14 +1,15 @@
 import { createHash, randomBytes } from "node:crypto";
-import { and, count, eq, gt, isNull } from "drizzle-orm";
+import { and, count, eq, gt, sql } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "@/auth/password";
 import type { Db } from "@/db/client";
-import { programs, sessions, users, type User } from "@/db/schema";
+import { sessions, users, type User } from "@/db/schema";
 
 /**
- * Accounts and sessions. Sign-up is open for the very first account, which
- * also takes over any programme created before accounts existed; after that
- * it is closed unless PRISMATIC_SIGNUP=open. Sessions are random tokens of
- * which only the SHA-256 is stored.
+ * Accounts and sessions. Sign-up is open for the very first account and
+ * then closed unless PRISMATIC_SIGNUP=open. Sessions are random tokens of
+ * which only the SHA-256 is stored. Users and sessions are not programme
+ * data, so they sit outside row-level security; the application reaches
+ * them only through these functions.
  */
 
 export const SESSION_DAYS = 30;
@@ -26,11 +27,16 @@ export class EmailTaken extends Error {
 }
 
 const normalize = (email: string) => email.trim().toLowerCase();
-const tokenHash = (token: string) => createHash("sha256").update(token).digest("base64url");
+export const tokenHash = (token: string) => createHash("sha256").update(token).digest("base64url");
 
-export function signupOpen(db: Db, setting = process.env.PRISMATIC_SIGNUP): boolean {
+// A hash of nothing in particular, verified when the address is unknown so
+// the answer takes as long either way.
+const DUMMY_HASH =
+  "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+export async function signupOpen(db: Db, setting = process.env.PRISMATIC_SIGNUP): Promise<boolean> {
   if (setting === "open") return true;
-  const row = db.select({ n: count() }).from(users).get();
+  const [row] = await db.select({ n: count() }).from(users);
   return (row?.n ?? 0) === 0;
 }
 
@@ -39,60 +45,63 @@ export async function registerUser(
   input: { email: string; name: string; password: string },
   setting = process.env.PRISMATIC_SIGNUP,
 ): Promise<User> {
-  if (!signupOpen(db, setting)) throw new SignupClosed();
+  if (!(await signupOpen(db, setting))) throw new SignupClosed();
   const email = normalize(input.email);
-  if (db.select({ id: users.id }).from(users).where(eq(users.email, email)).get()) {
-    throw new EmailTaken();
-  }
+  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+  if (existing) throw new EmailTaken();
   const passwordHash = await hashPassword(input.password);
-  return db.transaction((tx) => {
-    const first = (tx.select({ n: count() }).from(users).get()?.n ?? 0) === 0;
-    const [user] = tx
-      .insert(users)
-      .values({ email, name: input.name.trim(), passwordHash })
-      .returning()
-      .all();
-    // Programmes made before there were accounts belong to whoever signs up first.
-    if (first) tx.update(programs).set({ ownerId: user!.id }).where(isNull(programs.ownerId)).run();
-    return user!;
-  });
+  const [user] = await db
+    .insert(users)
+    .values({ email, name: input.name.trim(), passwordHash })
+    .returning();
+  return user!;
+}
+
+export async function findUserByEmail(db: Db, email: string): Promise<User | null> {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, normalize(email)));
+  return user ?? null;
 }
 
 /** The user for an e-mail and password, or null. Always runs a hash, so timing says nothing. */
 export async function authenticate(db: Db, email: string, password: string): Promise<User | null> {
-  const user = db
-    .select()
-    .from(users)
-    .where(eq(users.email, normalize(email)))
-    .get();
-  const ok = await verifyPassword(
-    password,
-    user?.passwordHash ??
-      "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-  );
+  const user = await findUserByEmail(db, email);
+  const ok = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
   return user && ok ? user : null;
 }
 
-export function createSession(db: Db, userId: string, now = Date.now()): string {
+export async function createSession(db: Db, userId: string, now = Date.now()): Promise<string> {
   const token = randomBytes(32).toString("base64url");
-  db.insert(sessions)
-    .values({ id: tokenHash(token), userId, expiresAt: now + SESSION_DAYS * 86_400_000 })
-    .run();
+  await db
+    .insert(sessions)
+    .values({ id: tokenHash(token), userId, expiresAt: now + SESSION_DAYS * 86_400_000 });
   return token;
 }
 
-export function userForSession(db: Db, token: string, now = Date.now()): User | null {
-  const row = db
+export async function userForSession(
+  db: Db,
+  token: string,
+  now = Date.now(),
+): Promise<User | null> {
+  const [row] = await db
     .select({ user: users })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.id, tokenHash(token)), gt(sessions.expiresAt, now)))
-    .get();
+    .where(and(eq(sessions.id, tokenHash(token)), gt(sessions.expiresAt, now)));
   return row?.user ?? null;
 }
 
-export function deleteSession(db: Db, token: string) {
-  db.delete(sessions)
-    .where(eq(sessions.id, tokenHash(token)))
-    .run();
+export async function deleteSession(db: Db, token: string) {
+  await db.delete(sessions).where(eq(sessions.id, tokenHash(token)));
+}
+
+/**
+ * Deletes the account and everything it owns, its audit trail included,
+ * through the database function that alone may erase audit rows. Must run
+ * inside withUser() for that same account.
+ */
+export async function deleteAccount(db: Db, userId: string) {
+  await db.execute(sql`select delete_account(${userId})`);
 }

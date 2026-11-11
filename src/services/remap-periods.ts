@@ -11,7 +11,7 @@ import { quarterIndexOf, quarterStart, type PeriodSettings } from "@/domain/peri
  * milestones, events and the quarter ledger. Runs inside the caller's
  * transaction.
  */
-export function remapPeriods(
+export async function remapPeriods(
   tx: Parameters<Parameters<Db["transaction"]>[0]>[0],
   programId: string,
   before: PeriodSettings,
@@ -21,42 +21,38 @@ export function remapPeriods(
   const map = (index: number | null) =>
     index === null ? null : quarterIndexOf(after, quarterStart(before, index));
 
-  for (const row of tx.select().from(items).where(eq(items.programId, programId)).all()) {
-    tx.update(items)
+  for (const row of await tx.select().from(items).where(eq(items.programId, programId))) {
+    await tx
+      .update(items)
       .set({ periodIndex: map(row.periodIndex), doneQuarter: map(row.doneQuarter) })
-      .where(eq(items.id, row.id))
-      .run();
+      .where(eq(items.id, row.id));
   }
-  for (const row of tx.select().from(milestones).where(eq(milestones.programId, programId)).all()) {
-    tx.update(milestones)
+  for (const row of await tx.select().from(milestones).where(eq(milestones.programId, programId))) {
+    await tx
+      .update(milestones)
       .set({ periodIndex: map(row.periodIndex) })
-      .where(eq(milestones.id, row.id))
-      .run();
+      .where(eq(milestones.id, row.id));
   }
-  for (const row of tx
+  for (const row of await tx
     .select()
     .from(programEvents)
-    .where(eq(programEvents.programId, programId))
-    .all()) {
-    tx.update(programEvents)
+    .where(eq(programEvents.programId, programId))) {
+    await tx
+      .update(programEvents)
       .set({ quarterIndex: map(row.quarterIndex)! })
-      .where(eq(programEvents.id, row.id))
-      .run();
+      .where(eq(programEvents.id, row.id));
   }
   // The ledger is keyed by quarter, so its rows are taken out and put back under their new number.
-  const records = tx
+  const records = await tx
     .select()
     .from(quarterRecords)
-    .where(eq(quarterRecords.programId, programId))
-    .all();
-  tx.delete(quarterRecords).where(eq(quarterRecords.programId, programId)).run();
+    .where(eq(quarterRecords.programId, programId));
+  await tx.delete(quarterRecords).where(eq(quarterRecords.programId, programId));
   const seen = new Set<number>();
   for (const r of records) {
     const quarterIndex = map(r.quarterIndex)!;
     if (seen.has(quarterIndex)) continue;
     seen.add(quarterIndex);
-    tx.insert(quarterRecords)
-      .values({ ...r, quarterIndex })
-      .run();
+    await tx.insert(quarterRecords).values({ ...r, quarterIndex });
   }
 }

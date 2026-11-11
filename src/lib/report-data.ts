@@ -85,21 +85,21 @@ export type ReportData = {
 export async function buildReportData(db: Db, full: ProgramFull): Promise<ReportData> {
   const tp = await getTranslations("periods");
   const { program } = full;
-  const items = listItems(db, program.id);
-  const events = listEvents(db, program.id);
-  const records = listQuarterRecords(db, program.id);
+  const items = await listItems(db, program.id);
+  const events = await listEvents(db, program.id);
+  const records = await listQuarterRecords(db, program.id);
   const forecast = await buildForecastView(full, items, records, events);
   const roadmap = await buildRoadmapView(full, items, events, {
     avgVelocity: forecast.result.stats?.avg ?? null,
     capacityPct: (q) => records.find((r) => r.quarterIndex === q)?.capacityPct ?? 100,
   });
-  const draft = getDraft(db, program.id);
-  const risks = listRisks(db, program.id);
+  const draft = await getDraft(db, program.id);
+  const risks = await listRisks(db, program.id);
 
   const settings: PeriodSettings = { model: program.periodModel, startDate: program.startDate };
   const goalsQuarter =
     draft.goalsQuarter ?? Math.max(0, quarterIndexOf(settings, todayInCopenhagen()) - 1);
-  const goalRows = listGoals(db, program.id).filter((g) => g.quarterIndex === goalsQuarter);
+  const goalRows = (await listGoals(db, program.id)).filter((g) => g.quarterIndex === goalsQuarter);
   const node = (g: (typeof goalRows)[number]): GoalNode => ({
     id: g.id,
     title: g.title,
@@ -138,7 +138,7 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
       quarter: formatPeriodLabel(tp, quarterLabel(settings, goalsQuarter)),
       list: goalRows.filter((g) => g.parentId === null).map(node),
     },
-    cases: listCases(db, program.id).map((c) => ({
+    cases: (await listCases(db, program.id)).map((c) => ({
       id: c.id,
       title: c.title,
       problem: c.problem,
@@ -147,7 +147,7 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
       nextSteps: c.nextSteps,
       status: c.status,
     })),
-    decisions: listDecisions(db, program.id).map((x) => ({
+    decisions: (await listDecisions(db, program.id)).map((x) => ({
       id: x.id,
       title: x.title,
       decidedOn: x.decidedOn,
@@ -208,8 +208,8 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
 }
 
 /** The latest edition, if any, parsed. */
-export function previousEdition(db: Db, programId: string): ReportData | null {
-  const raw = latestEditionData(db, programId);
+export async function previousEdition(db: Db, programId: string): Promise<ReportData | null> {
+  const raw = await latestEditionData(db, programId);
   if (!raw) return null;
   try {
     return JSON.parse(raw) as ReportData;

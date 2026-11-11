@@ -23,29 +23,32 @@ import { NotFound, requireProgram } from "./programs";
 type OwnedTable = typeof quarterGoals | typeof decisionCases | typeof decisions;
 
 /** The programme of a row in one of the report tables, if the user owns it. */
-function ownerProgram(db: Db, userId: string, table: OwnedTable, rowId: string): string {
-  const row = db
+async function ownerProgram(
+  db: Db,
+  userId: string,
+  table: OwnedTable,
+  rowId: string,
+): Promise<string> {
+  const [row] = await db
     .select({ programId: table.programId })
     .from(table)
     .innerJoin(programs, eq(programs.id, table.programId))
-    .where(and(eq(table.id, rowId), eq(programs.ownerId, userId)))
-    .get();
+    .where(and(eq(table.id, rowId), eq(programs.ownerId, userId)));
   if (!row) throw new NotFound();
   return row.programId;
 }
 
 // Quarter goals
 
-export function listGoals(db: Db, programId: string) {
-  return db
+export async function listGoals(db: Db, programId: string) {
+  return await db
     .select()
     .from(quarterGoals)
     .where(eq(quarterGoals.programId, programId))
-    .orderBy(asc(quarterGoals.createdAt))
-    .all();
+    .orderBy(asc(quarterGoals.createdAt));
 }
 
-export function addGoal(
+export async function addGoal(
   db: Db,
   userId: string,
   input: {
@@ -55,53 +58,52 @@ export function addGoal(
     parentId: string | null;
     stretch: boolean;
   },
-): string {
-  requireProgram(db, userId, input.programId);
+): Promise<string> {
+  await requireProgram(db, userId, input.programId);
   if (input.parentId) {
-    const parent = ownerProgram(db, userId, quarterGoals, input.parentId);
+    const parent = await ownerProgram(db, userId, quarterGoals, input.parentId);
     if (parent !== input.programId) throw new NotFound();
   }
-  db.insert(quarterGoals).values(input).run();
+  await db.insert(quarterGoals).values(input);
   return input.programId;
 }
 
-export function updateGoal(
+export async function updateGoal(
   db: Db,
   userId: string,
   input: { goalId: string; title: string; stretch: boolean; status: GoalStatus },
-): string {
-  const programId = ownerProgram(db, userId, quarterGoals, input.goalId);
-  db.update(quarterGoals)
+): Promise<string> {
+  const programId = await ownerProgram(db, userId, quarterGoals, input.goalId);
+  await db
+    .update(quarterGoals)
     .set({ title: input.title, stretch: input.stretch, status: input.status })
-    .where(eq(quarterGoals.id, input.goalId))
-    .run();
+    .where(eq(quarterGoals.id, input.goalId));
   return programId;
 }
 
-export function deleteGoal(db: Db, userId: string, goalId: string): string {
-  const programId = ownerProgram(db, userId, quarterGoals, goalId);
-  db.delete(quarterGoals).where(eq(quarterGoals.id, goalId)).run();
+export async function deleteGoal(db: Db, userId: string, goalId: string): Promise<string> {
+  const programId = await ownerProgram(db, userId, quarterGoals, goalId);
+  await db.delete(quarterGoals).where(eq(quarterGoals.id, goalId));
   return programId;
 }
 
 // Cases for decision
 
-export function listCases(db: Db, programId: string) {
-  return db
+export async function listCases(db: Db, programId: string) {
+  return await db
     .select()
     .from(decisionCases)
     .where(eq(decisionCases.programId, programId))
-    .orderBy(asc(decisionCases.createdAt))
-    .all();
+    .orderBy(asc(decisionCases.createdAt));
 }
 
-export function addCase(db: Db, userId: string, input: { programId: string; title: string }) {
-  requireProgram(db, userId, input.programId);
-  db.insert(decisionCases).values(input).run();
+export async function addCase(db: Db, userId: string, input: { programId: string; title: string }) {
+  await requireProgram(db, userId, input.programId);
+  await db.insert(decisionCases).values(input);
   return input.programId;
 }
 
-export function updateCase(
+export async function updateCase(
   db: Db,
   userId: string,
   input: {
@@ -113,37 +115,40 @@ export function updateCase(
     nextSteps: string;
     status: CaseStatus;
   },
-): string {
-  const programId = ownerProgram(db, userId, decisionCases, input.caseId);
+): Promise<string> {
+  const programId = await ownerProgram(db, userId, decisionCases, input.caseId);
   const { caseId, ...fields } = input;
-  db.update(decisionCases).set(fields).where(eq(decisionCases.id, caseId)).run();
+  await db.update(decisionCases).set(fields).where(eq(decisionCases.id, caseId));
   return programId;
 }
 
-export function deleteCase(db: Db, userId: string, caseId: string): string {
-  const programId = ownerProgram(db, userId, decisionCases, caseId);
-  db.delete(decisionCases).where(eq(decisionCases.id, caseId)).run();
+export async function deleteCase(db: Db, userId: string, caseId: string): Promise<string> {
+  const programId = await ownerProgram(db, userId, decisionCases, caseId);
+  await db.delete(decisionCases).where(eq(decisionCases.id, caseId));
   return programId;
 }
 
 // The decision log
 
-export function listDecisions(db: Db, programId: string) {
-  return db
+export async function listDecisions(db: Db, programId: string) {
+  return await db
     .select()
     .from(decisions)
     .where(eq(decisions.programId, programId))
-    .orderBy(asc(decisions.createdAt))
-    .all();
+    .orderBy(asc(decisions.createdAt));
 }
 
-export function addDecision(db: Db, userId: string, input: { programId: string; title: string }) {
-  requireProgram(db, userId, input.programId);
-  db.insert(decisions).values(input).run();
+export async function addDecision(
+  db: Db,
+  userId: string,
+  input: { programId: string; title: string },
+) {
+  await requireProgram(db, userId, input.programId);
+  await db.insert(decisions).values(input);
   return input.programId;
 }
 
-export function updateDecision(
+export async function updateDecision(
   db: Db,
   userId: string,
   input: {
@@ -154,39 +159,34 @@ export function updateDecision(
     decision: string;
     effect: DecisionEffect;
   },
-): string {
-  const programId = ownerProgram(db, userId, decisions, input.decisionId);
+): Promise<string> {
+  const programId = await ownerProgram(db, userId, decisions, input.decisionId);
   const { decisionId, ...fields } = input;
-  db.update(decisions).set(fields).where(eq(decisions.id, decisionId)).run();
+  await db.update(decisions).set(fields).where(eq(decisions.id, decisionId));
   return programId;
 }
 
-export function deleteDecision(db: Db, userId: string, decisionId: string): string {
-  const programId = ownerProgram(db, userId, decisions, decisionId);
-  db.delete(decisions).where(eq(decisions.id, decisionId)).run();
+export async function deleteDecision(db: Db, userId: string, decisionId: string): Promise<string> {
+  const programId = await ownerProgram(db, userId, decisions, decisionId);
+  await db.delete(decisions).where(eq(decisions.id, decisionId));
   return programId;
 }
 
 // The report's own texts
 
-export function getDraft(db: Db, programId: string) {
-  return (
-    db.select().from(reportDrafts).where(eq(reportDrafts.programId, programId)).get() ?? {
-      programId,
-      statusText: "",
-      changeText: "",
-      goalsQuarter: null,
-    }
-  );
+export async function getDraft(db: Db, programId: string) {
+  const [draft] = await db.select().from(reportDrafts).where(eq(reportDrafts.programId, programId));
+  return draft ?? { programId, statusText: "", changeText: "", goalsQuarter: null };
 }
 
-export function saveDraft(
+export async function saveDraft(
   db: Db,
   userId: string,
   input: { programId: string; statusText: string; changeText: string; goalsQuarter: number | null },
-): string {
-  requireProgram(db, userId, input.programId);
-  db.insert(reportDrafts)
+): Promise<string> {
+  await requireProgram(db, userId, input.programId);
+  await db
+    .insert(reportDrafts)
     .values(input)
     .onConflictDoUpdate({
       target: reportDrafts.programId,
@@ -195,14 +195,13 @@ export function saveDraft(
         changeText: input.changeText,
         goalsQuarter: input.goalsQuarter,
       },
-    })
-    .run();
+    });
   return input.programId;
 }
 
 // Editions
 
-export function listEditions(db: Db, programId: string) {
+export async function listEditions(db: Db, programId: string) {
   return db
     .select({
       id: reportEditions.id,
@@ -211,40 +210,37 @@ export function listEditions(db: Db, programId: string) {
     })
     .from(reportEditions)
     .where(eq(reportEditions.programId, programId))
-    .orderBy(desc(reportEditions.publishedAt))
-    .all();
+    .orderBy(desc(reportEditions.publishedAt));
 }
 
 /** The latest edition's frozen data, to compare the present against. */
-export function latestEditionData(db: Db, programId: string): string | null {
-  return (
-    db
-      .select({ data: reportEditions.data })
-      .from(reportEditions)
-      .where(eq(reportEditions.programId, programId))
-      .orderBy(desc(reportEditions.publishedAt))
-      .get()?.data ?? null
-  );
+export async function latestEditionData(db: Db, programId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ data: reportEditions.data })
+    .from(reportEditions)
+    .where(eq(reportEditions.programId, programId))
+    .orderBy(desc(reportEditions.publishedAt))
+    .limit(1);
+  return row?.data ?? null;
 }
 
-export function getEdition(db: Db, userId: string, programId: string, editionId: string) {
-  requireProgram(db, userId, programId);
-  const row = db
+export async function getEdition(db: Db, userId: string, programId: string, editionId: string) {
+  await requireProgram(db, userId, programId);
+  const [row] = await db
     .select()
     .from(reportEditions)
-    .where(and(eq(reportEditions.id, editionId), eq(reportEditions.programId, programId)))
-    .get();
+    .where(and(eq(reportEditions.id, editionId), eq(reportEditions.programId, programId)));
   if (!row) throw new NotFound();
   return row;
 }
 
-export function saveEdition(
+export async function saveEdition(
   db: Db,
   userId: string,
   input: { programId: string; title: string; data: string; publishedAt?: number },
-): string {
-  requireProgram(db, userId, input.programId);
-  const [row] = db
+): Promise<string> {
+  await requireProgram(db, userId, input.programId);
+  const [row] = await db
     .insert(reportEditions)
     .values({
       programId: input.programId,
@@ -252,7 +248,6 @@ export function saveEdition(
       data: input.data,
       publishedAt: input.publishedAt ?? Date.now(),
     })
-    .returning({ id: reportEditions.id })
-    .all();
+    .returning({ id: reportEditions.id });
   return row!.id;
 }

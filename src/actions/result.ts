@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { currentUser } from "@/auth/session";
-import { getDb, type Db } from "@/db/client";
+import { withUser, type Db } from "@/db/client";
 import { NotFound } from "@/services/programs";
 
 /** Every action answers with one of these; the page never sees a stack trace. */
@@ -24,7 +24,11 @@ export async function run<S extends z.ZodType, T>(
   const parsed = schema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid" };
   try {
-    return { ok: true, data: await fn(getDb(), user.id, parsed.data) };
+    // The database knows who is acting, so row-level security applies to everything fn does.
+    return {
+      ok: true,
+      data: await withUser(user.id, (tx) => Promise.resolve(fn(tx, user.id, parsed.data))),
+    };
   } catch (error) {
     if (error instanceof NotFound) return { ok: false, error: "notFound" };
     console.error("action failed", error);
