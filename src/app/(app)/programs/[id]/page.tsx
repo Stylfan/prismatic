@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
-import { AttentionList, type Attention } from "@/components/overview/attention-list";
 import { MilestoneProgress } from "@/components/overview/milestone-progress";
 import { RiskList } from "@/components/overview/risk-list";
 import { RiskMatrix } from "@/components/risks/risk-matrix";
@@ -12,18 +11,14 @@ import { PageHeader, Panel, Stat } from "@/components/ui/layout";
 import { getDb, withUser } from "@/db/client";
 import { milestoneComputedScope, milestoneDone } from "@/domain/backlog";
 import { recentTempo, TEMPO_QUARTERS } from "@/domain/forecast";
-import { programHealth } from "@/domain/health";
-import { byScore, riskBand } from "@/domain/risk";
+import { riskBand } from "@/domain/risk";
 import { cumulativeScopes } from "@/domain/scope";
-import { cn } from "@/lib/cn";
 import { buildForecastView } from "@/lib/forecast-view";
 import { programTitle } from "@/lib/load";
-import { buildRoadmapView } from "@/lib/roadmap-view";
 import { listEvents } from "@/services/events";
 import { listItems } from "@/services/items";
 import { getProgram } from "@/services/programs";
 import { listQuarterRecords } from "@/services/quarters";
-import { listCases } from "@/services/report-content";
 import { listRisks } from "@/services/risks";
 
 export const dynamic = "force-dynamic";
@@ -34,16 +29,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: await programTitle((await params).id) };
 }
 
-const HEALTH_STYLE = {
-  good: "bg-success-soft text-success",
-  watch: "bg-warning-soft text-warning",
-  bad: "bg-danger-soft text-danger",
-} as const;
-
 /**
- * The programme's front page, the answer before the detail: its colour and
- * why, the figures that matter, each milestone and when it looks likely,
- * the risks, and what needs a hand this week.
+ * The programme's front page: the figures that matter, each milestone with
+ * its own progress and, folded away, its forecast, and the risks by number.
  */
 export default async function OverviewPage({ params }: Params) {
   const user = await requireUser();
@@ -56,70 +44,19 @@ export default async function OverviewPage({ params }: Params) {
       const { program } = full;
       const t = await getTranslations("overview");
       const tn = await getTranslations("nav");
-      const [items, events, records, risks, cases] = [
-        await listItems(db, program.id),
-        await listEvents(db, program.id),
+      const items = await listItems(db, program.id);
+      const risks = await listRisks(db, program.id);
+      const forecast = await buildForecastView(
+        full,
+        items,
         await listQuarterRecords(db, program.id),
-        await listRisks(db, program.id),
-        await listCases(db, program.id),
-      ];
-      const forecast = await buildForecastView(full, items, records, events);
-      const stats = forecast.result.stats;
-      const roadmap = await buildRoadmapView(full, items, events, {
-        avgVelocity: stats?.avg ?? null,
-        capacityPct: (q) => records.find((r) => r.quarterIndex === q)?.capacityPct ?? 100,
-      });
+        await listEvents(db, program.id),
+      );
 
       const base = `/programs/${program.id}`;
       const fmt = (n: number) => Math.round(n).toLocaleString("da-DK");
       const open = risks.filter((r) => r.status === "open");
       const high = open.filter((r) => riskBand(r.probability, r.impact) === "high");
-      const overloaded = roadmap.columns.filter((c) => c.pct !== null && c.pct > 100);
-      const warnings = roadmap.cards.reduce((n, c) => n + c.warnings.length, 0);
-      const slipping = roadmap.milestones.filter((m) => m.later.length > 0);
-      const openCases = cases.filter((c) => c.status === "open");
-      const health = programHealth({
-        overloaded: overloaded.length,
-        highRisks: high.length,
-        warnings,
-        slipping: slipping.length,
-      });
-
-      const attention: Attention[] = [
-        ...byScore(high).map((r) => ({
-          kind: "highRisk" as const,
-          text: t("attention.highRisk", { number: r.number, title: r.title }),
-          href: `${base}/risks`,
-        })),
-        ...overloaded.map((c) => ({
-          kind: "overloaded" as const,
-          text: t("attention.overloaded", { period: c.label, pct: c.pct ?? 0 }),
-          href: `${base}/roadmap`,
-        })),
-        ...slipping.map((m) => ({
-          kind: "slipping" as const,
-          text: t("attention.slipping", { code: m.code, count: m.later.length }),
-          href: `${base}/roadmap`,
-        })),
-        ...(warnings > 0
-          ? [
-              {
-                kind: "warnings" as const,
-                text: t("attention.warnings", { count: warnings }),
-                href: `${base}/backlog`,
-              },
-            ]
-          : []),
-        ...(openCases.length > 0
-          ? [
-              {
-                kind: "cases" as const,
-                text: t("attention.cases", { count: openCases.length }),
-                href: `${base}/report`,
-              },
-            ]
-          : []),
-      ];
 
       // Each milestone's own scope and what is done of it: its own goals only.
       const scopes = cumulativeScopes(
@@ -136,6 +73,7 @@ export default async function OverviewPage({ params }: Params) {
         done: milestoneDone(full.sizes, m.id, items),
       }));
       const total = scopes.at(-1)?.cumulative ?? 0;
+      const delivered = forecast.result.delivered;
       const next = forecast.milestones.find((m) => !m.reached);
       const recent = recentTempo(forecast.rows);
 
@@ -151,30 +89,16 @@ export default async function OverviewPage({ params }: Params) {
             }
           />
 
-          <div>
-            <span
-              className={cn(
-                "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[13px] font-medium",
-                HEALTH_STYLE[health],
-              )}
-            >
-              <span aria-hidden className="size-2 rounded-full bg-current" />
-              {t(`health.${health}`)}
-            </span>
-          </div>
-
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat
               label={t("stats.delivered")}
-              value={fmt(forecast.result.delivered)}
+              value={fmt(delivered)}
               note={total > 0 ? t("stats.ofTotal", { total: fmt(total) }) : undefined}
             />
             <Stat
               label={t("stats.tempo", { count: TEMPO_QUARTERS })}
-              value={recent ? fmt(recent.value) : "–"}
-              note={
-                recent ? t("stats.tempoQuarters", { quarters: recent.labels }) : t("stats.noTempo")
-              }
+              value={recent !== null ? fmt(recent) : "–"}
+              note={recent !== null ? t("stats.tempoNote") : t("stats.noTempo")}
             />
             <Stat
               label={t("stats.next")}
@@ -198,21 +122,27 @@ export default async function OverviewPage({ params }: Params) {
             />
           </div>
 
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <Panel className="flex flex-col gap-1">
-              <div className="flex items-center justify-between">
-                <h2 className="text-[14px] font-semibold text-ink">{t("milestones.title")}</h2>
-                <Link href={`${base}/forecast`} className="text-[12px] text-slate hover:text-ink">
-                  {t("toForecast")}
-                </Link>
-              </div>
-              <MilestoneProgress milestones={progress} />
-            </Panel>
-            <Panel className="flex flex-col gap-2">
-              <h2 className="text-[14px] font-semibold text-ink">{t("attention.title")}</h2>
-              <AttentionList items={attention} />
-            </Panel>
-          </div>
+          <Panel className="flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[14px] font-semibold text-ink">{t("milestones.title")}</h2>
+              <Link href={`${base}/forecast`} className="text-[12px] text-slate hover:text-ink">
+                {t("toForecast")}
+              </Link>
+            </div>
+            <MilestoneProgress milestones={progress} />
+            {total > 0 && (
+              <p className="flex justify-end border-t border-hairline pt-3 text-[13px] text-ink tabular">
+                <span>
+                  <span className="font-semibold">
+                    {t("milestones.total", { done: fmt(delivered), total: fmt(total) })}
+                  </span>{" "}
+                  <span className="text-slate">
+                    {t("milestones.totalPct", { pct: Math.round((delivered / total) * 100) })}
+                  </span>
+                </span>
+              </p>
+            )}
+          </Panel>
 
           <Panel className="flex flex-col gap-3">
             <div className="flex items-center justify-between">

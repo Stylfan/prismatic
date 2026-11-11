@@ -1,31 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { recentTempo } from "@/domain/forecast";
 
-/** The overview's tempo: the average of the last three ended quarters, nothing older or newer. */
+/** The overview's tempo: what was delivered in the last three ended quarters, on average. */
 
-const row = (label: string, phase: "past" | "current" | "future", velocity: number | null) => ({
-  label,
-  phase,
-  velocity,
-});
+const row = (phase: "past" | "current" | "future", value: number) => ({ phase, value });
 
 describe("the recent tempo", () => {
-  it("averages the last three ended quarters", () => {
+  it("averages what was delivered in the last three ended quarters, whatever the capacity", () => {
     const rows = [
-      row("A", "past", 400),
-      row("B", "past", 242.5),
-      row("C", "past", 524.4),
-      row("D", "past", 357.6),
-      row("E", "current", null),
-      row("F", "future", null),
+      row("past", 180),
+      row("past", 97),
+      row("past", 236),
+      row("past", 118),
+      row("current", 40),
+      row("future", 300),
     ];
-    const tempo = recentTempo(rows)!;
-    expect(tempo.value).toBeCloseTo((242.5 + 524.4 + 357.6) / 3, 5);
-    expect(tempo.labels).toBe("B, C, D");
+    expect(recentTempo(rows)).toBeCloseTo((97 + 236 + 118) / 3, 5);
   });
 
   it("uses what there is before three quarters have ended, and nothing before the first", () => {
-    expect(recentTempo([row("A", "past", 300), row("B", "current", null)])!.value).toBe(300);
-    expect(recentTempo([row("A", "current", null)])).toBeNull();
+    expect(recentTempo([row("past", 300), row("current", 10)])).toBe(300);
+    expect(recentTempo([row("current", 10)])).toBeNull();
   });
 });

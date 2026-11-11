@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { MilestoneRow } from "@/lib/forecast-view";
 import { cn } from "@/lib/cn";
@@ -12,9 +13,10 @@ export type MilestoneProgressRow = MilestoneRow & {
 const DOT = { low: "bg-tempo-low", avg: "bg-tempo-avg", high: "bg-tempo-high" } as const;
 
 /**
- * Each milestone with a bar of how much of its own work is done, and when
- * it is expected to be reached: the average tempo first, as the best
- * guess, then the low and high tempo, each named and in its colour.
+ * Each milestone with a bar of how much of its own work is done. Its
+ * forecast is folded away under a small arrow, as it is a guess: when
+ * opened, the tempo better than average first, the average in the middle,
+ * and the tempo below average last, each named and in its colour.
  */
 export async function MilestoneProgress({ milestones }: { milestones: MilestoneProgressRow[] }) {
   const t = await getTranslations("overview.milestones");
@@ -41,26 +43,35 @@ export async function MilestoneProgress({ milestones }: { milestones: MilestoneP
                   style={{ width: `${share * 100}%` }}
                 />
               </div>
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[12px] text-slate">
-                {m.reached ? (
-                  <span className="font-medium text-success">
-                    {t("reached", { when: m.reached })}
-                  </span>
-                ) : (
-                  <>
-                    <span>{t("expected")}</span>
-                    {(["avg", "low", "high"] as const).map((tempo) => (
-                      <span key={tempo} className="flex items-center gap-1.5">
-                        <span aria-hidden className={cn("size-2 rounded-full", DOT[tempo])} />
-                        <span className={cn(tempo === "avg" && "font-medium text-ink")}>
+              {m.reached ? (
+                <span className="text-[12px] font-medium text-success">
+                  {t("reached", { when: m.reached })}
+                </span>
+              ) : (
+                // Folded by default: a forecast is a guess, shown when asked for.
+                <details className="group text-[12px] text-slate">
+                  <summary className="flex w-max cursor-pointer list-none items-center gap-1 rounded hover:text-ink [&::-webkit-details-marker]:hidden">
+                    <ChevronRight
+                      className="size-3.5 transition-transform group-open:rotate-90"
+                      aria-hidden
+                    />
+                    {t("forecast")}
+                  </summary>
+                  <dl className="mt-1.5 ml-4.5 grid w-max grid-cols-[auto_auto] gap-x-4 gap-y-1">
+                    {(["high", "avg", "low"] as const).map((tempo) => (
+                      <div key={tempo} className="contents">
+                        <dt className="flex items-center gap-1.5">
+                          <span aria-hidden className={cn("size-2 rounded-full", DOT[tempo])} />
+                          {t(`tempo.${tempo}`)}
+                        </dt>
+                        <dd className={cn("tabular", tempo === "avg" && "font-medium text-ink")}>
                           {m.at[tempo]?.label ?? t("beyond")}
-                        </span>
-                        <span>({t(`tempo.${tempo}`)})</span>
-                      </span>
+                        </dd>
+                      </div>
                     ))}
-                  </>
-                )}
-              </div>
+                  </dl>
+                </details>
+              )}
             </div>
           </li>
         );

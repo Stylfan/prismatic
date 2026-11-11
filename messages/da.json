@@ -715,8 +715,8 @@
       "high": "{count, plural, one {# høj} other {# høje}}",
       "noHigh": "Ingen høje",
       "noMilestones": "Ingen milepæle endnu",
-      "tempoQuarters": "Point pr. kvartal ved fuld kapacitet: {quarters}",
-      "nextWhen": "{code} · forventet {when}"
+      "nextWhen": "{code} · forecast {when}",
+      "tempoNote": "Point leveret pr. kvartal i snit"
     },
     "milestones": {
       "title": "Milepæle",
@@ -725,11 +725,13 @@
       "reached": "Nået i {when}",
       "beyond": "ud over horisonten",
       "tempo": {
-        "low": "lavt tempo",
-        "avg": "gennemsnit",
-        "high": "højt tempo"
+        "high": "Bedre end gennemsnit",
+        "avg": "Gennemsnit",
+        "low": "Under gennemsnit"
       },
-      "expected": "Forventes nået"
+      "forecast": "Forecast",
+      "total": "Leveret {done} af {total} point tilknyttet forretningsmålene",
+      "totalPct": "({pct} % i alt)"
     },
     "attention": {
       "title": "Kræver handling",
