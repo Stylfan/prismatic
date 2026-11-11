@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createItem, deleteItem, rankGoals, splitFeature, updateItem } from "@/services/items";
+import { arrangeItems, createItem, deleteItem, splitFeature, updateItem } from "@/services/items";
 import {
   ItemIdSchema,
   NewItemSchema,
-  RankGoalsSchema,
+  ArrangeItemsSchema,
   SplitItemSchema,
   UpdateItemSchema,
 } from "@/services/validation";
@@ -50,8 +50,8 @@ export async function splitFeatureAction(raw: unknown): Promise<Result<string>> 
   return r;
 }
 
-/** A milestone's business goals in a new order of priority. */
-export async function rankGoalsAction(raw: unknown): Promise<Result<string>> {
-  const r = await run(RankGoalsSchema, raw, rankGoals);
+/** Goals or features in a new order, and moved to where they were dropped. */
+export async function arrangeItemsAction(raw: unknown): Promise<Result<string>> {
+  const r = await run(ArrangeItemsSchema, raw, arrangeItems);
   return refresh(r, idOf(r));
 }

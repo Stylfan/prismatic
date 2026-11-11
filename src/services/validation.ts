@@ -89,11 +89,12 @@ export const SplitItemSchema = z.object({
 
 export const ItemIdSchema = z.object({ itemId: id });
 
-export const RankGoalsSchema = z.object({
-  programId: id,
-  milestoneId: id.nullable(),
-  goalIds: z.array(id).min(1).max(500),
-});
+const arranged = { programId: id, ids: z.array(id).min(1).max(500) };
+/** A new order for a milestone's goals, or for a goal's features; null is "without". */
+export const ArrangeItemsSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("goal"), milestoneId: id.nullable(), ...arranged }),
+  z.object({ kind: z.literal("feature"), parentId: id.nullable(), ...arranged }),
+]);
 
 export const MoveItemSchema = z.object({ itemId: id, ...period });
 export const PlaceMilestoneSchema = z.object({ milestoneId: id, ...period });

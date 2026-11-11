@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GripVertical } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createItemAction } from "@/actions/items";
 import { cn } from "@/lib/cn";
@@ -11,7 +10,7 @@ import { GroupHeader } from "./group-header";
 import { ItemEditor } from "./item-editor";
 import { TREE_COLS, TreeRow } from "./tree-row";
 import type { BacklogOptions, ItemView } from "./types";
-import { useGoalOrder } from "./use-goal-order";
+import { useDragArrange } from "./use-drag-arrange";
 
 export type BacklogGroup = {
   key: string;
@@ -44,16 +43,26 @@ export function BacklogBoard({
   // Goals start folded; a goal opens to show its features and the row to add one.
   const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  // Dragging goals to rank them: the grip arms a goal, the drop says where it lands.
-  const order = useGoalOrder(programId, groups);
-  const [armed, setArmed] = useState<string | null>(null);
-  const [dragging, setDragging] = useState<{ key: string; id: string } | null>(null);
-  const [dropAt, setDropAt] = useState<{ id: string; place: "before" | "after" } | null>(null);
 
   const byId = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
-  const featuresOf = (goalId: string) =>
-    items.filter((i) => i.kind === "feature" && i.parentId === goalId);
-  const loose = items.filter((i) => i.kind === "feature" && i.parentId === null);
+  // Where every goal and feature stands, in the order the server keeps.
+  const places = useMemo(() => {
+    const out: Record<string, string[]> = { "f:none": [] };
+    for (const g of groups) out["g:" + g.key] = g.goalIds;
+    for (const i of items) {
+      if (i.kind === "goal") out["f:" + i.id] ??= [];
+      else (out["f:" + (i.parentId ?? "none")] ??= []).push(i.id);
+    }
+    return out;
+  }, [groups, items]);
+  const arrange = useDragArrange(programId, places);
+  const inPlace = (key: string) =>
+    arrange
+      .orderOf(key)
+      .map((id) => byId.get(id))
+      .filter((x): x is ItemView => !!x);
+  const featuresOf = (goalId: string) => inPlace("f:" + goalId);
+  const loose = inPlace("f:none");
   const q = query.trim().toLowerCase();
   const fitsStatus = (i: ItemView) =>
     filter === "all" || (filter === "open" ? i.status !== "done" : i.status === "done");
@@ -63,6 +72,7 @@ export function BacklogBoard({
 
   const addFeature = (goalId: string) => (title: string) =>
     createItemAction({ programId, kind: "feature", title, parentId: goalId, milestoneId: null });
+  const unfold = (id: string) => setUnfolded((prev) => new Set(prev).add(id));
   const toggle = (id: string) =>
     setUnfolded((prev) => {
       const next = new Set(prev);
@@ -70,6 +80,21 @@ export function BacklogBoard({
       else next.add(id);
       return next;
     });
+
+  const featureRow = (f: ItemView, key: string, depth: 0 | 1) => {
+    const drag = arrange.item(f.id, "feature", key);
+    return (
+      <div key={f.id} {...drag}>
+        <TreeRow
+          item={f}
+          depth={depth}
+          handle={arrange.grip(f.id, key, f.title)}
+          selected={selectedId === f.id}
+          onSelect={() => setSelectedId(f.id)}
+        />
+      </div>
+    );
+  };
 
   const goalBlock = (goal: ItemView, groupKey: string) => {
     const kids = featuresOf(goal.id);
@@ -86,105 +111,53 @@ export function BacklogBoard({
     return (
       <div
         key={goal.id}
-        draggable
-        onDragStart={(e) => {
-          // Only the grip starts a drag; anywhere else in the row stays a click.
-          if (armed !== goal.id) return e.preventDefault();
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", goal.id);
-          setDragging({ key: groupKey, id: goal.id });
-        }}
-        onDragEnd={() => {
-          setDragging(null);
-          setDropAt(null);
-          setArmed(null);
-        }}
-        onDragOver={(e) => {
-          if (!dragging || dragging.key !== groupKey || dragging.id === goal.id) return;
-          e.preventDefault();
-          const box = e.currentTarget.getBoundingClientRect();
-          const place = e.clientY < box.top + box.height / 2 ? "before" : "after";
-          if (dropAt?.id !== goal.id || dropAt.place !== place) setDropAt({ id: goal.id, place });
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          if (dragging && dropAt) order.move(groupKey, dragging.id, dropAt.id, dropAt.place);
-          setDragging(null);
-          setDropAt(null);
-          setArmed(null);
-        }}
+        {...arrange.item(goal.id, "goal", "g:" + groupKey)}
         className={cn(
           "border-b border-hairline last:border-b-0",
-          dragging?.id === goal.id && "opacity-50",
-          dropAt?.id === goal.id &&
-            (dropAt.place === "before"
-              ? "shadow-[inset_0_2px_0_var(--color-ink)]"
-              : "shadow-[inset_0_-2px_0_var(--color-ink)]"),
+          arrange.item(goal.id, "goal", "g:" + groupKey).className,
         )}
       >
-        <TreeRow
-          item={goal}
-          depth={0}
-          handle={
-            <button
-              type="button"
-              aria-label={t("reorder", { title: goal.title })}
-              title={t("reorderHint")}
-              onPointerDown={() => setArmed(goal.id)}
-              onPointerUp={() => !dragging && setArmed(null)}
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                  e.preventDefault();
-                  order.step(groupKey, goal.id, e.key === "ArrowUp" ? -1 : 1);
-                }
-              }}
-              className="cursor-grab rounded p-0.5 text-slate/60 hover:bg-sand hover:text-ink active:cursor-grabbing"
-            >
-              <GripVertical className="size-3.5" aria-hidden />
-            </button>
-          }
-          selected={selectedId === goal.id}
-          onSelect={() => setSelectedId(goal.id)}
-          expanded={open}
-          onToggle={kids.length > 0 || !goalsOnly ? () => toggle(goal.id) : undefined}
-          meta={
-            kids.length > 0 ? t("featureMeta", { done: doneCount, count: kids.length }) : undefined
-          }
-        />
-        {open && (
-          <>
-            {shown.map((f) => (
-              <TreeRow
-                key={f.id}
-                item={f}
-                depth={1}
-                selected={selectedId === f.id}
-                onSelect={() => setSelectedId(f.id)}
+        <div {...arrange.into("f:" + goal.id, "feature", () => unfold(goal.id))}>
+          <TreeRow
+            item={goal}
+            depth={0}
+            handle={arrange.grip(goal.id, "g:" + groupKey, goal.title)}
+            selected={selectedId === goal.id}
+            onSelect={() => setSelectedId(goal.id)}
+            expanded={open}
+            onToggle={kids.length > 0 || !goalsOnly ? () => toggle(goal.id) : undefined}
+            meta={
+              kids.length > 0
+                ? t("featureMeta", { done: doneCount, count: kids.length })
+                : undefined
+            }
+          />
+          {open && (
+            <>
+              {shown.map((f) => featureRow(f, "f:" + goal.id, 1))}
+              {hiddenDone > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilter("all")}
+                  className={cn(
+                    TREE_COLS,
+                    "w-full border-b border-hairline-soft bg-surface px-3 py-1.5 text-left text-[12px] text-slate hover:text-ink",
+                  )}
+                >
+                  <span />
+                  <span />
+                  <span className="pl-5">{t("hiddenDone", { count: hiddenDone })}</span>
+                </button>
+              )}
+              <AddRow
+                indent
+                label={t("addFeature")}
+                placeholder={t("featurePlaceholder")}
+                create={addFeature(goal.id)}
               />
-            ))}
-            {hiddenDone > 0 && (
-              <button
-                type="button"
-                onClick={() => setFilter("all")}
-                className={cn(
-                  TREE_COLS,
-                  "w-full border-b border-hairline-soft bg-surface px-3 py-1.5 text-left text-[12px] text-slate hover:text-ink",
-                )}
-              >
-                <span />
-                <span />
-                <span className="pl-5">{t("hiddenDone", { count: hiddenDone })}</span>
-              </button>
-            )}
-            <AddRow
-              indent
-              label={t("addFeature")}
-              placeholder={t("featurePlaceholder")}
-              create={addFeature(goal.id)}
-            />
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     );
   };
@@ -192,10 +165,7 @@ export function BacklogBoard({
   const looseShown = goalsOnly ? [] : loose.filter((f) => fitsStatus(f) && fitsQuery(f));
   const blocks = groups
     .map((g) => {
-      const goals = order
-        .orderOf(g.key)
-        .map((id) => byId.get(id))
-        .filter((x): x is ItemView => !!x);
+      const goals = inPlace("g:" + g.key);
       const rendered = goals.map((goal) => goalBlock(goal, g.key)).filter(Boolean);
       return { group: g, rendered, empty: goals.length === 0 };
     })
@@ -213,7 +183,7 @@ export function BacklogBoard({
         goalsOnly={goalsOnly}
         onGoalsOnly={setGoalsOnly}
       />
-      {order.failed && <p className="text-[13px] text-danger">{t("reorderFailed")}</p>}
+      {arrange.failed && <p className="text-[13px] text-danger">{t("reorderFailed")}</p>}
 
       <div
         className={cn("grid items-start gap-4", selected && "lg:grid-cols-[minmax(0,1fr)_22rem]")}
@@ -232,7 +202,13 @@ export function BacklogBoard({
           {blocks.map(({ group, rendered }) => (
             <section key={group.key} aria-label={group.label} className="flex flex-col gap-2">
               <GroupHeader label={group.label} progress={group.progress} />
-              <div className="overflow-hidden rounded-lg border border-hairline bg-surface">
+              <div
+                {...arrange.into("g:" + group.key, "goal")}
+                className={cn(
+                  "overflow-hidden rounded-lg border border-hairline bg-surface",
+                  arrange.into("g:" + group.key, "goal").className,
+                )}
+              >
                 {rendered.length > 0 ? (
                   rendered
                 ) : (
@@ -244,16 +220,14 @@ export function BacklogBoard({
           {looseShown.length > 0 && (
             <section aria-label={t("loose")} className="flex flex-col gap-2">
               <GroupHeader label={t("loose")} />
-              <div className="overflow-hidden rounded-lg border border-hairline bg-surface">
-                {looseShown.map((f) => (
-                  <TreeRow
-                    key={f.id}
-                    item={f}
-                    depth={0}
-                    selected={selectedId === f.id}
-                    onSelect={() => setSelectedId(f.id)}
-                  />
-                ))}
+              <div
+                {...arrange.into("f:none", "feature")}
+                className={cn(
+                  "overflow-hidden rounded-lg border border-hairline bg-surface",
+                  arrange.into("f:none", "feature").className,
+                )}
+              >
+                {looseShown.map((f) => featureRow(f, "f:none", 0))}
               </div>
             </section>
           )}

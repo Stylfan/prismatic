@@ -1,12 +1,12 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Db } from "@/db/client";
 import { items, milestones, programs, type Item } from "@/db/schema";
 import { isSizeForLevel } from "@/domain/sizes";
 import { NotFound, requireProgram } from "./programs";
 import type {
+  ArrangeItemsSchema,
   NewItemSchema,
-  RankGoalsSchema,
   SplitItemSchema,
   UpdateItemSchema,
 } from "./validation";
@@ -26,37 +26,58 @@ export async function listItems(db: Db, programId: string): Promise<Item[]> {
     .select()
     .from(items)
     .where(eq(items.programId, programId))
-    // Ranked goals in their order, then everything else as it was added.
+    // Ranked items in their order, then everything else as it was added.
     .orderBy(sql`${items.rank} asc nulls last`, asc(items.createdAt));
 }
 
 /**
- * Puts a milestone's business goals in a new order of priority. The list
- * must be exactly that milestone's goals, no more and no fewer, in a
- * programme the user owns; anything else throws NotFound and changes
- * nothing.
+ * Puts the items of one place in the tree in a new order: a milestone's
+ * business goals, or a goal's features (or the features without a goal).
+ * The list must hold every item already there; any other item in it, of
+ * the same kind and programme, is moved there, so dragging a goal to
+ * another milestone or a feature to another goal changes what it belongs
+ * to. Anything else throws NotFound and changes nothing.
  */
-export async function rankGoals(db: Db, userId: string, input: z.infer<typeof RankGoalsSchema>) {
+export async function arrangeItems(
+  db: Db,
+  userId: string,
+  input: z.infer<typeof ArrangeItemsSchema>,
+) {
   await requireProgram(db, userId, input.programId);
-  const goals = await db
+  const goal = input.kind === "goal";
+  if (goal) await checkMilestone(db, input.programId, input.milestoneId);
+  else await checkGoal(db, input.programId, input.parentId);
+  const mine = and(eq(items.programId, input.programId), eq(items.kind, input.kind));
+  const place = goal ? input.milestoneId : input.parentId;
+  const column = goal ? items.milestoneId : items.parentId;
+  const already = await db
     .select({ id: items.id })
     .from(items)
-    .where(
-      and(
-        eq(items.programId, input.programId),
-        eq(items.kind, "goal"),
-        input.milestoneId === null
-          ? isNull(items.milestoneId)
-          : eq(items.milestoneId, input.milestoneId),
-      ),
-    );
-  const known = new Set(goals.map((g) => g.id));
-  const asked = new Set(input.goalIds);
-  if (known.size !== asked.size || input.goalIds.some((id) => !known.has(id))) {
+    .where(and(mine, place === null ? isNull(column) : eq(column, place)));
+  const found = await db
+    .select({ id: items.id })
+    .from(items)
+    .where(and(mine, inArray(items.id, input.ids)));
+  const unique = new Set(input.ids);
+  const known = new Set(found.map((r) => r.id));
+  if (
+    unique.size !== input.ids.length ||
+    known.size !== unique.size ||
+    already.some((r) => !unique.has(r.id))
+  ) {
     throw new NotFound();
   }
-  for (const [rank, id] of input.goalIds.entries()) {
-    await db.update(items).set({ rank }).where(eq(items.id, id));
+  for (const [rank, id] of input.ids.entries()) {
+    const where = eq(items.id, id);
+    if (goal) await db.update(items).set({ rank, milestoneId: input.milestoneId }).where(where);
+    else if (input.parentId === null)
+      await db.update(items).set({ rank, parentId: null }).where(where);
+    // A feature under a goal counts toward the goal's milestone, so its own is cleared.
+    else
+      await db
+        .update(items)
+        .set({ rank, parentId: input.parentId, milestoneId: null })
+        .where(where);
   }
   return input.programId;
 }
