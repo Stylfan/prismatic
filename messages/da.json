@@ -705,9 +705,8 @@
     },
     "stats": {
       "delivered": "Leveret",
-      "ofTotal": "af {total} point",
-      "tempo": "Middeltempo",
-      "tempoRange": "Lavt {low} · højt {high} pr. kvartal",
+      "ofTotal": "af {total} point i forretningsmålene",
+      "tempo": "Gennemsnitligt tempo, seneste {count} kvartaler",
       "noTempo": "Kræver et afsluttet kvartal",
       "next": "Næste milepæl",
       "beyond": "Ud over horisonten",
@@ -715,19 +714,22 @@
       "risks": "Åbne risici",
       "high": "{count, plural, one {# høj} other {# høje}}",
       "noHigh": "Ingen høje",
-      "noMilestones": "Ingen milepæle endnu"
+      "noMilestones": "Ingen milepæle endnu",
+      "tempoQuarters": "Point pr. kvartal ved fuld kapacitet: {quarters}",
+      "nextWhen": "{code} · forventet {when}"
     },
     "milestones": {
       "title": "Milepæle",
       "none": "Ingen milepæle endnu. Tilføj dem under Indstillinger.",
-      "points": "{points} point",
+      "points": "{done} af {points} point",
       "reached": "Nået i {when}",
       "beyond": "ud over horisonten",
       "tempo": {
-        "low": "Lavt tempo:",
-        "avg": "Middel tempo:",
-        "high": "Højt tempo:"
-      }
+        "low": "lavt tempo",
+        "avg": "gennemsnit",
+        "high": "højt tempo"
+      },
+      "expected": "Forventes nået"
     },
     "attention": {
       "title": "Kræver handling",
@@ -737,6 +739,7 @@
       "slipping": "{code} har {count, plural, one {# kort} other {# kort}} planlagt efter milepælen",
       "warnings": "{count, plural, one {# advarsel} other {# advarsler}} i backloggen",
       "cases": "{count, plural, one {# sag} other {# sager}} venter på beslutning"
-    }
+    },
+    "noRisks": "Ingen åbne risici."
   }
 }

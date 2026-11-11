@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   milestoneComputedScope,
+  milestoneDone,
   summarizeGoal,
   warningsFor,
   type BacklogItem,
@@ -75,5 +76,22 @@ describe("a milestone's own scope", () => {
     // A feature under a goal counts through the goal, even if it names the milestone too.
     const tagged = { ...f2, milestoneId: "m1" };
     expect(milestoneComputedScope(DEFAULT_POINTS, "m1", [goal, f1, tagged, f3, direct])).toBe(440);
+  });
+});
+
+describe("how much of a milestone is done", () => {
+  it("counts only its own goals' closed work, never the milestones before it", () => {
+    // f1 (100) is closed under the goal of m1.
+    expect(milestoneDone(DEFAULT_POINTS, "m1", all)).toBe(100);
+    // A milestone with nothing closed is at zero, however much m1 has delivered.
+    const next = item({ id: "g2", kind: "goal", size: "M", milestoneId: "m2" });
+    expect(milestoneDone(DEFAULT_POINTS, "m2", [...all, next])).toBe(0);
+  });
+
+  it("counts a closed goal in full, and closed features pointing straight at it", () => {
+    const closed = { ...goal, status: "done" as const };
+    expect(milestoneDone(DEFAULT_POINTS, "m1", [closed, f1, f2, f3])).toBe(400);
+    const direct = item({ id: "d", kind: "feature", milestoneId: "m1", size: "S", status: "done" });
+    expect(milestoneDone(DEFAULT_POINTS, "m1", [...all, direct])).toBe(140);
   });
 });

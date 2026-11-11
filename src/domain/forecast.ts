@@ -132,3 +132,23 @@ export function forecast(input: {
 export function costUntil(index: number, costPerQuarter: number | null): number | null {
   return costPerQuarter === null ? null : (index + 1) * costPerQuarter;
 }
+
+/** How many of the latest ended quarters the overview's tempo averages. */
+export const TEMPO_QUARTERS = 3;
+
+/**
+ * The average tempo of the latest ended quarters: delivered divided by
+ * capacity, averaged over the last `n` quarters that have a tempo. This is
+ * the overview's figure; the forecast's three tempi keep their own window.
+ */
+export function recentTempo<T extends { phase: string; velocity: number | null; label: string }>(
+  rows: T[],
+  n = TEMPO_QUARTERS,
+): { value: number; labels: string } | null {
+  const past = rows.filter((r) => r.phase === "past" && r.velocity !== null).slice(-n);
+  if (past.length === 0) return null;
+  return {
+    value: past.reduce((sum, r) => sum + r.velocity!, 0) / past.length,
+    labels: past.map((r) => r.label).join(", "),
+  };
+}

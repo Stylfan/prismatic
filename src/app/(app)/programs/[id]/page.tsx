@@ -5,12 +5,16 @@ import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
 import { AttentionList, type Attention } from "@/components/overview/attention-list";
 import { MilestoneProgress } from "@/components/overview/milestone-progress";
+import { RiskList } from "@/components/overview/risk-list";
 import { RiskMatrix } from "@/components/risks/risk-matrix";
 import { buttonClass } from "@/components/ui/controls";
 import { PageHeader, Panel, Stat } from "@/components/ui/layout";
 import { getDb, withUser } from "@/db/client";
+import { milestoneComputedScope, milestoneDone } from "@/domain/backlog";
+import { recentTempo, TEMPO_QUARTERS } from "@/domain/forecast";
 import { programHealth } from "@/domain/health";
 import { byScore, riskBand } from "@/domain/risk";
+import { cumulativeScopes } from "@/domain/scope";
 import { cn } from "@/lib/cn";
 import { buildForecastView } from "@/lib/forecast-view";
 import { programTitle } from "@/lib/load";
@@ -117,8 +121,23 @@ export default async function OverviewPage({ params }: Params) {
           : []),
       ];
 
-      const total = forecast.milestones.at(-1)?.threshold ?? 0;
+      // Each milestone's own scope and what is done of it: its own goals only.
+      const scopes = cumulativeScopes(
+        full.milestones.map((m) => ({
+          id: m.id,
+          seq: m.seq,
+          scopeOverride: m.scopeOverride,
+          computed: milestoneComputedScope(full.sizes, m.id, items),
+        })),
+      );
+      const progress = forecast.milestones.map((m) => ({
+        ...m,
+        own: scopes.find((s) => s.id === m.id)?.own ?? 0,
+        done: milestoneDone(full.sizes, m.id, items),
+      }));
+      const total = scopes.at(-1)?.cumulative ?? 0;
       const next = forecast.milestones.find((m) => !m.reached);
+      const recent = recentTempo(forecast.rows);
 
       return (
         <div className="flex flex-col gap-6">
@@ -132,7 +151,7 @@ export default async function OverviewPage({ params }: Params) {
             }
           />
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div>
             <span
               className={cn(
                 "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[13px] font-medium",
@@ -142,7 +161,6 @@ export default async function OverviewPage({ params }: Params) {
               <span aria-hidden className="size-2 rounded-full bg-current" />
               {t(`health.${health}`)}
             </span>
-            {program.goal && <span className="text-[13px] text-slate">{program.goal}</span>}
           </div>
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -152,20 +170,21 @@ export default async function OverviewPage({ params }: Params) {
               note={total > 0 ? t("stats.ofTotal", { total: fmt(total) }) : undefined}
             />
             <Stat
-              label={t("stats.tempo")}
-              value={stats ? fmt(stats.avg) : "–"}
+              label={t("stats.tempo", { count: TEMPO_QUARTERS })}
+              value={recent ? fmt(recent.value) : "–"}
               note={
-                stats
-                  ? t("stats.tempoRange", { low: fmt(stats.low), high: fmt(stats.high) })
-                  : t("stats.noTempo")
+                recent ? t("stats.tempoQuarters", { quarters: recent.labels }) : t("stats.noTempo")
               }
             />
             <Stat
               label={t("stats.next")}
-              value={next ? next.code : "–"}
+              value={next ? next.title : "–"}
               note={
                 next
-                  ? (next.at.avg?.label ?? t("stats.beyond"))
+                  ? t("stats.nextWhen", {
+                      code: next.code,
+                      when: next.at.avg?.label ?? t("stats.beyond"),
+                    })
                   : forecast.milestones.length === 0
                     ? t("stats.noMilestones")
                     : t("stats.allReached")
@@ -179,7 +198,7 @@ export default async function OverviewPage({ params }: Params) {
             />
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Panel className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <h2 className="text-[14px] font-semibold text-ink">{t("milestones.title")}</h2>
@@ -187,29 +206,26 @@ export default async function OverviewPage({ params }: Params) {
                   {t("toForecast")}
                 </Link>
               </div>
-              <MilestoneProgress
-                milestones={forecast.milestones}
-                delivered={forecast.result.delivered}
-              />
+              <MilestoneProgress milestones={progress} />
             </Panel>
-            <div className="flex flex-col gap-4">
-              <Panel className="flex flex-col gap-2">
-                <h2 className="text-[14px] font-semibold text-ink">{t("attention.title")}</h2>
-                <AttentionList items={attention} />
-              </Panel>
-              <Panel className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-[14px] font-semibold text-ink">{t("risksTitle")}</h2>
-                  <Link href={`${base}/risks`} className="text-[12px] text-slate hover:text-ink">
-                    {t("toRisks")}
-                  </Link>
-                </div>
-                <div className="max-w-[300px]">
-                  <RiskMatrix risks={open} />
-                </div>
-              </Panel>
-            </div>
+            <Panel className="flex flex-col gap-2">
+              <h2 className="text-[14px] font-semibold text-ink">{t("attention.title")}</h2>
+              <AttentionList items={attention} />
+            </Panel>
           </div>
+
+          <Panel className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[14px] font-semibold text-ink">{t("risksTitle")}</h2>
+              <Link href={`${base}/risks`} className="text-[12px] text-slate hover:text-ink">
+                {t("toRisks")}
+              </Link>
+            </div>
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)]">
+              <RiskMatrix risks={open} />
+              <RiskList risks={open} />
+            </div>
+          </Panel>
         </div>
       );
     },

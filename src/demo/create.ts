@@ -20,7 +20,14 @@ import {
 } from "@/domain/periods";
 import { todayInCopenhagen } from "@/lib/dates";
 import { createProgram } from "@/services/programs";
-import { DEMO_EVENTS, DEMO_ITEMS, DEMO_MILESTONES, DEMO_QUARTERS, DEMO_SIZES } from "./backlog";
+import {
+  DEMO_EVENTS,
+  DEMO_ITEMS,
+  DEMO_MILESTONES,
+  DEMO_QUARTERS,
+  DEMO_SIZES,
+  type DemoItem,
+} from "./backlog";
 import {
   DEMO_CASES,
   DEMO_CHANGE_TEXT,
@@ -100,7 +107,6 @@ export async function createDemoProgram(
         seq: n + 1,
         title: m.title,
         description: m.description,
-        scopeOverride: m.scope,
         periodIndex: at.index,
         periodSpan: at.span,
       })
@@ -108,12 +114,7 @@ export async function createDemoProgram(
     milestoneId.set(m.key, row!.id);
   }
 
-  // A goal that is only its features is estimated as their sum, so it raises no warning.
-  const featurePoints = (goal: string) =>
-    DEMO_ITEMS.filter((i) => i.parent === goal).reduce(
-      (n, i) => n + (i.size && i.size !== "XXL" ? DEMO_SIZES.feature[i.size] : 0),
-      0,
-    );
+  const estimates = demoEstimates();
   const itemId = new Map<string, string>();
   for (const item of [...DEMO_ITEMS].sort((a, b) =>
     a.kind === b.kind ? 0 : a.kind === "goal" ? -1 : 1,
@@ -128,7 +129,7 @@ export async function createDemoProgram(
         description: item.description ?? "",
         track: item.track,
         size: item.size,
-        pointsOverride: item.kind === "goal" && item.size === null ? featurePoints(item.key) : null,
+        pointsOverride: estimates.get(item.key) ?? null,
         integration: item.integration ?? false,
         parentId: item.parent ? itemId.get(item.parent)! : null,
         milestoneId: item.milestone ? milestoneId.get(item.milestone)! : null,
@@ -146,7 +147,6 @@ export async function createDemoProgram(
       programId,
       quarterIndex: place(q.index).index ?? q.index,
       capacityPct: q.capacity,
-      deliveredOverride: q.delivered ?? null,
       comment: q.comment,
     })),
   );
@@ -209,4 +209,43 @@ export async function createDemoProgram(
   });
 
   return programId;
+}
+
+/** A feature's points: what it delivered, or its size. */
+const featurePointsOf = (i: DemoItem) =>
+  i.points ?? (i.size && i.size !== "XXL" ? DEMO_SIZES.feature[i.size] : 0);
+
+/**
+ * The points each card is given beyond its size. A closed feature carries
+ * what it delivered; a goal that is only its features is estimated as their
+ * sum, so it raises no warning; and the goals sized by T-shirt share what
+ * is left of their milestone's own scope in proportion to their size. The
+ * milestones' scope then follows from their goals, as it does for anyone.
+ */
+export function demoEstimates(): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const i of DEMO_ITEMS) if (i.points !== undefined) out.set(i.key, i.points);
+  const goals = DEMO_ITEMS.filter((i) => i.kind === "goal");
+  for (const g of goals.filter((g) => g.size === null)) {
+    const sum = DEMO_ITEMS.filter((i) => i.parent === g.key).reduce(
+      (n, i) => n + featurePointsOf(i),
+      0,
+    );
+    out.set(g.key, sum);
+  }
+  for (const m of DEMO_MILESTONES) {
+    const own = goals.filter((g) => g.milestone === m.key);
+    const fixed = own.filter((g) => g.size === null).reduce((n, g) => n + out.get(g.key)!, 0);
+    const sized = own.filter((g) => g.size !== null);
+    const weight = (g: DemoItem) => DEMO_SIZES.goal[g.size!];
+    const total = sized.reduce((n, g) => n + weight(g), 0);
+    let left = m.scope - fixed;
+    sized.forEach((g, n) => {
+      const points =
+        n === sized.length - 1 ? left : Math.round(((m.scope - fixed) * weight(g)) / total);
+      out.set(g.key, points);
+      left -= points;
+    });
+  }
+  return out;
 }

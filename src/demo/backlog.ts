@@ -12,6 +12,7 @@ export type DemoMilestone = {
   key: string;
   title: string;
   description: string;
+  /** The milestone's own points; its goals are estimated to add up to it. */
   scope: number;
   period: number | null;
   span: 1 | 2;
@@ -81,6 +82,8 @@ export type DemoItem = {
   span?: 1 | 2;
   /** Closed in this quarter (a past one), or in progress. */
   done?: number;
+  /** Points actually delivered, where they differ from the size: the spreadsheet's numbers. */
+  points?: number;
   inProgress?: boolean;
   integration?: boolean;
 };
@@ -109,6 +112,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "L",
     period: 0,
     done: 0,
+    points: 60,
   },
   {
     key: "f-conc",
@@ -120,6 +124,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "M",
     period: 0,
     done: 0,
+    points: 60,
   },
   {
     key: "f-hist0",
@@ -130,6 +135,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "M",
     period: 0,
     done: 0,
+    points: 60,
   },
   {
     key: "f-fw01",
@@ -140,6 +146,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "M",
     period: 1,
     done: 1,
+    points: 32,
   },
   {
     key: "f-jobs",
@@ -151,6 +158,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "M",
     period: 1,
     done: 1,
+    points: 33,
   },
   {
     key: "f-load0",
@@ -161,6 +169,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "S",
     period: 1,
     done: 1,
+    points: 32,
   },
   {
     key: "f-load1",
@@ -171,6 +180,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "L",
     period: 2,
     done: 2,
+    points: 80,
   },
   {
     key: "f-rest",
@@ -181,6 +191,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "S",
     period: 2,
     done: 2,
+    points: 76,
   },
   {
     key: "f-fw02",
@@ -191,6 +202,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "XL",
     period: 2,
     done: 2,
+    points: 80,
   },
   {
     key: "f-auth",
@@ -201,6 +213,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "M",
     period: 3,
     done: 3,
+    points: 59,
   },
   {
     key: "f-events",
@@ -349,6 +362,7 @@ export const DEMO_ITEMS: DemoItem[] = [
     size: "L",
     period: 3,
     done: 3,
+    points: 59,
   },
   {
     key: "f-app02",
@@ -643,20 +657,18 @@ export const DEMO_SIZES = {
   goal: { XS: 40, S: 60, M: 100, L: 150, XL: 250, XXL: 400 },
 } as const;
 
-/** Delivered points and capacity per past quarter, and the capacity expected ahead. */
+/** Capacity per quarter, past and expected; what was delivered follows from the closed features. */
 export const DEMO_QUARTERS: Array<{
   index: number;
   capacity: number;
-  delivered?: number;
   comment: string;
 }> = [
-  { index: 0, capacity: 45, delivered: 180, comment: "Halvdelen af det forventede udviklingsteam" },
-  { index: 1, capacity: 40, delivered: 97, comment: "Halvdelen af det forventede udviklingsteam" },
-  { index: 2, capacity: 45, delivered: 236, comment: "Halvdelen af det forventede udviklingsteam" },
+  { index: 0, capacity: 45, comment: "Halvdelen af det forventede udviklingsteam" },
+  { index: 1, capacity: 40, comment: "Halvdelen af det forventede udviklingsteam" },
+  { index: 2, capacity: 45, comment: "Halvdelen af det forventede udviklingsteam" },
   {
     index: 3,
     capacity: 33,
-    delivered: 118,
     comment: "Sommerferie og halvdelen af det forventede team",
   },
   { index: 4, capacity: 60, comment: "Gradvis onboarding mod fuldt team" },

@@ -3,7 +3,8 @@ import { withUser } from "@/db/client";
 import * as backlog from "@/demo/backlog";
 import { createDemoProgram, DEMO_NAME } from "@/demo/create";
 import * as report from "@/demo/report";
-import { warningsFor } from "@/domain/backlog";
+import { milestoneComputedScope, milestoneDone, warningsFor } from "@/domain/backlog";
+import { deliveredByQuarter } from "@/domain/ledger";
 import { forecast } from "@/domain/forecast";
 import { quarterIndexOf, roadmapColumns } from "@/domain/periods";
 import { locate } from "@/domain/board";
@@ -61,28 +62,33 @@ describe("the example programme", () => {
     }
   });
 
-  it("reproduces the spreadsheet's tempo and the milestones' scope", async () => {
+  it("reproduces the spreadsheet's delivery and tempo from its closed work", async () => {
     const d = await demoFor("2026-11-11");
-    const past = d.records
-      .filter((r) => r.deliveredOverride !== null)
-      .map((r) => ({
-        index: r.quarterIndex,
-        delivered: r.deliveredOverride!,
-        capacity: r.capacityPct / 100,
-      }));
-    const result = forecast({
-      past,
-      currentIndex: 4,
-      futureCapacity: () => 1,
-      thresholds: [],
-    });
+    const delivered = deliveredByQuarter(d.full.sizes, d.items);
+    expect([0, 1, 2, 3].map((q) => delivered.get(q))).toEqual([180, 97, 236, 118]);
+    const past = [0, 1, 2, 3].map((q) => ({
+      index: q,
+      delivered: delivered.get(q)!,
+      capacity: d.records.find((r) => r.quarterIndex === q)!.capacityPct / 100,
+    }));
+    const result = forecast({ past, currentIndex: 4, futureCapacity: () => 1, thresholds: [] });
     expect(result.delivered).toBe(631);
     // The spreadsheet: average of the last five 381.13, the three lowest 333.36, the three highest 427.34.
     expect(result.stats!.avg).toBeCloseTo(381.13, 1);
     expect(result.stats!.low).toBeCloseTo(333.36, 1);
     expect(result.stats!.high).toBeCloseTo(427.34, 1);
-    const scope = d.full.milestones.reduce((n, m) => n + (m.scopeOverride ?? 0), 0);
-    expect(scope).toBe(4756);
+  });
+
+  it("takes each milestone's scope from its own goals, and only M1 has work done", async () => {
+    const d = await demoFor("2026-11-11");
+    const byTitle = new Map(d.full.milestones.map((m) => [m.title, m.id]));
+    for (const m of backlog.DEMO_MILESTONES) {
+      const id = byTitle.get(m.title)!;
+      expect(milestoneComputedScope(d.full.sizes, id, d.items), m.title).toBe(m.scope);
+      expect(d.full.milestones.find((x) => x.id === id)!.scopeOverride).toBeNull();
+    }
+    expect(milestoneDone(d.full.sizes, byTitle.get("Kundeforhold")!, d.items)).toBe(631);
+    expect(milestoneDone(d.full.sizes, byTitle.get("Fakturering")!, d.items)).toBe(0);
   });
 
   it("has no warnings in its backlog", async () => {

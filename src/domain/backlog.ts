@@ -114,3 +114,23 @@ export function milestoneComputedScope(
   }
   return total;
 }
+
+/**
+ * How much of a milestone's own scope is done: the closed features of its
+ * goals, a closed goal in full, and closed features that point at it
+ * directly. Only the milestone's own work counts, never the milestones
+ * before it, so a milestone nobody has started on is at zero.
+ */
+export function milestoneDone(table: SizeTable, milestoneId: string, all: BacklogItem[]): number {
+  let total = 0;
+  for (const item of all) {
+    if (item.milestoneId !== milestoneId) continue;
+    if (item.kind === "goal") {
+      const s = summarizeGoal(table, item, all);
+      total += item.status === "done" ? s.scope : s.done;
+    } else if (item.parentId === null && item.status === "done") {
+      total += itemPoints(table, item) ?? 0;
+    }
+  }
+  return total;
+}
