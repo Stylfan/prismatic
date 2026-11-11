@@ -182,6 +182,10 @@ export const SaveDraftSchema = z.object({
   programId: id,
   statusText: text(8000),
   changeText: text(8000),
-  goalsQuarter: z.number().int().min(-200).max(400).nullable(),
+  quarterIndex: z.number().int().min(0).max(400),
 });
-export const PublishSchema = z.object({ programId: id, title: text(120).min(1) });
+export const PublishSchema = z.object({
+  programId: id,
+  title: text(120).min(1),
+  quarterIndex: z.number().int().min(0).max(400),
+});

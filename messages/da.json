@@ -491,10 +491,9 @@
     "openList": "Åbne risici"
   },
   "report": {
-    "kicker": "Statusrapport",
-    "disclaimer": "Roadmap og forecast er et øjebliksbillede af den bedste viden lige nu. De ændrer sig, når indsigten gør, og ændringerne står i change control.",
+    "disclaimer": "Roadmap og forecast er et øjebliksbillede af den bedste viden lige nu.\nViden ændrer sig løbende og afspejles transparent i denne rapport.",
     "print": "Print eller gem som PDF",
-    "previewTitle": "Forhåndsvisning",
+    "previewTitle": "Forhåndsvisning af kvartalsrapporten for {quarter}",
     "previewNote": "Sådan ser rapporten ud, hvis du udgiver den nu. Ændringerne er regnet mod den seneste udgave.",
     "editionNote": "En udgivet udgave. Den ser altid ud, som den gjorde, da den blev udgivet.",
     "backToEditor": "Til rapportens indhold",
@@ -503,15 +502,16 @@
     "noGoals": "Der er ingen mål for kvartalet.",
     "stretch": "Stretch",
     "sections": {
-      "overview": "Overblik",
       "goals": "Kvartalets mål · {quarter}",
       "cases": "Sager til beslutning",
       "roadmap": "Roadmap",
-      "changes": "Change control",
+      "changes": "Ændringer siden sidst",
       "forecast": "Fremdrift og forecast",
       "risks": "Risici",
       "decisions": "Beslutningslog",
-      "delivered": "Færdiggjort arbejde"
+      "delivered": "Færdiggjort arbejde",
+      "update": "Kort update siden sidst",
+      "milestones": "Milepæle"
     },
     "figures": {
       "delivered": "Leveret",
@@ -575,7 +575,7 @@
       "arrows": "Pilene viser, hvor risikoen stod ved sidste udgave.",
       "closed": "Lukkede eller minimerede: {list}",
       "risk": "Risiko (der er en risiko for, at …)",
-      "consequence": "Konsekvens",
+      "consequence": "Konsekvens (hvis risikoen indtræffer …)",
       "mitigation": "Mitigerende handling",
       "change": "Ændring siden sidst",
       "noChange": "Ingen ændring",
@@ -588,7 +588,7 @@
       "lead": "Se rapporten, som den ser ud nu, og udgiv den til et styregruppemøde. En udgave fryses, så den altid ser ens ud, og næste udgave viser, hvad der er ændret siden.",
       "preview": "Se forhåndsvisning",
       "label": "Udgavens navn",
-      "defaultTitle": "Styregruppemøde {date}",
+      "defaultTitle": "Kvartalsrapport for {quarter}",
       "submit": "Udgiv udgave",
       "publishing": "Udgiver …",
       "editions": "Tidligere udgaver"
@@ -596,12 +596,11 @@
     "editor": {
       "label": "Tekster",
       "title": "Det, rapporten siger med ord",
-      "lead": "Status for kvartalet står på forsiden. Forklaringen til ændringerne står ved siden af den automatiske change control.",
-      "statusText": "Status for kvartalet",
+      "lead": "Den korte update står forrest i rapporten ved siden af kvartalets mål. Forklaringen til ændringerne står ved ændringerne siden sidst.",
+      "statusText": "Kort update siden sidst",
       "statusPlaceholder": "Hvordan kvartalet er gået: milepæle, mål og øvrige fokuspunkter.",
       "changeText": "Forklaring til ændringerne",
       "changePlaceholder": "Hvorfor roadmappet eller forecastet har flyttet sig siden sidst.",
-      "goalsQuarter": "Vis mål for",
       "saveTexts": "Gem tekster",
       "saved": "Teksterne er gemt"
     },
@@ -647,6 +646,11 @@
       "saved": "Beslutningen er gemt",
       "delete": "Slet",
       "deleteQuestion": "Slet beslutningen {title}?"
+    },
+    "plannedShare": "Procent: hvor meget af kvartalets kapacitet, der er planlagt",
+    "quarter": {
+      "label": "Kvartalsrapport for",
+      "lead": "Hver rapport hører til et kvartal. Kvartalet starter med en plan og nogle mål, og når det slutter, gør rapporten status: hvad nåede vi, hvad nåede vi ikke, og hvad lærte vi."
     }
   },
   "account": {

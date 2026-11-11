@@ -10,24 +10,21 @@ import {
   saveDraftAction,
   updateGoalAction,
 } from "@/actions/report";
-import type { Option } from "@/components/backlog/types";
 import { Button, Input, Label, Select, Textarea } from "@/components/ui/controls";
 import { StatusMessage, useStatus, type Status } from "@/components/ui/status";
 import type { GoalStatus, QuarterGoal } from "@/db/schema";
 
 const STATUSES: GoalStatus[] = ["open", "achieved", "partial", "missed"];
 
-/** The report's texts and the quarter whose goals it shows, saved together. */
+/** The words of the quarter's report: the short update and the explanation of the changes. */
 export function DraftEditor({
   programId,
+  quarterIndex,
   draft,
-  quarters,
-  goalsQuarter,
 }: {
   programId: string;
-  draft: { statusText: string; changeText: string; goalsQuarter: number | null };
-  quarters: Option[];
-  goalsQuarter: number;
+  quarterIndex: number;
+  draft: { statusText: string; changeText: string };
 }) {
   const t = useTranslations("report.editor");
   const common = useTranslations("common");
@@ -35,14 +32,14 @@ export function DraftEditor({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useStatus();
-  const [v, setV] = useState({ ...draft, goalsQuarter });
+  const [v, setV] = useState({ statusText: draft.statusText, changeText: draft.changeText });
   return (
     <form
       className="grid grid-cols-2 gap-5"
       onSubmit={(e) => {
         e.preventDefault();
         startTransition(async () => {
-          const result = await saveDraftAction({ programId, ...v });
+          const result = await saveDraftAction({ programId, quarterIndex, ...v });
           if (!result.ok) return setStatus({ kind: "error", text: errors(result.error) });
           setStatus({ kind: "ok", text: t("saved") });
           router.refresh();
@@ -71,25 +68,11 @@ export function DraftEditor({
           onChange={(e) => setV({ ...v, changeText: e.target.value })}
         />
       </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="draft-quarter">{t("goalsQuarter")}</Label>
-        <Select
-          id="draft-quarter"
-          value={String(v.goalsQuarter)}
-          onChange={(e) => setV({ ...v, goalsQuarter: Number(e.target.value) })}
-        >
-          {quarters.map((q) => (
-            <option key={q.value} value={q.value}>
-              {q.label}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="flex items-end gap-4">
+      <div className="col-span-2 flex items-center justify-end gap-4">
+        <StatusMessage status={status} />
         <Button type="submit" variant="primary" disabled={pending}>
           {pending ? common("saving") : t("saveTexts")}
         </Button>
-        <StatusMessage status={status} />
       </div>
     </form>
   );

@@ -8,12 +8,14 @@ import { publishAction } from "@/actions/report";
 import { Button, Input, Label } from "@/components/ui/controls";
 import { StatusMessage, useStatus } from "@/components/ui/status";
 
-/** Freezes the report as an edition, named for the meeting it goes to. */
+/** Freezes the quarter's report as an edition, named for the meeting it goes to. */
 export function PublishForm({
   programId,
+  quarterIndex,
   defaultTitle,
 }: {
   programId: string;
+  quarterIndex: number;
   defaultTitle: string;
 }) {
   const t = useTranslations("report.publish");
@@ -29,7 +31,7 @@ export function PublishForm({
         e.preventDefault();
         if (!title.trim()) return;
         startTransition(async () => {
-          const result = await publishAction({ programId, title });
+          const result = await publishAction({ programId, title, quarterIndex });
           if (!result.ok) return setStatus({ kind: "error", text: errors(result.error) });
           router.push(`/programs/${programId}/report/${result.data}`);
         });

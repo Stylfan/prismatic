@@ -10,11 +10,11 @@ import { ReportRisks } from "./report-risks";
 import { ReportRoadmap } from "./report-roadmap";
 
 /**
- * The report for the steering group, rendered from one edition's data:
- * the front page with status, figures, the quarter's goals and the cases
- * to decide, then the roadmap, the change control, the forecast, the
- * risks, the decision log and what has been delivered. Each part starts on
- * its own page when printed.
+ * The quarter's report for the steering group, rendered from one
+ * edition's data: the short update beside the quarter's goals, then the
+ * forecast, the roadmap, the changes since last time, the milestones, the
+ * risks, the cases to decide, the decision log and what has been
+ * delivered. The larger parts start on a page of their own when printed.
  */
 export async function ReportView({
   data,
@@ -30,58 +30,11 @@ export async function ReportView({
   first: boolean;
 }) {
   const t = await getTranslations("report");
-  const fmt = (n: number) => Math.round(n).toLocaleString("da-DK");
-  const next = data.forecast.milestones.find((m) => !m.reached);
-  const tiles = [
-    {
-      label: t("figures.delivered"),
-      value: fmt(data.figures.delivered),
-      note: t("figures.of", { scope: fmt(data.figures.scope) }),
-    },
-    {
-      // Editions from before the plain tempo keep the number they were published with.
-      label: data.figures.recentTempo !== undefined ? t("figures.tempo") : t("figures.velocity"),
-      value:
-        data.figures.recentTempo !== undefined
-          ? data.figures.recentTempo === null
-            ? "–"
-            : fmt(data.figures.recentTempo)
-          : data.figures.avgVelocity === null
-            ? "–"
-            : fmt(data.figures.avgVelocity),
-      note:
-        data.figures.recentTempo !== undefined ? t("figures.tempoNote") : t("figures.perQuarter"),
-    },
-    {
-      label: t("figures.next"),
-      value: next ? next.title : "–",
-      note: next
-        ? t("figures.nextWhen", {
-            code: next.code,
-            when: next.at.avg?.label ?? t("figures.beyond"),
-          })
-        : t("figures.allReached"),
-    },
-    { label: t("figures.risks"), value: fmt(data.figures.openRisks), note: t("figures.open") },
-  ];
   const openCases = data.cases.filter((c) => c.status === "open");
-  const order = [
-    "overview",
-    "goals",
-    ...(openCases.length > 0 ? ["cases"] : []),
-    "roadmap",
-    "changes",
-    "forecast",
-    "risks",
-    ...(data.decisions.length > 0 ? ["decisions"] : []),
-    ...(data.delivered.length > 0 ? ["delivered"] : []),
-  ];
-  const num = (key: string) => order.indexOf(key) + 1;
 
   return (
     <article className="report flex flex-col gap-14">
       <header className="flex flex-col gap-3 border-b border-hairline pb-8">
-        <SectionLabel>{t("kicker")}</SectionLabel>
         <h1 className="text-4xl font-bold tracking-[-0.03em]">{data.program.name}</h1>
         <p className="text-sm text-slate">
           {title} ·{" "}
@@ -91,98 +44,86 @@ export async function ReportView({
             year: "numeric",
           })}
         </p>
-        <p className="max-w-3xl text-[13px] text-slate italic">{t("disclaimer")}</p>
+        <p className="max-w-3xl text-[13px] whitespace-pre-line text-slate italic">
+          {t("disclaimer")}
+        </p>
       </header>
 
-      <ReportSection number={num("overview")} label={t("sections.overview")}>
-        <dl className="grid grid-cols-4 gap-px overflow-hidden rounded-lg border border-hairline bg-hairline">
-          {tiles.map((tile) => (
-            <div key={tile.label} className="flex flex-col gap-1 bg-surface p-4">
-              <dt className="text-[10px] font-bold tracking-[0.14em] text-slate uppercase">
-                {tile.label}
-              </dt>
-              <dd className="tabular text-2xl font-semibold">{tile.value}</dd>
-              <dd className="text-[11px] text-slate">{tile.note}</dd>
-            </div>
-          ))}
-        </dl>
-        {data.statusText ? (
-          <p className="max-w-4xl text-[15px] leading-relaxed whitespace-pre-line">
-            {data.statusText}
-          </p>
-        ) : (
-          <p className="text-sm text-slate">{t("noStatus")}</p>
-        )}
-      </ReportSection>
-
-      <ReportSection
-        number={num("goals")}
-        label={t("sections.goals", { quarter: data.goals.quarter })}
-      >
-        {data.goals.list.length === 0 ? (
-          <p className="text-sm text-slate">{t("noGoals")}</p>
-        ) : (
-          <ol className="flex flex-col gap-3">
-            {data.goals.list.map((g, i) => (
-              <GoalLine key={g.id} goal={g} code={`${i + 1}`} t={t} />
-            ))}
-          </ol>
-        )}
-      </ReportSection>
-
-      {data.cases.filter((c) => c.status === "open").length > 0 && (
-        <ReportSection number={num("cases")} label={t("sections.cases")}>
-          <div className="flex flex-col gap-6">
-            {data.cases
-              .filter((c) => c.status === "open")
-              .map((c) => (
-                <div
-                  key={c.id}
-                  className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-lg border border-hairline bg-surface p-6 break-inside-avoid"
-                >
-                  <h3 className="col-span-2 text-lg font-semibold">{c.title}</h3>
-                  {(
-                    [
-                      ["problem", c.problem],
-                      ["background", c.background],
-                      ["keyPoints", c.keyPoints],
-                      ["nextSteps", c.nextSteps],
-                    ] as const
-                  ).map(([key, text]) => (
-                    <div key={key}>
-                      <p className="text-[11px] font-bold tracking-[0.12em] text-bronze-deep uppercase">
-                        {t(`case.${key}`)}
-                      </p>
-                      <p className="mt-1 text-[13px] leading-relaxed whitespace-pre-line">
-                        {text || "–"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+      <div className="grid grid-cols-2 items-start gap-10">
+        <ReportSection label={t("sections.update")}>
+          {data.statusText ? (
+            <p className="text-[15px] leading-relaxed whitespace-pre-line">{data.statusText}</p>
+          ) : (
+            <p className="text-sm text-slate">{t("noStatus")}</p>
+          )}
+        </ReportSection>
+        <ReportSection label={t("sections.goals", { quarter: data.goals.quarter })}>
+          {data.goals.list.length === 0 ? (
+            <p className="text-sm text-slate">{t("noGoals")}</p>
+          ) : (
+            <ol className="flex flex-col gap-3">
+              {data.goals.list.map((g, i) => (
+                <GoalLine key={g.id} goal={g} code={`${i + 1}`} t={t} />
               ))}
+            </ol>
+          )}
+        </ReportSection>
+      </div>
+
+      <ReportSection label={t("sections.forecast")} breakBefore>
+        <ForecastChart view={data.forecast} />
+      </ReportSection>
+
+      <ReportSection label={t("sections.roadmap")} breakBefore>
+        <ReportRoadmap roadmap={data.roadmap} starred={changes.starred} />
+      </ReportSection>
+
+      <ReportSection label={t("sections.changes")}>
+        <ReportChanges text={data.changeText} changes={changes} first={first} />
+      </ReportSection>
+
+      <ReportSection label={t("sections.milestones")} breakBefore>
+        <MilestoneForecast view={data.forecast} />
+      </ReportSection>
+
+      <ReportSection label={t("sections.risks")} breakBefore>
+        <ReportRisks risks={data.risks} previous={previousRisks} newRisks={changes.newRisks} />
+      </ReportSection>
+
+      {openCases.length > 0 && (
+        <ReportSection label={t("sections.cases")}>
+          <div className="flex flex-col gap-6">
+            {openCases.map((c) => (
+              <div
+                key={c.id}
+                className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-lg border border-hairline bg-surface p-6 break-inside-avoid"
+              >
+                <h3 className="col-span-2 text-lg font-semibold">{c.title}</h3>
+                {(
+                  [
+                    ["problem", c.problem],
+                    ["background", c.background],
+                    ["keyPoints", c.keyPoints],
+                    ["nextSteps", c.nextSteps],
+                  ] as const
+                ).map(([key, text]) => (
+                  <div key={key}>
+                    <p className="text-[11px] font-bold tracking-[0.12em] text-bronze-deep uppercase">
+                      {t(`case.${key}`)}
+                    </p>
+                    <p className="mt-1 text-[13px] leading-relaxed whitespace-pre-line">
+                      {text || "–"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </ReportSection>
       )}
 
-      <ReportSection number={num("roadmap")} label={t("sections.roadmap")} breakBefore>
-        <ReportRoadmap roadmap={data.roadmap} starred={changes.starred} />
-      </ReportSection>
-
-      <ReportSection number={num("changes")} label={t("sections.changes")}>
-        <ReportChanges text={data.changeText} changes={changes} first={first} />
-      </ReportSection>
-
-      <ReportSection number={num("forecast")} label={t("sections.forecast")} breakBefore>
-        <ForecastChart view={data.forecast} />
-        <MilestoneForecast view={data.forecast} />
-      </ReportSection>
-
-      <ReportSection number={num("risks")} label={t("sections.risks")} breakBefore>
-        <ReportRisks risks={data.risks} previous={previousRisks} newRisks={changes.newRisks} />
-      </ReportSection>
-
       {data.decisions.length > 0 && (
-        <ReportSection number={num("decisions")} label={t("sections.decisions")}>
+        <ReportSection label={t("sections.decisions")}>
           <table className="w-full text-left text-[12px]">
             <thead className="border-b border-hairline text-[10px] font-bold tracking-[0.12em] text-slate uppercase">
               <tr>
@@ -219,7 +160,7 @@ export async function ReportView({
       )}
 
       {data.delivered.length > 0 && (
-        <ReportSection number={num("delivered")} label={t("sections.delivered")}>
+        <ReportSection label={t("sections.delivered")}>
           <div className="grid grid-cols-4 gap-4">
             {data.delivered.map((g) => (
               <div key={g.quarter} className="flex flex-col gap-1.5 break-inside-avoid">
@@ -245,19 +186,17 @@ export async function ReportView({
 }
 
 function ReportSection({
-  number,
   label,
   children,
   breakBefore,
 }: {
-  number: number;
   label: string;
   children: React.ReactNode;
   breakBefore?: boolean;
 }) {
   return (
     <section className={cn("flex flex-col gap-5", breakBefore && "print:break-before-page")}>
-      <SectionLabel number={number}>{label}</SectionLabel>
+      <SectionLabel>{label}</SectionLabel>
       {children}
     </section>
   );
@@ -301,7 +240,7 @@ function GoalLine({
         </span>
       </div>
       {goal.children.length > 0 && (
-        <ol className="ml-8 flex flex-col gap-2">
+        <ol className="flex flex-col gap-2">
           {goal.children.map((c, i) => (
             <GoalLine key={c.id} goal={c} code={`${code}.${i + 1}`} t={t} />
           ))}

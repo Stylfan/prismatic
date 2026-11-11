@@ -83,7 +83,7 @@ export async function publishAction(raw: unknown): Promise<Result<string>> {
     if (!full) throw new NotFound();
     const data = freeze(
       await previousEdition(db, input.programId),
-      await buildReportData(db, full),
+      await buildReportData(db, full, input.quarterIndex),
     );
     return saveEdition(db, userId, {
       programId: input.programId,

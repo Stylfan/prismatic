@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Db } from "@/db/client";
+import { reportDrafts } from "@/db/schema";
 import { freshDb } from "./db";
 import { createProgram } from "@/services/programs";
 import {
@@ -82,23 +83,36 @@ describe("quarter goals", () => {
 });
 
 describe("texts, cases and decisions", () => {
-  it("are stored per programme", async () => {
+  it("lets the first quarter saved take a draft from before reports had a quarter", async () => {
+    await db.insert(reportDrafts).values({ programId, statusText: "Fra før", changeText: "" });
+    expect(await getDraft(db, programId, 2)).toMatchObject({ statusText: "Fra før" });
     await saveDraft(db, owner, {
       programId,
+      quarterIndex: 2,
+      statusText: "Rettet",
+      changeText: "",
+    });
+    expect(await getDraft(db, programId, 2)).toMatchObject({ statusText: "Rettet" });
+    expect(await getDraft(db, programId, 3)).toMatchObject({ statusText: "" });
+  });
+
+  it("are stored per programme, the texts per quarter", async () => {
+    await saveDraft(db, owner, {
+      programId,
+      quarterIndex: 3,
       statusText: "Godt kvartal",
       changeText: "",
-      goalsQuarter: 3,
     });
     await saveDraft(db, owner, {
       programId,
+      quarterIndex: 3,
       statusText: "Rigtig godt kvartal",
       changeText: "",
-      goalsQuarter: 3,
     });
-    expect(await getDraft(db, programId)).toMatchObject({
-      statusText: "Rigtig godt kvartal",
-      goalsQuarter: 3,
-    });
+    await saveDraft(db, owner, { programId, quarterIndex: 4, statusText: "Næste", changeText: "" });
+    expect(await getDraft(db, programId, 3)).toMatchObject({ statusText: "Rigtig godt kvartal" });
+    expect(await getDraft(db, programId, 4)).toMatchObject({ statusText: "Næste" });
+    expect(await getDraft(db, programId, 5)).toMatchObject({ statusText: "" });
     await addCase(db, owner, { programId, title: "Medlemmer under 18 år?" });
     await addDecision(db, owner, { programId, title: "CPR-nummer på alle" });
     expect(await listCases(db, programId)).toHaveLength(1);
@@ -169,7 +183,7 @@ describe("another user", () => {
       }),
     ).rejects.toThrow("notFound");
     await expect(
-      saveDraft(db, other, { programId, statusText: "x", changeText: "", goalsQuarter: null }),
+      saveDraft(db, other, { programId, quarterIndex: 0, statusText: "x", changeText: "" }),
     ).rejects.toThrow("notFound");
     await expect(saveEdition(db, other, { programId, title: "x", data: "{}" })).rejects.toThrow(
       "notFound",

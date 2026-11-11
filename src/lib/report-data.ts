@@ -45,6 +45,8 @@ export type ReportData = {
   version: 1;
   generatedAt: number;
   program: { name: string; goal: string };
+  /** The quarter the report is for; missing in editions from before reports had one. */
+  quarter?: { index: number; label: string };
   statusText: string;
   changeText: string;
   figures: {
@@ -90,7 +92,28 @@ export type ReportData = {
   previousRisks?: Record<string, [number, number]>;
 };
 
-export async function buildReportData(db: Db, full: ProgramFull): Promise<ReportData> {
+/** The quarter a report is for when none is chosen: the one under way, which the report closes. */
+export function defaultReportQuarter(full: ProgramFull): number {
+  const settings: PeriodSettings = {
+    model: full.program.periodModel,
+    startDate: full.program.startDate,
+  };
+  return Math.max(0, quarterIndexOf(settings, todayInCopenhagen()));
+}
+
+/** The quarter asked for in the address, when it is one a report can be for; else the default. */
+export function reportQuarterFrom(full: ProgramFull, raw: string | undefined): number {
+  const fallback = defaultReportQuarter(full);
+  const q = raw === undefined ? NaN : Number(raw);
+  return Number.isInteger(q) && q >= 0 && q <= fallback + 1 ? q : fallback;
+}
+
+/** Everything the report for one quarter shows: its texts and goals, and the programme now. */
+export async function buildReportData(
+  db: Db,
+  full: ProgramFull,
+  quarterIndex: number,
+): Promise<ReportData> {
   const tp = await getTranslations("periods");
   const { program } = full;
   const items = await listItems(db, program.id);
@@ -101,13 +124,12 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
     avgVelocity: forecast.result.stats?.avg ?? null,
     capacityPct: (q) => records.find((r) => r.quarterIndex === q)?.capacityPct ?? 100,
   });
-  const draft = await getDraft(db, program.id);
+  const draft = await getDraft(db, program.id, quarterIndex);
   const risks = await listRisks(db, program.id);
 
   const settings: PeriodSettings = { model: program.periodModel, startDate: program.startDate };
-  const goalsQuarter =
-    draft.goalsQuarter ?? Math.max(0, quarterIndexOf(settings, todayInCopenhagen()) - 1);
-  const goalRows = (await listGoals(db, program.id)).filter((g) => g.quarterIndex === goalsQuarter);
+  const quarterName = formatPeriodLabel(tp, quarterLabel(settings, quarterIndex));
+  const goalRows = (await listGoals(db, program.id)).filter((g) => g.quarterIndex === quarterIndex);
   const node = (g: (typeof goalRows)[number]): GoalNode => ({
     id: g.id,
     title: g.title,
@@ -134,6 +156,7 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
     version: 1,
     generatedAt: Date.now(),
     program: { name: program.name, goal: program.goal },
+    quarter: { index: quarterIndex, label: quarterName },
     statusText: draft.statusText,
     changeText: draft.changeText,
     figures: {
@@ -144,7 +167,7 @@ export async function buildReportData(db: Db, full: ProgramFull): Promise<Report
       openRisks: risks.filter((r) => r.status === "open").length,
     },
     goals: {
-      quarter: formatPeriodLabel(tp, quarterLabel(settings, goalsQuarter)),
+      quarter: quarterName,
       list: goalRows.filter((g) => g.parentId === null).map(node),
     },
     cases: (await listCases(db, program.id)).map((c) => ({

@@ -213,7 +213,7 @@ export async function createDemoProgram(
     programId,
     statusText: DEMO_STATUS_TEXT,
     changeText: DEMO_CHANGE_TEXT,
-    goalsQuarter: current,
+    quarterIndex: current,
   });
 
   return programId;

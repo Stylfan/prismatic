@@ -7,12 +7,13 @@ import { formatPeriodLabel } from "@/components/program/period-label";
 import { CasesEditor, DecisionsEditor } from "@/components/report/cases-editor";
 import { DraftEditor, GoalsEditor } from "@/components/report/goals-editor";
 import { PublishForm } from "@/components/report/publish-form";
+import { QuarterPicker } from "@/components/report/quarter-picker";
 import { buttonClass } from "@/components/ui/controls";
 import { PageHeader, Panel, Section } from "@/components/ui/layout";
 import { getDb, withUser } from "@/db/client";
 import { programTitle } from "@/lib/load";
-import { quarterIndexOf, quarterLabel, type PeriodSettings } from "@/domain/periods";
-import { todayInCopenhagen } from "@/lib/dates";
+import { quarterLabel, type PeriodSettings } from "@/domain/periods";
+import { defaultReportQuarter, reportQuarterFrom } from "@/lib/report-data";
 import { getProgram } from "@/services/programs";
 import {
   getDraft,
@@ -24,14 +25,22 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ q?: string }>;
+};
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: await programTitle((await params).id) };
 }
 
-/** Rapport: what the report says in words, the goals and cases, and its published editions. */
-export default async function ReportPage({ params }: Params) {
+/**
+ * Rapport: the report for one quarter, chosen at the top. Each quarter
+ * starts with a plan and its goals; when it ends, its report says what was
+ * reached and learned. Below: its words, its goals, the cases and the
+ * decision log, and the editions published.
+ */
+export default async function ReportPage({ params, searchParams }: Params) {
   const user = await requireUser();
   // Everything the page reads, it reads as this user: row-level security applies.
   return withUser(
@@ -44,20 +53,24 @@ export default async function ReportPage({ params }: Params) {
       const tp = await getTranslations("periods");
 
       const settings: PeriodSettings = { model: program.periodModel, startDate: program.startDate };
-      const today = todayInCopenhagen();
-      const current = Math.max(0, quarterIndexOf(settings, today));
-      const draft = await getDraft(db, program.id);
-      const goalsQuarter = draft.goalsQuarter ?? Math.max(0, current - 1);
+      const current = defaultReportQuarter(full);
+      const quarter = reportQuarterFrom(full, (await searchParams).q);
+      const quarterName = formatPeriodLabel(tp, quarterLabel(settings, quarter));
+      const draft = await getDraft(db, program.id, quarter);
       const quarters = Array.from({ length: current + 2 }, (_, i) => ({
         value: String(i),
         label: formatPeriodLabel(tp, quarterLabel(settings, i)),
       })).reverse();
       const editions = await listEditions(db, program.id);
-      const [y, m, d] = today.split("-");
 
       return (
         <div className="flex flex-col gap-8">
-          <PageHeader label={program.name} title={(await getTranslations("nav"))("report")} />
+          <PageHeader
+            label={program.name}
+            title={(await getTranslations("nav"))("report")}
+            lead={tr("quarter.lead")}
+          />
+          <QuarterPicker programId={program.id} quarters={quarters} value={quarter} />
           <Section
             id="publish"
             number={1}
@@ -68,15 +81,17 @@ export default async function ReportPage({ params }: Params) {
             <Panel className="flex flex-col gap-5">
               <div>
                 <Link
-                  href={`/programs/${program.id}/report/preview`}
+                  href={`/programs/${program.id}/report/preview?q=${quarter}`}
                   className={buttonClass("secondary", "sm")}
                 >
                   {tr("publish.preview")}
                 </Link>
               </div>
               <PublishForm
+                key={quarter}
                 programId={program.id}
-                defaultTitle={tr("publish.defaultTitle", { date: `${d}.${m}.${y}` })}
+                quarterIndex={quarter}
+                defaultTitle={tr("publish.defaultTitle", { quarter: quarterName })}
               />
               {editions.length > 0 && (
                 <div className="flex flex-col gap-2 border-t border-hairline-soft pt-4">
@@ -114,10 +129,10 @@ export default async function ReportPage({ params }: Params) {
           >
             <Panel>
               <DraftEditor
+                key={quarter}
                 programId={program.id}
+                quarterIndex={quarter}
                 draft={draft}
-                quarters={quarters}
-                goalsQuarter={goalsQuarter}
               />
             </Panel>
           </Section>
@@ -131,11 +146,9 @@ export default async function ReportPage({ params }: Params) {
             <Panel>
               <GoalsEditor
                 programId={program.id}
-                quarterIndex={goalsQuarter}
-                quarterLabel={formatPeriodLabel(tp, quarterLabel(settings, goalsQuarter))}
-                goals={(await listGoals(db, program.id)).filter(
-                  (g) => g.quarterIndex === goalsQuarter,
-                )}
+                quarterIndex={quarter}
+                quarterLabel={quarterName}
+                goals={(await listGoals(db, program.id)).filter((g) => g.quarterIndex === quarter)}
               />
             </Panel>
           </Section>

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import {
   decisionCases,
@@ -174,27 +174,51 @@ export async function deleteDecision(db: Db, userId: string, decisionId: string)
 
 // The report's own texts
 
-export async function getDraft(db: Db, programId: string) {
-  const [draft] = await db.select().from(reportDrafts).where(eq(reportDrafts.programId, programId));
-  return draft ?? { programId, statusText: "", changeText: "", goalsQuarter: null };
+/**
+ * One quarter's texts. A draft from before reports belonged to a quarter
+ * shows under the quarter that is opened first, until a quarter saves it.
+ */
+export async function getDraft(db: Db, programId: string, quarterIndex: number) {
+  const rows = await db.select().from(reportDrafts).where(eq(reportDrafts.programId, programId));
+  const own = rows.find((r) => r.quarterIndex === quarterIndex);
+  const legacy = rows.find((r) => r.quarterIndex === null);
+  const draft = own ?? legacy;
+  return {
+    programId,
+    quarterIndex,
+    statusText: draft?.statusText ?? "",
+    changeText: draft?.changeText ?? "",
+  };
 }
 
 export async function saveDraft(
   db: Db,
   userId: string,
-  input: { programId: string; statusText: string; changeText: string; goalsQuarter: number | null },
+  input: { programId: string; quarterIndex: number; statusText: string; changeText: string },
 ): Promise<string> {
   await requireProgram(db, userId, input.programId);
+  const texts = { statusText: input.statusText, changeText: input.changeText };
+  const rows = await db
+    .select({ quarterIndex: reportDrafts.quarterIndex })
+    .from(reportDrafts)
+    .where(eq(reportDrafts.programId, input.programId));
+  // The first quarter saved takes the draft from before quarters, so nothing is lost.
+  if (
+    !rows.some((r) => r.quarterIndex === input.quarterIndex) &&
+    rows.some((r) => r.quarterIndex === null)
+  ) {
+    await db
+      .update(reportDrafts)
+      .set({ ...texts, quarterIndex: input.quarterIndex })
+      .where(and(eq(reportDrafts.programId, input.programId), isNull(reportDrafts.quarterIndex)));
+    return input.programId;
+  }
   await db
     .insert(reportDrafts)
-    .values(input)
+    .values({ programId: input.programId, quarterIndex: input.quarterIndex, ...texts })
     .onConflictDoUpdate({
-      target: reportDrafts.programId,
-      set: {
-        statusText: input.statusText,
-        changeText: input.changeText,
-        goalsQuarter: input.goalsQuarter,
-      },
+      target: [reportDrafts.programId, reportDrafts.quarterIndex],
+      set: texts,
     });
   return input.programId;
 }

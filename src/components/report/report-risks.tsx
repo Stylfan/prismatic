@@ -40,7 +40,7 @@ export async function ReportRisks({
         </div>
       </div>
       <table className="w-full border-collapse text-left text-[12px]">
-        <thead className="border-b border-hairline text-[10px] font-bold tracking-[0.12em] text-slate uppercase">
+        <thead className="border-b-2 border-hairline text-[10px] font-bold tracking-[0.12em] text-slate uppercase">
           <tr>
             <th scope="col" className="w-10 py-2 pr-3">
               #
@@ -59,11 +59,11 @@ export async function ReportRisks({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-hairline-soft align-top">
+        <tbody className="divide-y divide-hairline align-top">
           {open.map((r) => (
             <tr key={r.id} className="break-inside-avoid">
-              <td className="tabular py-2 pr-3 font-bold">{r.number}</td>
-              <td className="py-2 pr-3">
+              <td className="tabular py-3.5 pr-3 font-bold">{r.number}</td>
+              <td className="py-3.5 pr-3">
                 {newRisks.includes(r.number) && (
                   <span className="mr-1.5 rounded bg-bronze px-1 py-0.5 text-[9px] font-bold text-paper">
                     {t("new")}
@@ -74,9 +74,11 @@ export async function ReportRisks({
                   {t("score", { p: r.probability, i: r.impact })}
                 </span>
               </td>
-              <td className="py-2 pr-3 whitespace-pre-line">{r.consequence}</td>
-              <td className="py-2 pr-3 whitespace-pre-line">{r.mitigation}</td>
-              <td className="py-2 whitespace-pre-line">{r.changeNote || t("noChange")}</td>
+              <td className="py-3.5 pr-3 leading-relaxed whitespace-pre-line">{r.consequence}</td>
+              <td className="py-3.5 pr-3 leading-relaxed whitespace-pre-line">{r.mitigation}</td>
+              <td className="py-3.5 leading-relaxed whitespace-pre-line">
+                {r.changeNote || t("noChange")}
+              </td>
             </tr>
           ))}
         </tbody>

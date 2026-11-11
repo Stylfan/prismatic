@@ -303,15 +303,24 @@ export const decisions = pgTable(
   (t) => [index("decisions_program_idx").on(t.programId)],
 );
 
-/** The words of the report that are not data: the status of the quarter and the change control. */
-export const reportDrafts = pgTable("report_drafts", {
-  programId: programRef().primaryKey(),
-  statusText: text("status_text").notNull().default(""),
-  changeText: text("change_text").notNull().default(""),
-  /** The quarter whose goals the report shows; null means the one that ended last. */
-  goalsQuarter: integer("goals_quarter"),
-  ...timestamps,
-});
+/**
+ * The words of one quarter's report: the short update since last time and
+ * the explanation of the changes. A row without a quarter is a draft from
+ * before reports belonged to a quarter; the first quarter saved takes it.
+ */
+export const reportDrafts = pgTable(
+  "report_drafts",
+  {
+    programId: programRef(),
+    quarterIndex: integer("quarter_index"),
+    statusText: text("status_text").notNull().default(""),
+    changeText: text("change_text").notNull().default(""),
+    /** No longer used: the report's quarter is its own. Kept so older rows read. */
+    goalsQuarter: integer("goals_quarter"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("report_drafts_quarter_uq").on(t.programId, t.quarterIndex)],
+);
 
 /** A published report: everything it showed, frozen as JSON, so it reads the same forever. */
 export const reportEditions = pgTable(
