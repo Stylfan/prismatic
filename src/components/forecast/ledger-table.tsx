@@ -31,7 +31,7 @@ export function LedgerTable({ programId, rows }: { programId: string; rows: Ledg
               <th scope="col" className="w-28 px-4 py-3">
                 {t("capacity")}
               </th>
-              <th scope="col" className="w-56 px-4 py-3">
+              <th scope="col" className="w-72 px-4 py-3">
                 {t("points")}
               </th>
               <th scope="col" className="w-32 px-4 py-3 text-right">
@@ -153,13 +153,14 @@ function LedgerRowView({
             type="number"
             min={0}
             className="tabular h-9 w-28"
-            placeholder={t("computed", { points: row.computed.toLocaleString("da-DK") })}
+            placeholder={row.computed.toLocaleString("da-DK")}
             value={v.points}
             onChange={(e) => setV({ ...v, points: e.target.value })}
             onBlur={blurSave}
           />
           <span className="text-[12px] text-slate">
             {row.phase === "past" ? t("delivered") : t("planned")}
+            {v.points === "" && ` · ${t("computedWord")}`}
           </span>
           {row.phase === "current" && row.deliveredSoFar > 0 && (
             <span className="basis-full text-[11px] text-slate">

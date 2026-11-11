@@ -368,14 +368,14 @@
       "reset": "Nulstil",
       "delivered": "Leveret",
       "planned": "Planlagt",
-      "computed": "{points} beregnet",
       "soFar": "{points} point lukket indtil nu",
       "capacityFor": "Kapacitet i {quarter}",
       "deliveredFor": "Leverede point i {quarter}",
       "plannedFor": "Planlagte point i {quarter}",
       "commentFor": "Kommentar til {quarter}",
       "resetFor": "Nulstil {quarter}",
-      "saved": "{quarter} er gemt"
+      "saved": "{quarter} er gemt",
+      "computedWord": "beregnet"
     }
   },
   "risks": {
