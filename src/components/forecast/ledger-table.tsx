@@ -31,7 +31,7 @@ export function LedgerTable({ programId, rows }: { programId: string; rows: Ledg
               <th scope="col" className="w-28 px-4 py-3">
                 {t("capacity")}
               </th>
-              <th scope="col" className="w-48 px-4 py-3">
+              <th scope="col" className="w-56 px-4 py-3">
                 {t("points")}
               </th>
               <th scope="col" className="w-32 px-4 py-3 text-right">
@@ -114,7 +114,7 @@ function LedgerRowView({
 
   return (
     <tr className={cn(row.phase === "current" && "bg-sand/50")}>
-      <th scope="row" className="px-4 py-2.5 align-top font-semibold">
+      <th scope="row" className="px-4 py-2.5 align-middle font-semibold">
         {row.label}
         <span className="tabular block text-[11px] font-normal text-slate">{row.range}</span>
         {row.events.length > 0 && (
@@ -123,7 +123,7 @@ function LedgerRowView({
           </span>
         )}
       </th>
-      <td className="px-4 py-2.5 align-top">
+      <td className="px-4 py-2.5 align-middle">
         <label htmlFor={id("cap")} className="sr-only">
           {t("capacityFor", { quarter: row.label })}
         </label>
@@ -141,8 +141,8 @@ function LedgerRowView({
           <span className="text-slate">%</span>
         </div>
       </td>
-      <td className="px-4 py-2.5 align-top">
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+      <td className="px-4 py-2.5 align-middle">
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 whitespace-nowrap">
           <label htmlFor={id("pts")} className="sr-only">
             {row.phase === "past"
               ? t("deliveredFor", { quarter: row.label })
@@ -168,10 +168,10 @@ function LedgerRowView({
           )}
         </div>
       </td>
-      <td className="tabular px-4 py-2.5 text-right align-top">
+      <td className="tabular px-4 py-2.5 text-right align-middle">
         {row.velocity !== null ? Math.round(row.velocity).toLocaleString("da-DK") : ""}
       </td>
-      <td className="px-4 py-2.5 align-top">
+      <td className="px-4 py-2.5 align-middle">
         <label htmlFor={id("note")} className="sr-only">
           {t("commentFor", { quarter: row.label })}
         </label>
@@ -184,7 +184,7 @@ function LedgerRowView({
           onBlur={blurSave}
         />
       </td>
-      <td className="px-2 py-2.5 align-top">
+      <td className="px-2 py-2.5 align-middle">
         {changed && (
           <button
             type="button"
