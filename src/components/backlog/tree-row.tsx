@@ -11,7 +11,7 @@ export const TREE_COLS =
 
 const STATUS_STYLE = {
   planned: "border border-hairline text-slate",
-  in_progress: "bg-technical-soft text-technical",
+  in_progress: "bg-progress-soft text-progress",
   done: "bg-success-soft text-success",
 } as const;
 

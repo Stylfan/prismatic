@@ -57,6 +57,7 @@ export default async function RoadmapPage({ params }: Params) {
             columns={view.columns}
             cards={view.cards}
             milestones={view.milestones}
+            options={view.options}
             eventsPanel={
               <Section
                 id="events"

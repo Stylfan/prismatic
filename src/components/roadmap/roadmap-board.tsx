@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { arrangeBoardAction, removeEventAction } from "@/actions/roadmap";
 import { StatusMessage, useStatus } from "@/components/ui/status";
 import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
+import type { BacklogOptions } from "@/components/backlog/types";
+import { CardQuickEdit } from "./card-quick-edit";
 import { GoalBand } from "./goal-band";
 import { RoadmapColumn } from "./roadmap-column";
 import { RoadmapToolbar, type CardStatusFilter, type CardView } from "./roadmap-toolbar";
@@ -41,12 +43,14 @@ export function RoadmapBoard({
   cards: initialCards,
   milestones: initialMilestones,
   eventsPanel,
+  options,
 }: {
   programId: string;
   columns: BoardColumn[];
   cards: BoardCard[];
   milestones: BoardMilestone[];
   eventsPanel: React.ReactNode;
+  options: BacklogOptions;
 }) {
   const t = useTranslations("roadmap");
   const errors = useTranslations("errors");
@@ -61,8 +65,14 @@ export function RoadmapBoard({
   const [status, setStatus] = useStatus();
   // A business goal the manager clicked: its features stand out and a thread links them.
   const [focus, setFocus] = useState<string | null>(null);
+  // The card unfolded for a quick edit of its title, size and what it belongs to.
+  const [openId, setOpenId] = useState<string | null>(null);
   useEffect(() => {
-    const clear = (e: KeyboardEvent) => e.key === "Escape" && setFocus(null);
+    const clear = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setFocus(null);
+      setOpenId(null);
+    };
     window.addEventListener("keydown", clear);
     return () => window.removeEventListener("keydown", clear);
   }, []);
@@ -146,10 +156,23 @@ export function RoadmapBoard({
 
   const unplannedAt = columns.length - 1;
   const goalOf = (c: BoardCard) => (c.kind === "goal" ? c.id : c.parentId);
+  // A click unfolds the card and shows its goal's family; a second click folds it again.
   const pick = (c: BoardCard) => {
-    const goal = goalOf(c);
-    setFocus((f) => (goal === null || f === goal ? null : goal));
+    const closing = openId === c.id;
+    setOpenId(closing ? null : c.id);
+    setFocus(closing ? null : goalOf(c));
   };
+  const editorFor = (c: BoardCard) =>
+    openId === c.id ? (
+      <CardQuickEdit
+        card={c}
+        options={options}
+        onClose={() => {
+          setOpenId(null);
+          setFocus(null);
+        }}
+      />
+    ) : null;
   const focusOf = (c: BoardCard) =>
     focus === null ? null : goalOf(c) === focus ? ("on" as const) : ("dim" as const);
   const family = focus === null ? [] : cards.filter((c) => goalOf(c) === focus);
@@ -175,7 +198,10 @@ export function RoadmapBoard({
             {focusGoal && (
               <button
                 type="button"
-                onClick={() => setFocus(null)}
+                onClick={() => {
+                  setFocus(null);
+                  setOpenId(null);
+                }}
                 className="flex items-center gap-1 rounded-md border border-hairline bg-surface px-2 py-1 text-ink hover:bg-sand"
               >
                 <X className="size-3" aria-hidden />
@@ -202,9 +228,9 @@ export function RoadmapBoard({
             columns={columns}
             pending={pending}
             drag={drag}
-            onMove={(card, column) => moveCard(card, column)}
             focusOf={focusOf}
             onPick={pick}
+            editorFor={editorFor}
           />
         </div>
       </div>
@@ -237,9 +263,9 @@ export function RoadmapBoard({
                   milestones={milestones.filter((m) => m.column === i)}
                   pending={pending}
                   drag={drag}
-                  onMoveCard={(card, column) => moveCard(card, column)}
                   focusOf={focusOf}
                   onPick={pick}
+                  editorFor={editorFor}
                   onPlaceMilestone={(m, column) => placeMilestone(m, column)}
                   onRemoveEvent={(eventId) => save(() => removeEventAction({ eventId }))}
                 />

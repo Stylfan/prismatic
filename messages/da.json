@@ -275,7 +275,8 @@
       },
       "reorder": "Flyt {title} i prioriteringen",
       "reorderHint": "Træk for at flytte op eller ned. Piletasterne virker også.",
-      "reorderFailed": "Rækkefølgen kunne ikke gemmes. Prøv igen."
+      "reorderFailed": "Rækkefølgen kunne ikke gemmes. Prøv igen.",
+      "noGoal": "Uden forretningsmål"
     }
   },
   "auth": {
@@ -314,7 +315,7 @@
   "roadmap": {
     "label": "Roadmap",
     "title": "Hvornår arbejdet forventes færdigt",
-    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kvartalerne og op og ned i et kvartal, eller vælg kvartalet på kortet. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
+    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kvartalerne og op og ned i et kvartal. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
     "viewLabel": "Vis",
     "view": {
       "both": "Mål og features",
@@ -330,7 +331,6 @@
     "planned": "{points} point planlagt",
     "overdue": "Over tid",
     "hasWarnings": "Har advarsler",
-    "moveTo": "Flyt {title} til",
     "moveOption": "Flyt til {column}",
     "placeMilestone": "Placér {code}",
     "notPlaced": "Ikke placeret",
@@ -372,7 +372,7 @@
     },
     "unplannedList": {
       "title": "Mål og features, der endnu ikke er planlagt",
-      "lead": "Træk dem til det kvartal, hvor du ønsker dem planlagt, eller vælg kvartalet på kortet.",
+      "lead": "Træk dem til det kvartal, hvor du ønsker dem planlagt.",
       "empty": "Alt er planlagt. Træk et kort hertil for at fjerne det fra roadmappet igen.",
       "points": "{points} point"
     },
@@ -380,7 +380,7 @@
     "legendGoal": "Forretningsmål",
     "legendFeature": "Feature",
     "focus": {
-      "hint": "Klik for at fremhæve forretningsmålet og dets features",
+      "hint": "Klik for at rette kortet og se forretningsmålets features",
       "clear": "Vis alle kort",
       "features": "{count, plural, one {# feature til målet} other {# features til målet}}",
       "goal": "Forretningsmålet"

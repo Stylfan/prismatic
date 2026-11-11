@@ -30,6 +30,9 @@
   --color-goal-soft: #e6f0df;
   --color-feature: #3b74ad;
   --color-feature-soft: #e5eef8;
+  /* Work in progress: its own colour, apart from the two kinds of card. */
+  --color-progress: #7a5a9a;
+  --color-progress-soft: #efe9f5;
   --color-success: #4f7a5a;
   --color-warning: #b8862f;
   --color-danger: #a8483f;

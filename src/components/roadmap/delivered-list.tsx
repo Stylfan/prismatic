@@ -41,7 +41,12 @@ export async function DeliveredList({
                 )}
               >
                 <p className="flex items-center justify-between gap-2 text-[11px] text-slate">
-                  <span className="font-bold tracking-[0.08em]">
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-px text-[10px] font-semibold tracking-[0.04em]",
+                      i.kind === "goal" ? "bg-goal-soft text-goal" : "bg-feature-soft text-feature",
+                    )}
+                  >
                     {i.kind === "goal" ? tb("kind.goal") : tb("kind.feature")}
                   </span>
                   <span className="tabular">

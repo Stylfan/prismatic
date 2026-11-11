@@ -16,8 +16,6 @@ export function loadTone(pct: number | null) {
   return "success";
 }
 
-const BAR = { success: "bg-success", warning: "bg-warning", danger: "bg-danger" } as const;
-
 /**
  * One period on the roadmap: its name, how full it is against the average
  * tempo, its events, its cards and the milestones placed in it. Cards and
@@ -32,9 +30,9 @@ export function RoadmapColumn({
   milestones,
   pending,
   drag,
-  onMoveCard,
   focusOf,
   onPick,
+  editorFor,
   onPlaceMilestone,
   onRemoveEvent,
 }: {
@@ -45,9 +43,9 @@ export function RoadmapColumn({
   index: number;
   pending: boolean;
   drag: ReturnType<typeof useBoardDrag>;
-  onMoveCard: (card: BoardCard, column: number) => void;
   focusOf: (card: BoardCard) => "on" | "dim" | null;
   onPick: (card: BoardCard) => void;
+  editorFor: (card: BoardCard) => React.ReactNode;
   onPlaceMilestone: (m: BoardMilestone, column: number | null) => void;
   onRemoveEvent: (eventId: string) => void;
 }) {
@@ -68,43 +66,28 @@ export function RoadmapColumn({
         area.over && "bg-sand ring-2 ring-ink/20",
       )}
     >
-      <header className="flex flex-col gap-1">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
         <h3
-          className={cn(
-            "truncate text-[14px] font-semibold",
-            unplanned ? "text-slate" : "text-ink",
-          )}
+          title={col.label}
+          className={cn("text-[14px] font-semibold", unplanned ? "text-slate" : "text-ink")}
         >
           {col.label}
         </h3>
-        <div className="flex">
-          {/* What is planned against what the tempo can carry here, both in points. */}
-          <span
-            className={cn(
-              "text-[12px] tabular",
-              tone === "danger" ? "font-semibold text-danger" : "text-slate",
-            )}
-          >
-            {col.capacity === null
-              ? t("points", { points: col.load.toLocaleString("da-DK") })
-              : t("pointsOf", {
-                  points: col.load.toLocaleString("da-DK"),
-                  capacity: col.capacity.toLocaleString("da-DK"),
-                  pct: col.pct ?? 0,
-                })}
-          </span>
-        </div>
-        {tone && (
-          <>
-            <div className="h-1.5 overflow-hidden rounded-full bg-surface">
-              <div
-                className={cn("h-full rounded-full", BAR[tone])}
-                style={{ width: `${Math.min(100, col.pct ?? 0)}%` }}
-              />
-            </div>
-          </>
-        )}
-        {!tone && col.range && <span className="text-[11px] text-slate tabular">{col.range}</span>}
+        {/* What is planned against what the tempo can carry here, both in points. */}
+        <span
+          className={cn(
+            "text-[11px] whitespace-nowrap tabular",
+            tone === "danger" ? "font-semibold text-danger" : "text-slate",
+          )}
+        >
+          {col.capacity === null
+            ? t("points", { points: col.load.toLocaleString("da-DK") })
+            : t("pointsOf", {
+                points: col.load.toLocaleString("da-DK"),
+                capacity: col.capacity.toLocaleString("da-DK"),
+                pct: col.pct ?? 0,
+              })}
+        </span>
       </header>
 
       <ul className="flex flex-col gap-1.5">
@@ -112,12 +95,11 @@ export function RoadmapColumn({
           <RoadmapCard
             key={card.id}
             card={card}
-            columns={columns}
-            onMove={onMoveCard}
             pending={pending}
             drag={drag.piece("item", card.id, index)}
             focus={focusOf(card)}
             onPick={() => onPick(card)}
+            editor={editorFor(card)}
           />
         ))}
       </ul>

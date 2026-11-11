@@ -8,9 +8,8 @@ import type { useBoardDrag } from "./use-board-drag";
 
 /**
  * The goals and features not yet planned, one under the other, like the
- * milestones not yet placed. They are dragged from here to a quarter or
- * moved with their list, and a planned card dragged back here is
- * unplanned again.
+ * milestones not yet placed. They are dragged from here to a quarter, and
+ * a planned card dragged back here is unplanned again.
  */
 export function UnplannedCards({
   index,
@@ -18,9 +17,9 @@ export function UnplannedCards({
   columns,
   pending,
   drag,
-  onMove,
   focusOf,
   onPick,
+  editorFor,
 }: {
   /** The board's "not yet planned" column. */
   index: number;
@@ -28,9 +27,9 @@ export function UnplannedCards({
   columns: BoardColumn[];
   pending: boolean;
   drag: ReturnType<typeof useBoardDrag>;
-  onMove: (card: BoardCard, column: number) => void;
   focusOf: (card: BoardCard) => "on" | "dim" | null;
   onPick: (card: BoardCard) => void;
+  editorFor: (card: BoardCard) => React.ReactNode;
 }) {
   const t = useTranslations("roadmap.unplannedList");
   const area = drag.area(index, ["item"]);
@@ -66,13 +65,12 @@ export function UnplannedCards({
               <RoadmapCard
                 key={card.id}
                 card={card}
-                columns={columns}
-                onMove={onMove}
                 pending={pending}
                 drag={drag.piece("item", card.id, index)}
                 compact
                 focus={focusOf(card)}
                 onPick={() => onPick(card)}
+                editor={editorFor(card)}
               />
             ))}
           </ul>
