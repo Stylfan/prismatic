@@ -353,7 +353,6 @@
       "reached": "Nået i {quarter}",
       "beyond": "Ud over horisonten",
       "none": "Ingen milepæle endnu. Opret dem under Opsætning.",
-      "describe": "Om {title}",
       "noDescription": "Ingen beskrivelse endnu. Den skrives under Indstillinger → Milepæle."
     },
     "ledger": {

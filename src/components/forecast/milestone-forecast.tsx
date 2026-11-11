@@ -7,81 +7,74 @@ const ORDER = ["high", "avg", "low"] as const;
 
 /**
  * When the forecast indicates each milestone is reached, in each of the
- * three tempi, with the milestone's guestimate. Under a small arrow, the
- * milestone's own short description from the settings.
+ * three tempi, with the milestone's guestimate. A click on the row opens
+ * the milestone's own short description from the settings, the full width
+ * of the list.
  */
 export async function MilestoneForecast({ view }: { view: Omit<ForecastView, "rows"> }) {
   const t = await getTranslations("forecast.milestones");
   const fmt = (n: number) => n.toLocaleString("da-DK");
   if (view.milestones.length === 0) return <p className="text-sm text-slate">{t("none")}</p>;
+  // One grid for the header and every row, so the columns line up without a table,
+  // and the opened description can run the full width underneath.
+  const cols = "grid grid-cols-[minmax(0,2fr)_8rem_repeat(3,minmax(0,1fr))] items-center";
   return (
-    <div className="overflow-hidden rounded-lg border border-hairline bg-surface">
-      <table className="w-full text-left text-[13px]">
-        <thead className="border-b border-hairline bg-paper text-[12px] text-slate">
-          <tr>
-            <th scope="col" className="px-4 py-2.5 font-medium">
-              {t("milestone")}
-            </th>
-            <th scope="col" className="px-4 py-2.5 text-right font-medium">
-              {t("scope")}
-            </th>
-            {ORDER.map((tempo) => (
-              <th key={tempo} scope="col" className="px-4 py-2.5 font-medium">
-                <span className="flex items-center gap-2">
-                  <span
-                    aria-hidden
-                    className="size-2.5 rounded-full"
-                    style={{ background: `var(--color-tempo-${tempo})` }}
-                  />
-                  {t(tempo)}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-hairline-soft">
-          {view.milestones.map((m) => (
-            <tr key={m.id} className="align-top">
-              <th scope="row" className="px-4 py-2.5 font-normal">
-                <details className="group">
-                  <summary
-                    className="flex cursor-pointer list-none items-center gap-1.5 font-semibold text-ink [&::-webkit-details-marker]:hidden"
-                    aria-label={t("describe", { title: m.title })}
-                  >
-                    <ChevronRight
-                      className="size-3.5 shrink-0 text-slate transition-transform group-open:rotate-90"
-                      aria-hidden
-                    />
-                    {m.code}: {m.title}
-                  </summary>
-                  <p className="mt-1.5 ml-5 max-w-md text-[13px] leading-relaxed text-slate">
-                    {m.description || t("noDescription")}
-                  </p>
-                </details>
-              </th>
-              <td className="px-4 py-2.5 text-right tabular">{fmt(m.threshold)}</td>
+    <div className="overflow-hidden rounded-lg border border-hairline bg-surface text-[13px]">
+      <div
+        className={`${cols} border-b border-hairline bg-paper text-[12px] font-medium text-slate`}
+      >
+        <span className="px-4 py-2.5">{t("milestone")}</span>
+        <span className="px-4 py-2.5 text-right">{t("scope")}</span>
+        {ORDER.map((tempo) => (
+          <span key={tempo} className="flex items-center gap-2 px-4 py-2.5">
+            <span
+              aria-hidden
+              className="size-2.5 rounded-full"
+              style={{ background: `var(--color-tempo-${tempo})` }}
+            />
+            {t(tempo)}
+          </span>
+        ))}
+      </div>
+      <div className="divide-y divide-hairline-soft">
+        {view.milestones.map((m) => (
+          <details key={m.id} className="group">
+            <summary
+              className={`${cols} cursor-pointer list-none hover:bg-paper/60 [&::-webkit-details-marker]:hidden`}
+            >
+              <span className="flex items-center gap-1.5 px-4 py-2.5 font-semibold text-ink">
+                <ChevronRight
+                  className="size-3.5 shrink-0 text-slate transition-transform group-open:rotate-90"
+                  aria-hidden
+                />
+                {m.code}: {m.title}
+              </span>
+              <span className="px-4 py-2.5 text-right tabular">{fmt(m.threshold)}</span>
               {m.reached ? (
-                <td colSpan={3} className="px-4 py-2.5 font-semibold text-success">
+                <span className="col-span-3 px-4 py-2.5 font-semibold text-success">
                   {t("reached", { quarter: m.reached })}
-                </td>
+                </span>
               ) : (
                 ORDER.map((tempo) => {
                   const at = m.at[tempo];
                   return (
-                    <td key={tempo} className="px-4 py-2.5">
+                    <span key={tempo} className="px-4 py-2.5">
                       {at ? (
                         <span className={tempo === "avg" ? "font-semibold" : ""}>{at.label}</span>
                       ) : (
                         <span className="text-slate">{view.result.stats ? t("beyond") : "–"}</span>
                       )}
-                    </td>
+                    </span>
                   );
                 })
               )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            </summary>
+            <p className="px-4 pb-3 pl-9 text-[13px] leading-relaxed text-slate">
+              {m.description || t("noDescription")}
+            </p>
+          </details>
+        ))}
+      </div>
     </div>
   );
 }
