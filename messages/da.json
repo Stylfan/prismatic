@@ -4,8 +4,7 @@
     "skipToContent": "Spring til indholdet",
     "home": "Prismatic, til forsiden",
     "navLabel": "Hovedmenu",
-    "programs": "Programmer",
-    "account": "Konto"
+    "programs": "Programmer"
   },
   "errors": {
     "invalid": "Noget i det du skrev kunne ikke bruges. Se felterne igennem.",
@@ -265,8 +264,16 @@
       "credentials": "E-mail eller kodeord passer ikke.",
       "tooMany": "For mange forsøg. Vent et kvarter, og prøv igen.",
       "signupClosed": "Tilmelding er lukket i denne installation.",
-      "emailTaken": "Der findes allerede en konto med den e-mail."
-    }
+      "emailTaken": "Der findes allerede en konto med den e-mail.",
+      "code": "Koden passer ikke. Prøv igen med den nyeste kode.",
+      "expired": "Det tog for lang tid. Log ind igen.",
+      "passkeyCancelled": "Der blev ikke brugt en passkey. Prøv igen, eller log ind med kodeord."
+    },
+    "code": "Kode",
+    "codeHint": "De seks cifre fra din godkendelses-app, eller en af dine gendannelseskoder.",
+    "codeSubmit": "Bekræft",
+    "or": "Eller uden kodeord:",
+    "passkeyLogin": "Log ind med passkey"
   },
   "roadmap": {
     "label": "Roadmap",
@@ -615,6 +622,54 @@
         "mismatch": "E-mailen passer ikke med din konto.",
         "generic": "Det lykkedes ikke. Intet er slettet. Prøv igen."
       }
+    },
+    "security": {
+      "label": "Sikkerhed",
+      "title": "Sådan logger du ind",
+      "lead": "Slå to-trinsbekræftelse til, så et kodeord alene ikke er nok, eller log ind med en passkey på din computer eller telefon."
+    },
+    "totp": {
+      "title": "To-trinsbekræftelse",
+      "off": "Slået fra. Kun kodeordet skal til for at logge ind.",
+      "on": "Slået til. Du har {count, plural, =0 {ingen gendannelseskoder} one {# gendannelseskode} other {# gendannelseskoder}} tilbage.",
+      "enable": "Slå to-trinsbekræftelse til",
+      "scanTitle": "Scan koden med din godkendelses-app",
+      "scanBody": "Brug fx Microsoft Authenticator, Google Authenticator eller 1Password. Skriv derefter de seks cifre, appen viser.",
+      "qrLabel": "QR-kode til godkendelses-appen",
+      "manual": "Kan du ikke scanne? Skriv nøglen ind i appen:",
+      "codeLabel": "Kode fra appen",
+      "confirm": "Slå til",
+      "cancel": "Fortryd",
+      "codesTitle": "Gem dine gendannelseskoder",
+      "codesBody": "Hver kode virker én gang, hvis du mister din telefon. De vises kun nu. Gem dem et sikkert sted, fx i din adgangskodemanager.",
+      "codesDone": "Jeg har gemt dem",
+      "newCodes": "Lav nye gendannelseskoder",
+      "disable": "Slå fra",
+      "codeNeeded": "Skriv en kode fra appen for at lave nye gendannelseskoder eller slå to-trinsbekræftelse fra."
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "none": "Ingen passkeys endnu.",
+      "unnamed": "Passkey uden navn",
+      "added": "Tilføjet {date}",
+      "used": "sidst brugt {date}",
+      "addedNow": "Passkey tilføjet.",
+      "nameLabel": "Navn",
+      "namePlaceholder": "Fx Arbejdscomputer",
+      "add": "Tilføj passkey",
+      "remove": "Fjern",
+      "removeQuestion": "Fjern {name}?",
+      "removeDetail": "Du kan ikke længere logge ind med den. Dit kodeord og andre passkeys virker stadig.",
+      "cancel": "Fortryd"
+    },
+    "errors": {
+      "unauthorized": "Du er ikke logget ind længere.",
+      "invalid": "Det lykkedes ikke. Prøv igen.",
+      "code": "Koden passer ikke. Prøv igen med den nyeste kode.",
+      "expired": "Det tog for lang tid. Start forfra.",
+      "tooMany": "For mange forsøg. Vent et kvarter, og prøv igen.",
+      "generic": "Det lykkedes ikke. Prøv igen.",
+      "cancelled": "Der blev ikke lavet en passkey."
     }
   }
 }

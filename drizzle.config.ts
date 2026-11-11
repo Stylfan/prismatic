@@ -7,7 +7,7 @@ try {
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./src/db/schema.ts",
+  schema: ["./src/db/schema.ts", "./src/db/schema-accounts.ts"],
   out: "./drizzle",
   dbCredentials: { url: process.env.MIGRATION_DATABASE_URL ?? "" },
 });

@@ -105,3 +105,8 @@ export async function deleteSession(db: Db, token: string) {
 export async function deleteAccount(db: Db, userId: string) {
   await db.execute(sql`select delete_account(${userId})`);
 }
+
+export async function findUserById(db: Db, id: string): Promise<User | null> {
+  const [user] = await db.select().from(users).where(eq(users.id, id));
+  return user ?? null;
+}

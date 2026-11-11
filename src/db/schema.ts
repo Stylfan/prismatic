@@ -10,6 +10,10 @@ import {
   uniqueIndex,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
+import { id, timestamps } from "./columns";
+import { users } from "./schema-accounts";
+
+export * from "./schema-accounts";
 
 /**
  * Prismatic's data, in Postgres. A programme is the unit everything else
@@ -30,51 +34,6 @@ export type SizeLevel = (typeof SIZE_LEVELS)[number];
 
 export const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 export type Size = (typeof SIZES)[number];
-
-const id = () =>
-  text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID());
-
-const now = () => Date.now();
-
-const timestamps = {
-  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(now),
-  updatedAt: bigint("updated_at", { mode: "number" }).notNull().$defaultFn(now).$onUpdateFn(now),
-};
-
-/** A person who signs in. Passwords are stored only as a scrypt hash (src/auth/password.ts). */
-export const users = pgTable(
-  "users",
-  {
-    id: id(),
-    /** Stored lower-cased and trimmed, so one address is one account. */
-    email: text("email").notNull(),
-    name: text("name").notNull().default(""),
-    passwordHash: text("password_hash").notNull(),
-    ...timestamps,
-  },
-  (t) => [uniqueIndex("users_email_uq").on(t.email)],
-);
-
-/**
- * A signed-in browser. The id is the SHA-256 of the token in the cookie,
- * so a copy of the database does not hand out working sessions.
- */
-export const sessions = pgTable(
-  "sessions",
-  {
-    id: text("id").primaryKey(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    expiresAt: bigint("expires_at", { mode: "number" }).notNull(),
-    createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(now),
-  },
-  (t) => [index("sessions_user_idx").on(t.userId)],
-);
-
-export type User = typeof users.$inferSelect;
 
 export const programs = pgTable("programs", {
   id: id(),

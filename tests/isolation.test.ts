@@ -72,7 +72,7 @@ describe("row-level security", () => {
       select c.relname, c.relrowsecurity and c.relforcerowsecurity as forced
       from pg_class c join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public' and c.relkind = 'r'
-        and c.relname not in ('users', 'sessions')`);
+        and c.relname not in ('users', 'sessions', 'passkeys', 'recovery_codes', 'auth_challenges')`);
     expect(rows.length).toBe(CHILD_TABLES.length + 2); // + programs, audit_log
     expect(rows.filter((r) => !r.forced).map((r) => r.relname)).toEqual([]);
   });

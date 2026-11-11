@@ -26,7 +26,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
             <Link
               href="/account"
-              title={t("account")}
               className="text-[13px] text-slate underline-offset-4 hover:text-ink hover:underline"
             >
               {user.name || user.email}

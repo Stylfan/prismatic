@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { loginAction, registerAction } from "@/actions/auth";
 import { Button, Hint, Input, Label } from "@/components/ui/controls";
 import { StatusMessage, useStatus } from "@/components/ui/status";
+import { CodeStep } from "./code-step";
+import { PasskeyLogin } from "./passkey-login";
 
 /** Sign in, or sign up when the installation allows it. */
 export function AuthForm({
@@ -23,7 +25,10 @@ export function AuthForm({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [step, setStep] = useState<"password" | "code">("password");
   const register = mode === "register";
+
+  if (step === "code") return <CodeStep onExpired={() => setStep("password")} />;
 
   return (
     <form
@@ -35,6 +40,7 @@ export function AuthForm({
             ? await registerAction({ email, name, password })
             : await loginAction({ email, password });
           if (!result.ok) return setStatus({ kind: "error", text: t(`errors.${result.error}`) });
+          if (result.next === "code") return setStep("code");
           router.push("/");
           router.refresh();
         });
@@ -85,6 +91,12 @@ export function AuthForm({
         {register ? t("registerSubmit") : t("loginSubmit")}
       </Button>
       <StatusMessage status={status} />
+      {!register && (
+        <div className="flex flex-col gap-3 border-t border-hairline pt-5">
+          <p className="text-[13px] text-slate">{t("or")}</p>
+          <PasskeyLogin />
+        </div>
+      )}
       <p className="text-[13px] text-slate">
         {register ? (
           <Link href="/login" className="underline underline-offset-4 hover:text-ink">

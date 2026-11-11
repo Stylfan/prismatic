@@ -15,6 +15,20 @@
       "when": 1794379467199,
       "tag": "0001_roles_rls_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794380453004,
+      "tag": "0002_sign_in_factors",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794380453709,
+      "tag": "0003_sign_in_factors_grants",
+      "breakpoints": true
     }
   ]
 }
