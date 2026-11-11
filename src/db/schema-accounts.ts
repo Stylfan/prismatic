@@ -24,6 +24,8 @@ export const users = pgTable(
     totpSecret: text("totp_secret"),
     /** The last 30-second step a code was accepted for, so one code works only once. */
     totpLastStep: bigint("totp_last_step", { mode: "number" }),
+    /** A visitor to a demo installation, deleted with everything it made at this time; null for a real account. */
+    demoExpiresAt: bigint("demo_expires_at", { mode: "number" }),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_uq").on(t.email)],

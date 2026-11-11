@@ -55,6 +55,15 @@ say who runs the installation with `PRISMATIC_OPERATOR_NAME` and
 that name and links them from the sign-in pages and the account page. See
 [who can see what](subprocessors.md).
 
+## Running a demo
+
+Set `PRISMATIC_DEMO=on` to make the installation a demo instead: the
+front page has one button that gives a visitor a throwaway account with
+the example programme, no e-mail and no password, and everything is
+deleted after 24 hours. Nobody can sign up. Every page says it is a demo
+and links to the code (`PRISMATIC_SOURCE_URL`). See
+[ADR 0006](adr/0006-demo-installation.md).
+
 ## Backups
 
 Everything lives in the `pgdata` volume. Back it up with `pg_dump`, for

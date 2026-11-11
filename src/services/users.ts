@@ -1,8 +1,9 @@
 import { createHash, randomBytes } from "node:crypto";
-import { and, count, eq, gt, sql } from "drizzle-orm";
+import { and, count, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "@/auth/password";
 import type { Db } from "@/db/client";
 import { sessions, users, type User } from "@/db/schema";
+import { isDemoMode } from "@/lib/demo-mode";
 
 /**
  * Accounts and sessions. Sign-up is open for the very first account and
@@ -35,6 +36,8 @@ const DUMMY_HASH =
   "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
 export async function signupOpen(db: Db, setting = process.env.PRISMATIC_SIGNUP): Promise<boolean> {
+  // A demo installation has visits, never accounts of its own.
+  if (isDemoMode()) return false;
   if (setting === "open") return true;
   const [row] = await db.select({ n: count() }).from(users);
   return (row?.n ?? 0) === 0;
@@ -69,7 +72,8 @@ export async function findUserByEmail(db: Db, email: string): Promise<User | nul
 export async function authenticate(db: Db, email: string, password: string): Promise<User | null> {
   const user = await findUserByEmail(db, email);
   const ok = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
-  return user && ok ? user : null;
+  // A demo visit has no password anyone knows, and never signs in with one.
+  return user && ok && user.demoExpiresAt === null ? user : null;
 }
 
 export async function createSession(db: Db, userId: string, now = Date.now()): Promise<string> {
@@ -89,7 +93,14 @@ export async function userForSession(
     .select({ user: users })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
-    .where(and(eq(sessions.id, tokenHash(token)), gt(sessions.expiresAt, now)));
+    .where(
+      and(
+        eq(sessions.id, tokenHash(token)),
+        gt(sessions.expiresAt, now),
+        // A demo visit ends when its time is up, even before the cleanup has run.
+        or(isNull(users.demoExpiresAt), gt(users.demoExpiresAt, now)),
+      ),
+    );
   return row?.user ?? null;
 }
 

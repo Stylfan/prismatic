@@ -34,7 +34,8 @@ describe("the operator of an installation", () => {
 
   it("leaves no gap in the legal texts that nobody fills", () => {
     const known = new Set(["name", "email", "address", "hosting", "hostingSentence"]);
-    const gaps = JSON.stringify({ privacy: messages.legal.privacy, terms: messages.legal.terms })
+    const { privacy, terms, demoPrivacy, demoTerms } = messages.legal;
+    const gaps = JSON.stringify({ privacy, terms, demoPrivacy, demoTerms })
       .match(/\{(\w+)\}/g)
       ?.map((g) => g.slice(1, -1));
     expect((gaps ?? []).filter((g) => !known.has(g))).toEqual([]);

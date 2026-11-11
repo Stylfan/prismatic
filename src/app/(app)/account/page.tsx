@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
 import { DeleteAccount } from "@/components/account/delete-account";
+import { EndDemo } from "@/components/account/end-demo";
 import { PasskeyPanel } from "@/components/account/passkey-panel";
 import { TotpPanel } from "@/components/account/totp-panel";
 import { buttonClass } from "@/components/ui/controls";
@@ -35,23 +36,27 @@ export default async function AccountPage() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t("title")} />
       <div className="flex max-w-4xl flex-col gap-8">
-        <Section id="profile" label={t("profile.title")}>
-          <Panel className="py-0 sm:py-0">
-            <SettingRow label={t("profile.name")}>
-              <span className="text-[14px] text-ink">{user.name || "–"}</span>
-            </SettingRow>
-            <SettingRow label={t("profile.email")}>
-              <span className="text-[14px] text-ink">{user.email}</span>
-            </SettingRow>
-          </Panel>
-        </Section>
+        {user.demoExpiresAt === null && (
+          <>
+            <Section id="profile" label={t("profile.title")}>
+              <Panel className="py-0 sm:py-0">
+                <SettingRow label={t("profile.name")}>
+                  <span className="text-[14px] text-ink">{user.name || "–"}</span>
+                </SettingRow>
+                <SettingRow label={t("profile.email")}>
+                  <span className="text-[14px] text-ink">{user.email}</span>
+                </SettingRow>
+              </Panel>
+            </Section>
 
-        <Section id="security" label={t("security.title")}>
-          <Panel className="py-0 sm:py-0">
-            <TotpPanel enabled={user.totpSecret !== null} codesLeft={codesLeft} />
-            <PasskeyPanel passkeys={passkeys} />
-          </Panel>
-        </Section>
+            <Section id="security" label={t("security.title")}>
+              <Panel className="py-0 sm:py-0">
+                <TotpPanel enabled={user.totpSecret !== null} codesLeft={codesLeft} />
+                <PasskeyPanel passkeys={passkeys} />
+              </Panel>
+            </Section>
+          </>
+        )}
 
         <Section id="data" label={t("export.label")}>
           <Panel className="py-0 sm:py-0">
@@ -86,7 +91,7 @@ export default async function AccountPage() {
         <Section id="leave" label={t("delete.label")}>
           <Panel className="border-danger/30 py-0 sm:py-0">
             <SettingRow label={t("delete.title")} hint={t("delete.lead")}>
-              <DeleteAccount email={user.email} />
+              {user.demoExpiresAt === null ? <DeleteAccount email={user.email} /> : <EndDemo />}
             </SettingRow>
           </Panel>
         </Section>

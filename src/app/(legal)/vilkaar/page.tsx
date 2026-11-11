@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { LegalDocument } from "@/components/legal/legal-document";
+import { isDemoMode } from "@/lib/demo-mode";
 import { operator } from "@/lib/operator";
 
 export const dynamic = "force-dynamic";
@@ -14,5 +15,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function TermsPage() {
   const op = operator();
   if (!op) notFound();
-  return <LegalDocument kind="terms" op={op} />;
+  return <LegalDocument kind={isDemoMode() ? "demoTerms" : "terms"} op={op} />;
 }

@@ -961,6 +961,97 @@
           ]
         }
       ]
+    },
+    "demoPrivacy": {
+      "title": "Privatlivspolitik",
+      "lead": "Det her er en demo af Prismatic, som {name} driver. Den er lavet, så du kan prøve programmet uden at give nogen oplysninger om dig selv.",
+      "sections": [
+        {
+          "title": "Hvem er ansvarlig",
+          "body": ["{name} er dataansvarlig. {address}", "Spørgsmål kan sendes til {email}."]
+        },
+        {
+          "title": "Hvad der gemmes",
+          "list": [
+            "En midlertidig demokonto uden navn, e-mail eller adgangskode, du kender.",
+            "Det, du selv skriver i demoen, og en ændringslog over, hvad der er ændret.",
+            "En cookie, der holder dig logget ind i demoen."
+          ],
+          "body": [
+            "Din IP-adresse bruges kun et øjeblik i serverens hukommelse for at begrænse, hvor mange demoer der startes fra samme sted, og gemmes ikke i databasen. Serverens webproxy kan føre almindelige tekniske logs med IP-adresser i en kort periode.",
+            "Skriv ikke rigtige data, og slet ikke oplysninger om andre personer, i demoen."
+          ]
+        },
+        {
+          "title": "Hvor længe",
+          "body": [
+            "Demokontoen og alt, hvad den indeholder, slettes automatisk efter 24 timer, eller med det samme, hvis du vælger at afslutte demoen. Sikkerhedskopier slettes af sig selv inden for 7 dage."
+          ]
+        },
+        {
+          "title": "Hvem der kan se det",
+          "body": [
+            "Kun dig, mens demoen kører. {hostingSentence} Der er ingen reklame, ingen sporing, ingen kunstig intelligens og ingen mails."
+          ]
+        },
+        {
+          "title": "Cookies",
+          "body": [
+            "Kun den ene cookie, der holder demoen åben. Den er nødvendig, og derfor er der ingen cookiebanner."
+          ]
+        },
+        {
+          "title": "Dine rettigheder",
+          "body": [
+            "Du kan hente alt fra din demo under Konto og afslutte den, når du vil. Er du utilfreds med behandlingen, kan du klage til Datatilsynet, datatilsynet.dk."
+          ]
+        }
+      ]
+    },
+    "demoTerms": {
+      "title": "Vilkår",
+      "lead": "Reglerne for demoen af Prismatic, som {name} driver.",
+      "sections": [
+        {
+          "title": "En demo",
+          "body": [
+            "Demoen er til at prøve Prismatic. Alt slettes efter 24 timer. Den er gratis og leveres, som den er, uden garanti for, at den altid kører, eller at noget bliver gemt."
+          ]
+        },
+        {
+          "title": "God brug",
+          "body": [
+            "Skriv ikke rigtige eller følsomme data. Forsøg ikke at få adgang til andres demoer, overbelaste eller angribe tjenesten. Finder du et sikkerhedshul, så meld det som beskrevet i SECURITY.md på GitHub."
+          ]
+        },
+        {
+          "title": "Koden",
+          "body": [
+            "Prismatic er open source under licensen AGPL-3.0. Kan du lide den, kan du hente koden fra GitHub og køre den selv."
+          ]
+        },
+        {
+          "title": "Lov",
+          "body": ["Vilkårene følger dansk ret. Spørgsmål kan sendes til {email}."]
+        }
+      ]
     }
+  },
+  "demoVisit": {
+    "label": "Demo",
+    "title": "Prøv Prismatic",
+    "body": "Du får dit eget eksempel på et program med roadmap, backlog, fremdrift, risici og rapport, som du kan ændre i, som du vil. Der skal ikke bruges e-mail eller adgangskode, og alt slettes igen efter {hours} timer.",
+    "noRealData": "Skriv ikke rigtige data i demoen.",
+    "start": "Start demoen",
+    "source": "Hent koden og kør den selv",
+    "login": "Har du en konto på denne installation? Log ind",
+    "busy": "Der er startet mange demoer herfra lige nu. Prøv igen om et kvarter.",
+    "full": "Demoen er fuld lige nu. Prøv igen senere.",
+    "banner": "Det her er en demo. Alt, du laver, slettes {when}. Skriv ikke rigtige data.",
+    "bannerSource": "Hent koden",
+    "end": "Afslut demoen nu",
+    "endQuestion": "Afslut demoen nu?",
+    "endDetail": "Dit eksempelprogram og alt, du har lavet i demoen, slettes med det samme. Du kan starte en ny demo bagefter.",
+    "endConfirm": "Afslut og slet"
   }
 }

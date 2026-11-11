@@ -13,7 +13,7 @@ export async function LegalDocument({
   op,
   extra = {},
 }: {
-  kind: "privacy" | "terms";
+  kind: "privacy" | "terms" | "demoPrivacy" | "demoTerms";
   op: Operator;
   /** Further words to fill in, e.g. a sentence chosen by whether hosting is named. */
   extra?: Record<string, string>;
