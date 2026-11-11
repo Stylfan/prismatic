@@ -31,7 +31,7 @@ export function RoadmapCard({
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "group flex cursor-grab flex-col gap-2 rounded-md border border-hairline border-l-[3px] bg-surface p-3 active:cursor-grabbing",
+        "group relative flex cursor-grab flex-col gap-1.5 rounded-md border border-hairline border-l-[3px] bg-surface px-2.5 py-2 transition-shadow hover:shadow-[0_1px_3px_rgba(31,45,51,0.12)] active:cursor-grabbing",
         card.track === "technical" ? "border-l-technical" : "border-l-business",
         pending && "opacity-60",
       )}
@@ -39,8 +39,12 @@ export function RoadmapCard({
       <div className="flex items-start justify-between gap-2">
         <span
           className={cn(
-            "rounded-sm px-1.5 py-0.5 text-[10px] font-bold tracking-[0.08em]",
-            isGoal ? "bg-ink text-paper" : "border border-hairline text-slate",
+            "rounded px-1.5 py-px text-[10px] font-semibold tracking-[0.04em]",
+            isGoal
+              ? card.track === "technical"
+                ? "bg-technical-soft text-technical"
+                : "bg-business-soft text-business"
+              : "text-slate",
           )}
         >
           {isGoal ? tb("kind.goal") : tb("kind.feature")}
@@ -60,7 +64,7 @@ export function RoadmapCard({
         card.status === "in_progress") && (
         <div className="flex flex-wrap items-center gap-2 text-[11px]">
           {card.status === "in_progress" && (
-            <span className="rounded-full bg-ink px-2 py-0.5 font-semibold text-paper">
+            <span className="rounded-full bg-technical-soft px-2 py-px font-medium text-technical">
               {tb("status.in_progress")}
             </span>
           )}
@@ -81,7 +85,7 @@ export function RoadmapCard({
         value={card.column}
         disabled={pending}
         onChange={(e) => onMove(card, Number(e.target.value))}
-        className="h-7 w-full cursor-pointer rounded border border-transparent bg-transparent text-[11px] text-slate opacity-0 transition-opacity group-hover:border-hairline group-hover:opacity-100 focus:border-ink focus:opacity-100"
+        className="absolute right-1.5 bottom-1.5 h-6 max-w-[70%] cursor-pointer rounded border border-hairline bg-surface text-[11px] text-slate opacity-0 transition-opacity group-hover:opacity-100 focus:border-ink focus:opacity-100"
       >
         {columns.map((c, i) => (
           <option key={c.key} value={i}>

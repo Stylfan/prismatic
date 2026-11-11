@@ -33,8 +33,8 @@ export function MilestoneChip({
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "group flex cursor-grab flex-col gap-1.5 rounded-md border bg-paper p-2.5 active:cursor-grabbing",
-        warn ? "border-warning" : "border-ink/70",
+        "group relative flex cursor-grab flex-col gap-1 rounded-md px-2.5 py-2 active:cursor-grabbing",
+        warn ? "border border-warning bg-warning-soft text-ink" : "bg-ink text-paper",
         pending && "opacity-60",
       )}
     >
@@ -58,7 +58,7 @@ export function MilestoneChip({
         value={milestone.column === null ? "" : String(milestone.column)}
         disabled={pending}
         onChange={(e) => onPlace(milestone, e.target.value === "" ? null : Number(e.target.value))}
-        className="h-7 w-full cursor-pointer rounded border border-transparent bg-transparent text-[11px] text-slate opacity-0 transition-opacity group-hover:border-hairline group-hover:opacity-100 focus:border-ink focus:opacity-100"
+        className="absolute right-1.5 bottom-1.5 h-6 max-w-[70%] cursor-pointer rounded border border-hairline bg-surface text-[11px] text-ink opacity-0 transition-opacity group-hover:opacity-100 focus:border-ink focus:opacity-100"
       >
         <option value="">{t("notPlaced")}</option>
         {columns.slice(0, -1).map((c, i) => (

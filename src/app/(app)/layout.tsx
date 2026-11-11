@@ -1,42 +1,30 @@
-import Link from "next/link";
-import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
-import { LogoutButton } from "@/components/auth/logout-button";
-import { Wordmark } from "@/components/ui/wordmark";
+import { Sidebar } from "@/components/app/sidebar";
+import { withUser } from "@/db/client";
+import { listPrograms } from "@/services/programs";
 
 export const dynamic = "force-dynamic";
 
-/** Every page behind the sign-in: the header with the user and the way out. */
+/**
+ * The frame of every signed-in page: a fixed sidebar with the programmes
+ * and their views, and the page beside it. The same on every page, so
+ * nobody has to look for the way around; what is inside is shaped by each
+ * page for its own job.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const t = await getTranslations("app");
+  const programs = await withUser(user.id, (tx) => listPrograms(tx, user.id));
   return (
-    <>
-      <header className="sticky top-0 z-40 border-b border-hairline bg-paper/90 backdrop-blur print:hidden">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-8">
-          <Link href="/" className="text-ink" aria-label={t("home")}>
-            <Wordmark />
-          </Link>
-          <nav aria-label={t("navLabel")} className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-[12px] font-medium tracking-[0.16em] text-slate uppercase hover:text-ink"
-            >
-              {t("programs")}
-            </Link>
-            <Link
-              href="/account"
-              className="text-[13px] text-slate underline-offset-4 hover:text-ink hover:underline"
-            >
-              {user.name || user.email}
-            </Link>
-            <LogoutButton />
-          </nav>
-        </div>
-      </header>
-      <main id="content" className="mx-auto max-w-6xl px-8 py-14 print:max-w-none print:p-0">
+    <div className="grid min-h-screen grid-cols-[15rem_minmax(0,1fr)] print:block">
+      <aside className="sticky top-0 h-screen print:hidden">
+        <Sidebar
+          programs={programs.map((p) => ({ id: p.id, name: p.name }))}
+          user={{ name: user.name, email: user.email }}
+        />
+      </aside>
+      <main id="content" className="min-w-0 px-8 pb-12 print:p-0">
         {children}
       </main>
-    </>
+    </div>
   );
 }

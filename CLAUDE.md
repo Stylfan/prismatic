@@ -74,13 +74,24 @@ session.
   no secrets in the code; `docs/subprocessors.md` lists who can see what
   and changes before any new third party does.
 
-## Visual identity
+## Visual identity and UX
+
+A tool, not a document. Every signed-in page sits in one frame: a fixed
+sidebar with the programmes and, under the open one, its views (Overblik,
+Roadmap, Backlog, Fremdrift, Risici, Rapport, Indstillinger), and a slim
+sticky bar with where you are and the page's actions. Inside the frame,
+each view is shaped for its own job: the overview answers first, the
+roadmap shows the near quarters above the far half-years, the backlog is a
+dense list, settings are rows with the label left and the control right.
+Explanations go in hints and empty states, not above every block.
 
 Paper #F7F6F3, white surfaces, ink #1F2D33, slate #5C6A6F, hairline
-#DAD6CF, bronze #A88E6E used sparingly; technical track #4A6B7A, business
-track #C9B9A3; status green #4F7A5A, amber #B8862F, red #A8483F. Inter
-with tabular numerals. Section labels are bold, letter-spaced capitals in
-bronze ("01 · OVERBLIK"). No shadows; hairlines carry the structure. One
+#DAD6CF, bronze #A88E6E used sparingly. Colour carries meaning: technical
+blue #3B74AD and business ochre #A8742F; good, watch and bad in green
+#4F7A5A, amber #B8862F and red #A8483F; the forecast tempi low, average and
+high in red, blue and green, the same wherever they appear (`globals.css`).
+Inter with tabular numerals, compact controls (32-36px). The numbered
+bronze section label is kept for the steering-group report only. One
 filled button per view.
 
 ## Ways of working

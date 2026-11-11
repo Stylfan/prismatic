@@ -122,15 +122,6 @@
     "removeDetail": "Milepælen fjernes, og de efterfølgende rykker et nummer op.",
     "scopeComputed": "{points} beregnet"
   },
-  "tabs": {
-    "label": "Programmets sider",
-    "backlog": "Backlog",
-    "roadmap": "Roadmap",
-    "forecast": "Fremdrift",
-    "risks": "Risici",
-    "report": "Rapport",
-    "setup": "Opsætning"
-  },
   "backlog": {
     "label": "Backlog",
     "title": "Forretningsmål og features",
@@ -319,7 +310,13 @@
       "empty": "Intet er leveret endnu.",
       "points": "{points} point"
     },
-    "plannedPct": "{points} point planlagt · {pct} % af kapaciteten"
+    "plannedPct": "{points} point planlagt · {pct} % af kapaciteten",
+    "points": "{points} pt",
+    "capacityPct": "{pct} % af kapaciteten",
+    "band": {
+      "near": "Nær horisont · kvartaler",
+      "far": "Fjern horisont · halvår"
+    }
   },
   "forecast": {
     "label": "Fremdrift",
@@ -581,13 +578,13 @@
   },
   "account": {
     "label": "Konto",
-    "title": "Din konto",
+    "title": "Konto",
     "export": {
       "label": "Dine data",
-      "title": "Tag alt med dig",
+      "title": "Hent alle dine data",
       "lead": "Hent alt, hvad din konto ejer: programmer, backlog, milepæle, fremdrift, risici, rapporter, udgivne udgaver og ændringsloggen. I åbne formater, som du kan læse uden Prismatic.",
-      "xlsx": "Hent som regneark (.xlsx)",
-      "json": "Hent som JSON",
+      "xlsx": "Regneark (.xlsx)",
+      "json": "JSON",
       "pdf": "En styregrupperapport gemmes som PDF fra rapportens egen side med »Udskriv / gem som PDF«.",
       "yes": "ja",
       "no": "nej",
@@ -605,11 +602,12 @@
         "reportDrafts": "Rapporttekster",
         "reportEditions": "Udgaver",
         "auditLog": "Ændringslog"
-      }
+      },
+      "hint": "Programmer, backlog, milepæle, fremdrift, risici, rapporter, udgaver og ændringsloggen, i åbne formater. Rapporter gemmes som PDF fra rapportsiden."
     },
     "delete": {
       "label": "Slet konto",
-      "title": "Forlad Prismatic",
+      "title": "Slet konto",
       "lead": "Sletter din konto og alt, hvad den ejer, også ændringsloggen. Hent dine data først, hvis du vil beholde dem.",
       "open": "Slet min konto",
       "question": "Slet din konto for altid?",
@@ -625,7 +623,7 @@
     },
     "security": {
       "label": "Sikkerhed",
-      "title": "Sådan logger du ind",
+      "title": "Sikkerhed",
       "lead": "Slå to-trinsbekræftelse til, så et kodeord alene ikke er nok, eller log ind med en passkey på din computer eller telefon."
     },
     "totp": {
@@ -655,12 +653,13 @@
       "used": "sidst brugt {date}",
       "addedNow": "Passkey tilføjet.",
       "nameLabel": "Navn",
-      "namePlaceholder": "Fx Arbejdscomputer",
+      "namePlaceholder": "Navn, fx Arbejdscomputer",
       "add": "Tilføj passkey",
       "remove": "Fjern",
       "removeQuestion": "Fjern {name}?",
       "removeDetail": "Du kan ikke længere logge ind med den. Dit kodeord og andre passkeys virker stadig.",
-      "cancel": "Fortryd"
+      "cancel": "Fortryd",
+      "count": "{count, plural, one {# passkey} other {# passkeys}}"
     },
     "errors": {
       "unauthorized": "Du er ikke logget ind længere.",
@@ -670,6 +669,71 @@
       "tooMany": "For mange forsøg. Vent et kvarter, og prøv igen.",
       "generic": "Det lykkedes ikke. Prøv igen.",
       "cancelled": "Der blev ikke lavet en passkey."
+    },
+    "profile": {
+      "title": "Profil",
+      "name": "Navn",
+      "email": "E-mail"
+    }
+  },
+  "nav": {
+    "label": "Hovedmenu",
+    "home": "Prismatic, til forsiden",
+    "programs": "Programmer",
+    "newProgram": "Nyt program",
+    "none": "Ingen programmer endnu.",
+    "overview": "Overblik",
+    "roadmap": "Roadmap",
+    "backlog": "Backlog",
+    "forecast": "Fremdrift",
+    "risks": "Risici",
+    "report": "Rapport",
+    "setup": "Indstillinger"
+  },
+  "overview": {
+    "openReport": "Åbn rapporten",
+    "toForecast": "Til fremdrift",
+    "toRisks": "Til risici",
+    "risksTitle": "Risici",
+    "health": {
+      "good": "Grøn · på sporet",
+      "watch": "Gul · hold øje",
+      "bad": "Rød · kræver handling"
+    },
+    "stats": {
+      "delivered": "Leveret",
+      "ofTotal": "af {total} point",
+      "tempo": "Middeltempo",
+      "tempoRange": "Lavt {low} · højt {high} pr. kvartal",
+      "noTempo": "Kræver et afsluttet kvartal",
+      "next": "Næste milepæl",
+      "beyond": "Ud over horisonten",
+      "allReached": "Alle er nået",
+      "risks": "Åbne risici",
+      "high": "{count, plural, one {# høj} other {# høje}}",
+      "noHigh": "Ingen høje",
+      "noMilestones": "Ingen milepæle endnu"
+    },
+    "milestones": {
+      "title": "Milepæle",
+      "none": "Ingen milepæle endnu. Tilføj dem under Indstillinger.",
+      "points": "{points} point",
+      "reached": "Nået i {when}",
+      "beyond": "ud over horisonten",
+      "tempo": {
+        "low": "Lavt tempo:",
+        "avg": "Middel tempo:",
+        "high": "Højt tempo:"
+      }
+    },
+    "attention": {
+      "title": "Kræver handling",
+      "none": "Intet kræver handling lige nu.",
+      "highRisk": "Risiko {number} er høj: {title}",
+      "overloaded": "{period} er planlagt til {pct} % af tempoet",
+      "slipping": "{code} har {count, plural, one {# kort} other {# kort}} planlagt efter milepælen",
+      "warnings": "{count, plural, one {# advarsel} other {# advarsler}} i backloggen",
+      "cases": "{count, plural, one {# sag} other {# sager}} venter på beslutning"
     }
   }
 }

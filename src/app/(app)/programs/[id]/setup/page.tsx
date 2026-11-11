@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ProgramTabs } from "@/components/program/program-tabs";
 import { MilestonesPanel } from "@/components/program/milestones-panel";
 import { SettingsPanel } from "@/components/program/settings-panel";
 import { SizesPanel } from "@/components/program/sizes-panel";
@@ -51,54 +50,58 @@ export default async function ProgramSetupPage({ params }: Params) {
       );
 
       return (
-        <div className="flex flex-col gap-14">
-          <PageHeader label={t("label")} title={program.name} lead={program.goal || undefined} />
-          <ProgramTabs programId={program.id} active="setup" />
-          <Section
-            id="settings"
-            number={1}
-            label={t("settingsLabel")}
-            title={t("settingsTitle")}
-            lead={t("settingsLead")}
-          >
-            <SettingsPanel
-              programId={program.id}
-              today={todayInCopenhagen()}
-              initial={{
-                name: program.name,
-                goal: program.goal,
-                periodModel: program.periodModel,
-                startDate: program.startDate,
-                quarterHorizon: program.quarterHorizon,
-                costPerQuarter: program.costPerQuarter,
-                deviationPct: program.deviationPct,
-              }}
-            />
-          </Section>
-          <Section
-            id="milestones"
-            number={2}
-            label={tm("label")}
-            title={tm("title")}
-            lead={tm("lead")}
-          >
-            <MilestonesPanel
-              programId={program.id}
-              milestones={milestones.map((m) => ({
-                id: m.id,
-                seq: m.seq,
-                title: m.title,
-                description: m.description,
-                scopeOverride: m.scopeOverride,
-                done: m.doneAt !== null,
-                computed: computed.get(m.id) ?? 0,
-                cumulative: scopes.find((s) => s.id === m.id)?.cumulative ?? 0,
-              }))}
-            />
-          </Section>
-          <Section id="sizes" number={3} label={ts("label")} title={ts("title")} lead={ts("lead")}>
-            <SizesPanel programId={program.id} sizes={sizes} />
-          </Section>
+        <div className="flex flex-col gap-6">
+          <PageHeader label={program.name} title={(await getTranslations("nav"))("setup")} />
+          <div className="flex max-w-5xl flex-col gap-8">
+            <nav aria-label={t("settingsLabel")} className="-mb-2 flex gap-1 text-[13px]">
+              {[
+                ["#settings", t("settingsLabel")],
+                ["#milestones", tm("label")],
+                ["#sizes", ts("label")],
+              ].map(([href, text]) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="rounded-md px-3 py-1.5 text-slate hover:bg-sand hover:text-ink"
+                >
+                  {text}
+                </a>
+              ))}
+            </nav>
+            <Section id="settings" label={t("settingsLabel")} title={t("settingsTitle")}>
+              <SettingsPanel
+                programId={program.id}
+                today={todayInCopenhagen()}
+                initial={{
+                  name: program.name,
+                  goal: program.goal,
+                  periodModel: program.periodModel,
+                  startDate: program.startDate,
+                  quarterHorizon: program.quarterHorizon,
+                  costPerQuarter: program.costPerQuarter,
+                  deviationPct: program.deviationPct,
+                }}
+              />
+            </Section>
+            <Section id="milestones" label={tm("label")} title={tm("title")} lead={tm("lead")}>
+              <MilestonesPanel
+                programId={program.id}
+                milestones={milestones.map((m) => ({
+                  id: m.id,
+                  seq: m.seq,
+                  title: m.title,
+                  description: m.description,
+                  scopeOverride: m.scopeOverride,
+                  done: m.doneAt !== null,
+                  computed: computed.get(m.id) ?? 0,
+                  cumulative: scopes.find((s) => s.id === m.id)?.cumulative ?? 0,
+                }))}
+              />
+            </Section>
+            <Section id="sizes" label={ts("label")} title={ts("title")} lead={ts("lead")}>
+              <SizesPanel programId={program.id} sizes={sizes} />
+            </Section>
+          </div>
         </div>
       );
     },

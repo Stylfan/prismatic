@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
-import { ProgramTabs } from "@/components/program/program-tabs";
 import { DeliveredList } from "@/components/roadmap/delivered-list";
 import { EventForm } from "@/components/roadmap/event-form";
 import { RoadmapBoard } from "@/components/roadmap/roadmap-board";
@@ -34,7 +33,6 @@ export default async function RoadmapPage({ params }: Params) {
       const full = await getProgram(db, user.id, (await params).id);
       if (!full) notFound();
       const { program } = full;
-      const t = await getTranslations("program");
       const tr = await getTranslations("roadmap");
       const items = await listItems(db, program.id);
       const events = await listEvents(db, program.id);
@@ -48,38 +46,23 @@ export default async function RoadmapPage({ params }: Params) {
       });
 
       return (
-        <div className="flex flex-col gap-12">
-          <PageHeader label={t("label")} title={program.name} lead={program.goal || undefined} />
-          <ProgramTabs programId={program.id} active="roadmap" />
-          <Section
-            id="roadmap"
-            number={1}
-            label={tr("label")}
-            title={tr("title")}
+        <div className="flex flex-col gap-6">
+          <PageHeader
+            label={program.name}
+            title={(await getTranslations("nav"))("roadmap")}
             lead={tr("lead")}
-          >
-            <RoadmapBoard columns={view.columns} cards={view.cards} milestones={view.milestones} />
-          </Section>
-          <Section
-            id="events"
-            number={2}
-            label={tr("events.label")}
-            title={tr("events.heading")}
-            lead={tr("events.lead")}
-          >
-            <Panel>
-              <EventForm programId={program.id} quarters={view.eventQuarters} />
-            </Panel>
-          </Section>
-          <Section
-            id="delivered"
-            number={3}
-            label={tr("delivered.label")}
-            title={tr("delivered.title")}
-            lead={tr("delivered.lead")}
-          >
-            <DeliveredList groups={view.delivered} />
-          </Section>
+          />
+          <RoadmapBoard columns={view.columns} cards={view.cards} milestones={view.milestones} />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Section id="events" label={tr("events.label")} title={tr("events.heading")}>
+              <Panel>
+                <EventForm programId={program.id} quarters={view.eventQuarters} />
+              </Panel>
+            </Section>
+            <Section id="delivered" label={tr("delivered.label")} title={tr("delivered.title")}>
+              <DeliveredList groups={view.delivered} />
+            </Section>
+          </div>
         </div>
       );
     },

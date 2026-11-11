@@ -2,9 +2,10 @@
 
 /*
  * Prismatic's visual identity: warm paper, white surfaces, ink and slate
- * for text, a hairline for structure, and bronze used sparingly for the
- * few things that should catch the eye. Two track colours tell technical
- * work from business work; three status colours carry good, watch and bad.
+ * for text, a hairline for structure, bronze for the few things that should
+ * catch the eye. Colour carries meaning, never decoration: blue and ochre
+ * tell technical from business work, green, amber and red carry good, watch
+ * and bad, and the forecast's three tempi keep one colour each.
  */
 @theme {
   --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -19,11 +20,22 @@
   --color-hairline-soft: #e9e6e0;
   --color-bronze: #a88e6e;
   --color-bronze-deep: #7d6748;
-  --color-technical: #4a6b7a;
-  --color-business: #c9b9a3;
+  --color-sidebar: #efede8;
+  --color-technical: #3b74ad;
+  --color-technical-soft: #e5eef8;
+  --color-business: #a8742f;
+  --color-business-soft: #f6ecdc;
   --color-success: #4f7a5a;
   --color-warning: #b8862f;
   --color-danger: #a8483f;
+  --color-success-soft: #e7f0e4;
+  --color-warning-soft: #f8eedb;
+  --color-danger-soft: #f6e3e0;
+
+  /* The three tempi of the forecast, the same everywhere they appear. */
+  --color-tempo-low: #c8524a;
+  --color-tempo-avg: #3b74ad;
+  --color-tempo-high: #4f8a3c;
 }
 
 @layer base {

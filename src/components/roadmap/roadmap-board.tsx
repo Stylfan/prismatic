@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { moveItemAction, placeMilestoneAction, removeEventAction } from "@/actions/roadmap";
@@ -9,12 +8,13 @@ import { StatusMessage, useStatus } from "@/components/ui/status";
 import { cn } from "@/lib/cn";
 import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
 import { MilestoneChip } from "./milestone-chip";
-import { RoadmapCard } from "./roadmap-card";
+import { RoadmapColumn } from "./roadmap-column";
 
 type View = "both" | "goals" | "features";
 
 /**
- * The roadmap: near quarters, far half-years and "Endnu ikke planlagt".
+ * The roadmap: the near quarters in a row of their own, and below them the
+ * far half-years and "Endnu ikke planlagt", so both get the full width.
  * Cards and milestones are dragged between columns; each also has a list
  * to move it with the keyboard. Moves show at once and are saved behind.
  */
@@ -103,13 +103,13 @@ export function RoadmapBoard({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <fieldset className="flex rounded-full border border-hairline p-0.5">
+        <fieldset className="flex rounded-md border border-hairline bg-surface p-0.5">
           <legend className="sr-only">{t("viewLabel")}</legend>
           {(["both", "goals", "features"] as const).map((v) => (
             <label
               key={v}
               className={cn(
-                "cursor-pointer rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors has-focus-visible:outline-2 has-focus-visible:outline-ink",
+                "cursor-pointer rounded px-3 py-1 text-[13px] font-medium transition-colors has-focus-visible:outline-2 has-focus-visible:outline-ink",
                 view === v ? "bg-ink text-paper" : "text-slate hover:text-ink",
               )}
             >
@@ -126,11 +126,11 @@ export function RoadmapBoard({
         </fieldset>
         <div className="flex items-center gap-5 text-[12px] text-slate">
           <span className="flex items-center gap-2">
-            <span className="h-3 w-1 bg-business" aria-hidden />
+            <span className="size-2.5 rounded-sm bg-business" aria-hidden />
             {t("legendBusiness")}
           </span>
           <span className="flex items-center gap-2">
-            <span className="h-3 w-1 bg-technical" aria-hidden />
+            <span className="size-2.5 rounded-sm bg-technical" aria-hidden />
             {t("legendTechnical")}
           </span>
           <StatusMessage status={status} />
@@ -154,98 +154,41 @@ export function RoadmapBoard({
         </div>
       )}
 
-      <div>
-        <div
-          className="grid gap-px overflow-hidden rounded-lg border border-hairline bg-hairline"
-          style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
-        >
-          {columns.map((col, i) => (
-            <section
-              key={col.key}
-              aria-label={col.label}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-                if (over !== i) setOver(i);
-              }}
-              onDragLeave={() => setOver((o) => (o === i ? null : o))}
-              onDrop={(e) => {
-                e.preventDefault();
-                onDrop(i, e.dataTransfer.getData("text/plain"));
-              }}
-              className={cn(
-                "flex min-h-[420px] flex-col gap-3 p-3 transition-colors",
-                col.kind === "unplanned" ? "bg-paper" : "bg-surface",
-                over === i && "bg-sand",
-              )}
+      {(["near", "far"] as const).map((band) => {
+        const inBand = columns
+          .map((col, i) => ({ col, i }))
+          .filter(({ col }) => (band === "near" ? col.kind === "near" : col.kind !== "near"));
+        if (inBand.length === 0) return null;
+        return (
+          <div key={band} className="flex flex-col gap-2">
+            <h3 className="text-[11px] font-semibold tracking-[0.12em] text-slate uppercase">
+              {t(`band.${band}`)}
+            </h3>
+            <div
+              className="grid gap-3"
+              style={{ gridTemplateColumns: `repeat(${inBand.length}, minmax(0, 1fr))` }}
             >
-              <header className="flex flex-col gap-0.5 border-b border-hairline-soft pb-2">
-                <span className="text-[10px] font-bold tracking-[0.14em] text-bronze-deep uppercase">
-                  {t(`kind.${col.kind}`)}
-                </span>
-                <h3 className="text-[14px] font-semibold leading-snug">{col.label}</h3>
-                {col.range && <span className="tabular text-[11px] text-slate">{col.range}</span>}
-                <span className="tabular mt-1 text-[11px] font-semibold text-ink">
-                  {col.pct === null
-                    ? t("planned", { points: col.load.toLocaleString("da-DK") })
-                    : t("plannedPct", { points: col.load.toLocaleString("da-DK"), pct: col.pct })}
-                </span>
-              </header>
-              {col.events.length > 0 && (
-                <ul className="flex flex-col gap-1">
-                  {col.events.map((ev) => (
-                    <li
-                      key={ev.id}
-                      className="flex items-center justify-between gap-1 rounded bg-sand px-2 py-1 text-[11px]"
-                    >
-                      <span>
-                        {col.kind === "far" && <span className="text-slate">{ev.quarter} · </span>}
-                        {ev.title}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label={t("removeEvent", { title: ev.title })}
-                        className="rounded p-0.5 text-slate hover:bg-surface hover:text-ink"
-                        onClick={() => save(() => removeEventAction({ eventId: ev.id }))}
-                      >
-                        <X className="size-3" aria-hidden />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <ul className="flex flex-col gap-2">
-                {visible
-                  .filter((c) => c.column === i)
-                  .map((card) => (
-                    <RoadmapCard
-                      key={card.id}
-                      card={card}
-                      columns={columns}
-                      onMove={moveCard}
-                      pending={pending}
-                    />
-                  ))}
-              </ul>
-              {milestones.some((m) => m.column === i) && (
-                <ul className="mt-auto flex flex-col gap-2 border-t border-hairline-soft pt-3">
-                  {milestones
-                    .filter((m) => m.column === i)
-                    .map((m) => (
-                      <MilestoneChip
-                        key={m.id}
-                        milestone={m}
-                        columns={columns}
-                        onPlace={placeMilestone}
-                        pending={pending}
-                      />
-                    ))}
-                </ul>
-              )}
-            </section>
-          ))}
-        </div>
-      </div>
+              {inBand.map(({ col, i }) => (
+                <RoadmapColumn
+                  key={col.key}
+                  col={col}
+                  columns={columns}
+                  cards={visible.filter((c) => c.column === i)}
+                  milestones={milestones.filter((m) => m.column === i)}
+                  over={over === i}
+                  pending={pending}
+                  onOver={() => over !== i && setOver(i)}
+                  onLeave={() => setOver((o) => (o === i ? null : o))}
+                  onDrop={(raw) => onDrop(i, raw)}
+                  onMoveCard={moveCard}
+                  onPlaceMilestone={placeMilestone}
+                  onRemoveEvent={(eventId) => save(() => removeEventAction({ eventId }))}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

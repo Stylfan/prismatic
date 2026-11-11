@@ -10,7 +10,7 @@ import {
   totpDisableAction,
 } from "@/actions/factors";
 import { Button, Hint, Input, Label } from "@/components/ui/controls";
-import { Panel } from "@/components/ui/layout";
+import { SettingRow } from "@/components/ui/layout";
 import { StatusMessage, useStatus } from "@/components/ui/status";
 
 type Setup = { token: string; secret: string; qr: string };
@@ -30,8 +30,8 @@ export function TotpPanel({ enabled, codesLeft }: { enabled: boolean; codesLeft:
 
   if (codes) {
     return (
-      <Panel className="flex flex-col gap-4">
-        <h3 className="text-lg font-semibold">{t("codesTitle")}</h3>
+      <div className="flex flex-col gap-4 py-4">
+        <h3 className="text-[14px] font-semibold">{t("codesTitle")}</h3>
         <p className="text-sm leading-relaxed text-slate">{t("codesBody")}</p>
         <ul className="grid grid-cols-2 gap-2 font-mono text-[15px] sm:grid-cols-5">
           {codes.map((c) => (
@@ -52,14 +52,17 @@ export function TotpPanel({ enabled, codesLeft }: { enabled: boolean; codesLeft:
             {t("codesDone")}
           </Button>
         </div>
-      </Panel>
+      </div>
     );
   }
 
   const codeField = (
-    <div className="flex max-w-xs flex-col gap-1.5">
-      <Label htmlFor="totp-code">{t("codeLabel")}</Label>
+    <div className="flex w-36 flex-col gap-1">
+      <Label htmlFor="totp-code" className="sr-only">
+        {t("codeLabel")}
+      </Label>
       <Input
+        placeholder={t("codeLabel")}
         id="totp-code"
         autoComplete="one-time-code"
         maxLength={20}
@@ -71,8 +74,8 @@ export function TotpPanel({ enabled, codesLeft }: { enabled: boolean; codesLeft:
 
   if (setup) {
     return (
-      <Panel className="flex flex-col gap-4">
-        <h3 className="text-lg font-semibold">{t("scanTitle")}</h3>
+      <div className="flex flex-col gap-4 py-4">
+        <h3 className="text-[14px] font-semibold">{t("scanTitle")}</h3>
         <p className="text-sm leading-relaxed text-slate">{t("scanBody")}</p>
         {/* The SVG is drawn on the server by the qrcode package from our own otpauth address. */}
         <div
@@ -108,73 +111,78 @@ export function TotpPanel({ enabled, codesLeft }: { enabled: boolean; codesLeft:
           </div>
         </form>
         <StatusMessage status={status} />
-      </Panel>
+      </div>
     );
   }
 
   if (!enabled) {
     return (
-      <Panel className="flex flex-col gap-3">
-        <p className="text-sm text-slate">{t("off")}</p>
-        <div>
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                const result = await totpBeginAction();
-                if (!result.ok) return fail(result.error);
-                setSetup(result.data);
-              })
-            }
-          >
-            {t("enable")}
-          </Button>
-        </div>
-        <StatusMessage status={status} />
-      </Panel>
+      <SettingRow label={t("title")} hint={<StatusOr status={status} text={t("off")} />}>
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              const result = await totpBeginAction();
+              if (!result.ok) return fail(result.error);
+              setSetup(result.data);
+            })
+          }
+        >
+          {t("enable")}
+        </Button>
+      </SettingRow>
     );
   }
 
   return (
-    <Panel className="flex flex-col gap-4">
-      <p className="text-sm font-medium text-success">{t("on", { count: codesLeft })}</p>
+    <SettingRow
+      label={t("title")}
+      hint={
+        <>
+          <span className="font-medium text-success">{t("on", { count: codesLeft })}</span>{" "}
+          {t("codeNeeded")}
+          <StatusMessage status={status} />
+        </>
+      }
+    >
       {codeField}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const result = await recoveryCodesAction({ code });
-              if (!result.ok) return fail(result.error);
-              setCode("");
-              setCodes(result.data);
-            })
-          }
-        >
-          {t("newCodes")}
-        </Button>
-        <Button
-          variant="danger"
-          size="sm"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const result = await totpDisableAction({ code });
-              if (!result.ok) return fail(result.error);
-              setCode("");
-              router.refresh();
-            })
-          }
-        >
-          {t("disable")}
-        </Button>
-      </div>
-      <Hint>{t("codeNeeded")}</Hint>
-      <StatusMessage status={status} />
-    </Panel>
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={pending}
+        onClick={() =>
+          startTransition(async () => {
+            const result = await recoveryCodesAction({ code });
+            if (!result.ok) return fail(result.error);
+            setCode("");
+            setCodes(result.data);
+          })
+        }
+      >
+        {t("newCodes")}
+      </Button>
+      <Button
+        variant="danger"
+        size="sm"
+        disabled={pending}
+        onClick={() =>
+          startTransition(async () => {
+            const result = await totpDisableAction({ code });
+            if (!result.ok) return fail(result.error);
+            setCode("");
+            router.refresh();
+          })
+        }
+      >
+        {t("disable")}
+      </Button>
+    </SettingRow>
   );
+}
+
+/** The status line when there is something to say, otherwise the given text. */
+function StatusOr({ status, text }: { status: ReturnType<typeof useStatus>[0]; text: string }) {
+  return status ? <StatusMessage status={status} /> : <>{text}</>;
 }

@@ -41,15 +41,13 @@ export async function BacklogSummary({ items }: { items: ItemView[] }) {
   return (
     <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-hairline bg-hairline sm:grid-cols-5">
       {tiles.map((tile) => (
-        <div key={tile.label} className="flex flex-col gap-1 bg-surface p-4">
-          <dt className="text-[11px] font-bold tracking-[0.14em] text-slate uppercase">
-            {tile.label}
-          </dt>
+        <div key={tile.label} className="flex flex-col gap-0.5 bg-surface px-4 py-3">
+          <dt className="text-[12px] text-slate">{tile.label}</dt>
           <dd
             className={
               tile.alert
-                ? "tabular text-2xl font-semibold text-warning"
-                : "tabular text-2xl font-semibold"
+                ? "tabular text-xl font-semibold text-warning"
+                : "tabular text-xl font-semibold"
             }
           >
             {tile.value}

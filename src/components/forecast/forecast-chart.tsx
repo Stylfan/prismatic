@@ -14,9 +14,9 @@ const PAD = { top: 24, right: 150, bottom: 44, left: 64 };
 
 const COLORS = {
   actual: "var(--color-ink)",
-  avg: "var(--color-technical)",
-  low: "var(--color-danger)",
-  high: "var(--color-success)",
+  avg: "var(--color-tempo-avg)",
+  low: "var(--color-tempo-low)",
+  high: "var(--color-tempo-high)",
   milestone: "var(--color-bronze-deep)",
   grid: "var(--color-hairline-soft)",
   text: "var(--color-slate)",
@@ -56,6 +56,21 @@ export async function ForecastChart({ view }: { view: Omit<ForecastView, "rows">
       .filter((p) => p[key] !== null)
       .map((p, n) => `${n === 0 ? "M" : "L"}${x(p.index).toFixed(1)},${y(p[key]!).toFixed(1)}`)
       .join(" ");
+
+  // The spread between the low and the high tempo, as one soft band.
+  const projected = points.filter((p) => p.low !== null && p.high !== null);
+  const band =
+    projected.length > 1
+      ? [
+          ...projected.map(
+            (p, n) => `${n === 0 ? "M" : "L"}${x(p.index).toFixed(1)},${y(p.high!).toFixed(1)}`,
+          ),
+          ...[...projected]
+            .reverse()
+            .map((p) => `L${x(p.index).toFixed(1)},${y(p.low!).toFixed(1)}`),
+          "Z",
+        ].join(" ")
+      : null;
 
   const ticks = Array.from({ length: tickCount + 1 }, (_, k) => k * tickStep);
   const step = maxIndex > 16 ? 2 : 1;
@@ -125,18 +140,19 @@ export async function ForecastChart({ view }: { view: Omit<ForecastView, "rows">
             </text>
           </g>
         ))}
+        {band && <path d={band} fill={COLORS.avg} fillOpacity="0.08" stroke="none" />}
         <path
           d={path("low")}
           fill="none"
           stroke={COLORS.low}
-          strokeWidth="1.75"
+          strokeWidth="2"
           strokeDasharray="5 4"
         />
         <path
           d={path("high")}
           fill="none"
           stroke={COLORS.high}
-          strokeWidth="1.75"
+          strokeWidth="2"
           strokeDasharray="5 4"
         />
         <path d={path("avg")} fill="none" stroke={COLORS.avg} strokeWidth="2.5" />
@@ -158,7 +174,7 @@ export async function ForecastChart({ view }: { view: Omit<ForecastView, "rows">
         ).map(([key, text]) => (
           <span key={key} className="flex items-center gap-2">
             <span
-              className="inline-block h-0.5 w-6"
+              className="inline-block h-1 w-6 rounded-full"
               style={{ background: COLORS[key] }}
               aria-hidden
             />

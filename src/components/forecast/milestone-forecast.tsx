@@ -21,7 +21,14 @@ export async function MilestoneForecast({ view }: { view: Omit<ForecastView, "ro
             </th>
             {TEMPI.map((tempo) => (
               <th key={tempo} scope="col" className="px-4 py-3">
-                {t(tempo)}
+                <span className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="size-2.5 rounded-full"
+                    style={{ background: `var(--color-tempo-${tempo})` }}
+                  />
+                  {t(tempo)}
+                </span>
               </th>
             ))}
           </tr>

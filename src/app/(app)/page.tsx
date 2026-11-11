@@ -16,13 +16,12 @@ export default async function HomePage() {
   const programs = await withUser(user.id, (tx) => listPrograms(tx, user.id));
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
       <PageHeader
-        label={t("label")}
         title={t("title")}
         lead={t("lead")}
         actions={
-          <Link href="/programs/new" className={buttonClass("primary")}>
+          <Link href="/programs/new" className={buttonClass("primary", "sm")}>
             {t("new")}
           </Link>
         }

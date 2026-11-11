@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/auth/session";
-import { ProgramTabs } from "@/components/program/program-tabs";
 import { formatPeriodLabel } from "@/components/program/period-label";
 import { CasesEditor, DecisionsEditor } from "@/components/report/cases-editor";
 import { DraftEditor, GoalsEditor } from "@/components/report/goals-editor";
@@ -41,7 +40,6 @@ export default async function ReportPage({ params }: Params) {
       const full = await getProgram(db, user.id, (await params).id);
       if (!full) notFound();
       const { program } = full;
-      const t = await getTranslations("program");
       const tr = await getTranslations("report");
       const tp = await getTranslations("periods");
 
@@ -58,9 +56,8 @@ export default async function ReportPage({ params }: Params) {
       const [y, m, d] = today.split("-");
 
       return (
-        <div className="flex flex-col gap-12">
-          <PageHeader label={t("label")} title={program.name} lead={program.goal || undefined} />
-          <ProgramTabs programId={program.id} active="report" />
+        <div className="flex flex-col gap-8">
+          <PageHeader label={program.name} title={(await getTranslations("nav"))("report")} />
           <Section
             id="publish"
             number={1}

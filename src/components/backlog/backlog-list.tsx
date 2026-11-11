@@ -44,16 +44,19 @@ export async function BacklogList({
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <section key={group.key} className="flex flex-col gap-3" aria-label={group.label}>
           <SectionLabel>{group.label}</SectionLabel>
           {group.goals.length === 0 ? (
             <p className="text-sm text-slate">{t("emptyGroup")}</p>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-2">
               {group.goals.map((goal) => (
-                <li key={goal.id} className="overflow-hidden rounded-lg border border-hairline">
+                <li
+                  key={goal.id}
+                  className="overflow-hidden rounded-lg border border-hairline bg-surface"
+                >
                   <ul className="divide-y divide-hairline-soft">
                     <ItemRow item={goal} options={options} />
                     {featuresOf(goal.id).map((f) => (
@@ -69,7 +72,7 @@ export async function BacklogList({
       {loose.length > 0 && (
         <section className="flex flex-col gap-3" aria-label={t("looseFeatures")}>
           <SectionLabel>{t("looseFeatures")}</SectionLabel>
-          <ul className="divide-y divide-hairline-soft overflow-hidden rounded-lg border border-hairline">
+          <ul className="divide-y divide-hairline-soft overflow-hidden rounded-lg border border-hairline bg-surface">
             {loose.map((f) => (
               <ItemRow key={f.id} item={f} options={options} />
             ))}

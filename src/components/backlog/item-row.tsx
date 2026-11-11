@@ -33,12 +33,16 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
           aria-controls={editorId}
           aria-label={t("row.edit", { title: item.title })}
           onClick={() => setOpen((v) => !v)}
-          className="grid flex-1 grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 gap-y-1 px-4 py-3 text-left transition-colors hover:bg-paper"
+          className="grid flex-1 grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 gap-y-0.5 px-4 py-2 text-left transition-colors hover:bg-paper"
         >
           <span
             className={cn(
-              "tabular w-9 rounded-sm py-0.5 text-center text-[11px] font-bold tracking-[0.08em]",
-              isGoal ? "bg-ink text-paper" : "border border-hairline text-slate",
+              "tabular w-9 rounded py-0.5 text-center text-[11px] font-semibold tracking-[0.04em]",
+              isGoal
+                ? item.track === "technical"
+                  ? "bg-technical-soft text-technical"
+                  : "bg-business-soft text-business"
+                : "text-slate",
             )}
             title={isGoal ? t("kind.goalLong") : t("kind.featureLong")}
           >
@@ -85,9 +89,9 @@ export function ItemRow({ item, options }: { item: ItemView; options: BacklogOpt
             )}
             <span
               className={cn(
-                "rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-                item.status === "done" && "bg-success/10 text-success",
-                item.status === "in_progress" && "bg-ink text-paper",
+                "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                item.status === "done" && "bg-success-soft text-success",
+                item.status === "in_progress" && "bg-technical-soft text-technical",
                 item.status === "planned" && "border border-hairline text-slate",
               )}
             >

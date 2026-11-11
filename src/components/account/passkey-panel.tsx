@@ -8,7 +8,7 @@ import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/bro
 import { passkeyBeginAction, passkeyFinishAction, passkeyRemoveAction } from "@/actions/factors";
 import { ConfirmButton } from "@/components/ui/confirm";
 import { Button, Input, Label } from "@/components/ui/controls";
-import { Panel } from "@/components/ui/layout";
+import { SettingRow } from "@/components/ui/layout";
 import { StatusMessage, useStatus } from "@/components/ui/status";
 
 export type PasskeyRow = { id: string; name: string; createdAt: number; lastUsedAt: number | null };
@@ -22,16 +22,64 @@ export function PasskeyPanel({ passkeys }: { passkeys: PasskeyRow[] }) {
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useStatus();
   const [name, setName] = useState("");
+  const add = () =>
+    startTransition(async () => {
+      const begun = await passkeyBeginAction();
+      if (!begun.ok) return setStatus({ kind: "error", text: te(begun.error) });
+      let response;
+      try {
+        response = await startRegistration({
+          optionsJSON: begun.data.options as PublicKeyCredentialCreationOptionsJSON,
+        });
+      } catch {
+        return setStatus({ kind: "error", text: te("cancelled") });
+      }
+      const result = await passkeyFinishAction({ token: begun.data.token, name, response });
+      if (!result.ok) return setStatus({ kind: "error", text: te(result.error) });
+      setName("");
+      setStatus({ kind: "ok", text: t("addedNow") });
+      router.refresh();
+    });
   const date = (ms: number) => format.dateTime(new Date(ms), { dateStyle: "medium" });
 
   return (
-    <Panel className="flex flex-col gap-5">
-      {passkeys.length === 0 ? (
-        <p className="text-sm text-slate">{t("none")}</p>
-      ) : (
-        <ul className="flex flex-col divide-y divide-hairline">
+    <>
+      <SettingRow
+        label={t("title")}
+        hint={
+          <>
+            {passkeys.length === 0 ? t("none") : t("count", { count: passkeys.length })}
+            <StatusMessage status={status} />
+          </>
+        }
+      >
+        <form
+          className="flex flex-wrap items-center gap-2 sm:justify-end"
+          onSubmit={(e) => {
+            e.preventDefault();
+            add();
+          }}
+        >
+          <Label htmlFor="passkey-name" className="sr-only">
+            {t("nameLabel")}
+          </Label>
+          <Input
+            id="passkey-name"
+            maxLength={60}
+            className="w-44"
+            placeholder={t("namePlaceholder")}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+            {t("add")}
+          </Button>
+        </form>
+      </SettingRow>
+      {passkeys.length > 0 && (
+        <ul className="-mt-2 flex flex-col divide-y divide-hairline-soft border-b border-hairline-soft pb-2">
           {passkeys.map((p) => (
-            <li key={p.id} className="flex items-center justify-between gap-4 py-3">
+            <li key={p.id} className="flex items-center justify-between gap-4 py-2 pl-4">
               <div className="flex flex-col">
                 <span className="font-medium">{p.name || t("unnamed")}</span>
                 <span className="text-[13px] text-slate">
@@ -57,44 +105,6 @@ export function PasskeyPanel({ passkeys }: { passkeys: PasskeyRow[] }) {
           ))}
         </ul>
       )}
-      <form
-        className="flex flex-wrap items-end gap-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          startTransition(async () => {
-            const begun = await passkeyBeginAction();
-            if (!begun.ok) return setStatus({ kind: "error", text: te(begun.error) });
-            let response;
-            try {
-              response = await startRegistration({
-                optionsJSON: begun.data.options as PublicKeyCredentialCreationOptionsJSON,
-              });
-            } catch {
-              return setStatus({ kind: "error", text: te("cancelled") });
-            }
-            const result = await passkeyFinishAction({ token: begun.data.token, name, response });
-            if (!result.ok) return setStatus({ kind: "error", text: te(result.error) });
-            setName("");
-            setStatus({ kind: "ok", text: t("addedNow") });
-            router.refresh();
-          });
-        }}
-      >
-        <div className="flex min-w-60 flex-col gap-1.5">
-          <Label htmlFor="passkey-name">{t("nameLabel")}</Label>
-          <Input
-            id="passkey-name"
-            maxLength={60}
-            placeholder={t("namePlaceholder")}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <Button type="submit" variant="secondary" size="sm" disabled={pending}>
-          {t("add")}
-        </Button>
-      </form>
-      <StatusMessage status={status} />
-    </Panel>
+    </>
   );
 }

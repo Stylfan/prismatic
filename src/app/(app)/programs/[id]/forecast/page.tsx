@@ -5,8 +5,8 @@ import { requireUser } from "@/auth/session";
 import { ForecastChart } from "@/components/forecast/forecast-chart";
 import { LedgerTable } from "@/components/forecast/ledger-table";
 import { MilestoneForecast } from "@/components/forecast/milestone-forecast";
-import { ProgramTabs } from "@/components/program/program-tabs";
-import { PageHeader, Panel, Section } from "@/components/ui/layout";
+import { PageHeader, Panel, Section, Stat } from "@/components/ui/layout";
+import { TEMPI } from "@/domain/forecast";
 import { getDb, withUser } from "@/db/client";
 import { programTitle } from "@/lib/load";
 import { buildForecastView } from "@/lib/forecast-view";
@@ -33,7 +33,6 @@ export default async function ForecastPage({ params }: Params) {
       const full = await getProgram(db, user.id, (await params).id);
       if (!full) notFound();
       const { program } = full;
-      const t = await getTranslations("program");
       const tf = await getTranslations("forecast");
       const view = await buildForecastView(
         full,
@@ -44,50 +43,49 @@ export default async function ForecastPage({ params }: Params) {
       const stats = view.result.stats;
       const fmt = (n: number) => Math.round(n).toLocaleString("da-DK");
 
-      const tiles = [
-        { label: tf("tiles.delivered"), value: fmt(view.result.delivered) },
-        { label: tf("tiles.low"), value: stats ? fmt(stats.low) : "–" },
-        { label: tf("tiles.avg"), value: stats ? fmt(stats.avg) : "–" },
-        { label: tf("tiles.high"), value: stats ? fmt(stats.high) : "–" },
-      ];
+      const next = view.milestones.find((m) => !m.reached);
+      const tempoTiles = TEMPI.map((tempo) => ({
+        tempo,
+        label: tf(`tiles.${tempo}`),
+        value: stats ? fmt(stats[tempo]) : "–",
+        note: next ? `${next.code}: ${next.at[tempo]?.label ?? tf("milestones.beyond")}` : null,
+      }));
 
       return (
-        <div className="flex flex-col gap-12">
-          <PageHeader label={t("label")} title={program.name} lead={program.goal || undefined} />
-          <ProgramTabs programId={program.id} active="forecast" />
-          <Section
-            id="forecast"
-            number={1}
-            label={tf("label")}
-            title={tf("title")}
+        <div className="flex flex-col gap-6">
+          <PageHeader
+            label={program.name}
+            title={(await getTranslations("nav"))("forecast")}
             lead={tf("lead")}
-          >
-            <dl className="grid grid-cols-4 gap-px overflow-hidden rounded-lg border border-hairline bg-hairline">
-              {tiles.map((tile) => (
-                <div key={tile.label} className="flex flex-col gap-1 bg-surface p-4">
-                  <dt className="text-[11px] font-bold tracking-[0.14em] text-slate uppercase">
-                    {tile.label}
-                  </dt>
-                  <dd className="tabular text-2xl font-semibold">{tile.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <Panel>
-              <ForecastChart view={view} />
-            </Panel>
-          </Section>
+          />
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Stat label={tf("tiles.delivered")} value={fmt(view.result.delivered)} />
+            {tempoTiles.map((tile) => (
+              <div
+                key={tile.tempo}
+                className="flex min-w-0 flex-col gap-1 rounded-lg border border-hairline border-t-[3px] bg-surface px-4 py-3"
+                style={{ borderTopColor: `var(--color-tempo-${tile.tempo})` }}
+              >
+                <span className="text-[12px] text-slate">{tile.label}</span>
+                <span className="text-xl leading-tight font-semibold text-ink tabular">
+                  {tile.value}
+                </span>
+                {tile.note && <span className="text-[12px] text-slate">{tile.note}</span>}
+              </div>
+            ))}
+          </div>
+          <Panel>
+            <ForecastChart view={view} />
+          </Panel>
           <Section
             id="milestone-forecast"
-            number={2}
             label={tf("milestones.label")}
             title={tf("milestones.title")}
-            lead={tf("milestones.lead")}
           >
             <MilestoneForecast view={view} />
           </Section>
           <Section
             id="ledger"
-            number={3}
             label={tf("ledger.label")}
             title={tf("ledger.title")}
             lead={tf("ledger.lead")}

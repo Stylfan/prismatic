@@ -27,15 +27,13 @@ import { run, type Result } from "./result";
 
 /** The programme pages' server actions; each refreshes the pages its change shows on. */
 
-function refresh<T>(result: Result<T>, programId?: string | null): Result<T> {
+function refresh<T>(result: Result<T>): Result<T> {
   if (result.ok) {
-    revalidatePath("/");
-    if (programId) revalidatePath(`/programs/${programId}`, "layout");
+    // The sidebar lists every programme by name, so the whole frame refreshes.
+    revalidatePath("/", "layout");
   }
   return result;
 }
-
-const idOf = (r: Result<string>) => (r.ok ? r.data : null);
 
 export async function createProgramAction(raw: unknown): Promise<Result<string>> {
   return refresh(await run(ProgramFields, raw, createProgram));
@@ -46,7 +44,7 @@ export async function updateProgramAction(raw: unknown): Promise<Result<string>>
     await updateProgram(db, userId, input);
     return input.programId;
   });
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
 
 export async function deleteProgramAction(raw: unknown): Promise<Result<string>> {
@@ -63,7 +61,7 @@ export async function setSizePointsAction(raw: unknown): Promise<Result<string>>
     await setSizePoints(db, userId, input);
     return input.programId;
   });
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
 
 export async function addMilestoneAction(raw: unknown): Promise<Result<string>> {
@@ -71,31 +69,31 @@ export async function addMilestoneAction(raw: unknown): Promise<Result<string>> 
     await addMilestone(db, userId, input.programId, input.title);
     return input.programId;
   });
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
 
 export async function updateMilestoneAction(raw: unknown): Promise<Result<string>> {
   const r = await run(UpdateMilestoneSchema, raw, updateMilestone);
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
 
 export async function setMilestoneDoneAction(raw: unknown): Promise<Result<string>> {
   const r = await run(MilestoneDoneSchema, raw, (db, userId, input) =>
     setMilestoneDone(db, userId, input.milestoneId, input.done),
   );
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
 
 export async function moveMilestoneAction(raw: unknown): Promise<Result<string>> {
   const r = await run(MoveMilestoneSchema, raw, (db, userId, input) =>
     moveMilestone(db, userId, input.milestoneId, input.direction),
   );
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
 
 export async function removeMilestoneAction(raw: unknown): Promise<Result<string>> {
   const r = await run(MilestoneIdSchema, raw, (db, userId, input) =>
     removeMilestone(db, userId, input.milestoneId),
   );
-  return refresh(r, idOf(r));
+  return refresh(r);
 }
