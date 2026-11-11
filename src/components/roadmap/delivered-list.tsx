@@ -37,7 +37,7 @@ export async function DeliveredList({
                 key={i.id}
                 className={cn(
                   "rounded-md border border-hairline border-l-[3px] p-2.5",
-                  i.track === "technical" ? "border-l-technical" : "border-l-business",
+                  i.kind === "goal" ? "border-l-goal" : "border-l-feature",
                 )}
               >
                 <p className="flex items-center justify-between gap-2 text-[11px] text-slate">

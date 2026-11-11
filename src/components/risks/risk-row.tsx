@@ -172,11 +172,6 @@ export function RiskRow({ risk }: { risk: Risk }) {
             />
           </div>
           <div className="col-span-6 flex flex-wrap items-center gap-3 border-t border-hairline-soft pt-4">
-            <Button type="submit" variant="primary" size="sm" disabled={pending || !v.title.trim()}>
-              {pending ? common("saving") : common("save")}
-            </Button>
-            <span className="flex-1" />
-            <StatusMessage status={status} />
             <ConfirmButton
               label={t("delete")}
               question={t("deleteQuestion", { number: risk.number })}
@@ -191,6 +186,11 @@ export function RiskRow({ risk }: { risk: Risk }) {
                 })
               }
             />
+            <span className="flex-1" />
+            <StatusMessage status={status} />
+            <Button type="submit" variant="primary" size="sm" disabled={pending || !v.title.trim()}>
+              {pending ? common("saving") : common("save")}
+            </Button>
           </div>
         </form>
       )}

@@ -229,7 +229,7 @@ export async function ReportView({
                     key={i.id}
                     className={cn(
                       "rounded border border-hairline border-l-[3px] p-1.5 text-[11px]",
-                      i.track === "technical" ? "border-l-technical" : "border-l-business",
+                      i.kind === "goal" ? "border-l-goal" : "border-l-feature",
                     )}
                   >
                     {i.title}

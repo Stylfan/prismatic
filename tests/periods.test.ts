@@ -46,6 +46,10 @@ describe("the seasons model (Djøf)", () => {
   it("snaps a start inside a quarter back to that quarter's first day", () => {
     expect(firstQuarterStart({ model: "seasons", startDate: "2026-01-20" })).toBe("2025-12-01");
   });
+  it("always draws four half-years on the far horizon", () => {
+    const far = roadmapColumns(seasons, "2026-11-09", 4).filter((c) => c.span === 2);
+    expect(far).toHaveLength(4);
+  });
 
   it("lays out the roadmap the steering group saw in November 2026", () => {
     const columns = roadmapColumns(seasons, "2026-11-09", 2, 2);

@@ -33,6 +33,8 @@ export function RoadmapColumn({
   pending,
   drag,
   onMoveCard,
+  focusOf,
+  onPick,
   onPlaceMilestone,
   onRemoveEvent,
 }: {
@@ -44,6 +46,8 @@ export function RoadmapColumn({
   pending: boolean;
   drag: ReturnType<typeof useBoardDrag>;
   onMoveCard: (card: BoardCard, column: number) => void;
+  focusOf: (card: BoardCard) => "on" | "dim" | null;
+  onPick: (card: BoardCard) => void;
   onPlaceMilestone: (m: BoardMilestone, column: number | null) => void;
   onRemoveEvent: (eventId: string) => void;
 }) {
@@ -112,6 +116,8 @@ export function RoadmapColumn({
             onMove={onMoveCard}
             pending={pending}
             drag={drag.piece("item", card.id, index)}
+            focus={focusOf(card)}
+            onPick={() => onPick(card)}
           />
         ))}
       </ul>

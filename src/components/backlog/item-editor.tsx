@@ -9,7 +9,7 @@ import { ConfirmButton } from "@/components/ui/confirm";
 import { Button, Input, Label, Select, Textarea } from "@/components/ui/controls";
 import { Segmented } from "@/components/ui/segmented";
 import { StatusMessage, useStatus } from "@/components/ui/status";
-import type { ItemStatus, Size, Track } from "@/db/schema";
+import type { ItemStatus, Size } from "@/db/schema";
 import { LEVEL_SIZES, MAX_POINTS } from "@/domain/sizes";
 import { SplitDialog } from "./split-dialog";
 import { periodValue, parsePeriod, type BacklogOptions, type ItemView } from "./types";
@@ -19,7 +19,7 @@ const ITEM_STATUSES: ItemStatus[] = ["planned", "in_progress", "done"];
 
 /**
  * Everything about one card, in the side panel beside the list: small
- * button groups for status, size and track, and fields only where a value
+ * button groups for status and size, and fields only where a value
  * has to be typed or picked from a long list. Saved in one go.
  */
 export function ItemEditor({
@@ -40,7 +40,6 @@ export function ItemEditor({
   const [v, setV] = useState({
     title: item.title,
     description: item.description,
-    track: item.track,
     size: item.size,
     points: item.pointsOverride?.toString() ?? "",
     integration: item.integration,
@@ -68,7 +67,6 @@ export function ItemEditor({
         itemId: item.id,
         title: v.title,
         description: v.description,
-        track: v.track,
         size: v.size,
         pointsOverride: parsedPoints,
         integration: v.integration,
@@ -222,18 +220,6 @@ export function ItemEditor({
         </Field>
       )}
 
-      <Field label={t("track.label")}>
-        <Segmented<Track>
-          name={id("track")}
-          label={t("track.label")}
-          value={v.track}
-          options={[
-            { value: "business", label: t("track.business") },
-            { value: "technical", label: t("track.technical") },
-          ]}
-          onChange={(tr) => set("track", tr)}
-        />
-      </Field>
       <label className="flex items-center gap-2 text-[13px]">
         <input
           type="checkbox"

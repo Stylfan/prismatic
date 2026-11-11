@@ -149,7 +149,7 @@ export async function updateItem(
     .set({
       title: input.title,
       description: input.description,
-      track: input.track,
+      ...(input.track ? { track: input.track } : {}),
       size,
       pointsOverride: input.pointsOverride,
       integration: input.integration,

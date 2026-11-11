@@ -25,6 +25,11 @@
   --color-technical-soft: #e5eef8;
   --color-business: #a8742f;
   --color-business-soft: #f6ecdc;
+  /* Business goals green, features blue: the two kinds of card on the roadmap. */
+  --color-goal: #4f8a3c;
+  --color-goal-soft: #e6f0df;
+  --color-feature: #3b74ad;
+  --color-feature-soft: #e5eef8;
   --color-success: #4f7a5a;
   --color-warning: #b8862f;
   --color-danger: #a8483f;

@@ -62,7 +62,8 @@ export const UpdateItemSchema = z.object({
   itemId: id,
   title: text(160).min(1),
   description: text(2000),
-  track: z.enum(TRACKS),
+  // No longer asked for; kept so older clients and tests still validate.
+  track: z.enum(TRACKS).optional(),
   size: z.enum(SIZES).nullable(),
   pointsOverride: points.nullable(),
   integration: z.boolean(),

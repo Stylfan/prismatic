@@ -153,7 +153,7 @@ export function roadmapColumns(
   settings: PeriodSettings,
   today: string,
   quarterHorizon: number,
-  halfYears = 3,
+  halfYears = 4,
 ): Period[] {
   const columns: Period[] = [];
   let i = Math.max(0, quarterIndexOf(settings, today));

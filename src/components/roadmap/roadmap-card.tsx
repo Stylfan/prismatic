@@ -20,6 +20,8 @@ export function RoadmapCard({
   pending,
   drag,
   compact = false,
+  focus = null,
+  onPick,
 }: {
   card: BoardCard;
   columns: BoardColumn[];
@@ -28,6 +30,10 @@ export function RoadmapCard({
   drag: Piece;
   /** One line, for the list of what is not yet planned. */
   compact?: boolean;
+  /** While a goal is chosen: its own cards stand out, the rest step back. */
+  focus?: "on" | "dim" | null;
+  /** A click chooses the goal: the card's own, or a feature's goal. */
+  onPick?: () => void;
 }) {
   const t = useTranslations("roadmap");
   const tb = useTranslations("backlog");
@@ -39,11 +45,15 @@ export function RoadmapCard({
       onDragEnd={drag.onDragEnd}
       onDragOver={drag.onDragOver}
       onDrop={drag.onDrop}
+      onClick={onPick}
+      title={t("focus.hint")}
       className={cn(
         "group relative flex cursor-grab rounded-md border border-hairline border-l-[3px] bg-surface px-2.5 py-2 transition-shadow hover:shadow-[0_1px_3px_rgba(31,45,51,0.12)] active:cursor-grabbing",
         compact ? "items-center gap-2" : "flex-col gap-1.5",
-        card.track === "technical" ? "border-l-technical" : "border-l-business",
+        card.kind === "goal" ? "border-l-goal" : "border-l-feature",
         pending && "opacity-60",
+        focus === "dim" && "opacity-35",
+        focus === "on" && (isGoal ? "ring-2 ring-goal" : "ring-1 ring-feature"),
         drag.mark,
       )}
     >
@@ -53,11 +63,7 @@ export function RoadmapCard({
         <span
           className={cn(
             "rounded px-1.5 py-px text-[10px] font-semibold tracking-[0.04em]",
-            isGoal
-              ? card.track === "technical"
-                ? "bg-technical-soft text-technical"
-                : "bg-business-soft text-business"
-              : "text-slate",
+            isGoal ? "bg-goal-soft text-goal" : "bg-feature-soft text-feature",
           )}
         >
           {isGoal ? tb("kind.goal") : tb("kind.feature")}
@@ -104,6 +110,7 @@ export function RoadmapCard({
         id={`move-${card.id}`}
         value={card.column}
         disabled={pending}
+        onClick={(e) => e.stopPropagation()}
         onChange={(e) => onMove(card, Number(e.target.value))}
         className="absolute right-1.5 bottom-1.5 h-6 max-w-[70%] cursor-pointer rounded border border-hairline bg-surface text-[11px] text-slate opacity-0 transition-opacity group-hover:opacity-100 focus:border-ink focus:opacity-100"
       >

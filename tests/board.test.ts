@@ -6,7 +6,7 @@ import { DEFAULT_POINTS } from "@/domain/sizes";
 
 // November 2026, seasons from September 2025: Efterår 26 (4), Vinter 26/27 (5),
 // then half-years starting at 6, 8 and 10, then "not yet planned" (column 5).
-const columns = roadmapColumns({ model: "seasons", startDate: "2025-09-01" }, "2026-11-09", 2);
+const columns = roadmapColumns({ model: "seasons", startDate: "2025-09-01" }, "2026-11-09", 2, 3);
 
 const item = (
   over: Partial<BacklogItem & { periodIndex: number | null; periodSpan: number; title: string }> &

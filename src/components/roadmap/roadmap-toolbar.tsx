@@ -75,12 +75,12 @@ export function RoadmapToolbar({
       <div className="flex items-center gap-5 text-[12px] text-slate">
         {message}
         <span className="flex items-center gap-2">
-          <span className="size-2.5 rounded-sm bg-business" aria-hidden />
-          {t("legendBusiness")}
+          <span className="size-2.5 rounded-sm bg-goal" aria-hidden />
+          {t("legendGoal")}
         </span>
         <span className="flex items-center gap-2">
-          <span className="size-2.5 rounded-sm bg-technical" aria-hidden />
-          {t("legendTechnical")}
+          <span className="size-2.5 rounded-sm bg-feature" aria-hidden />
+          {t("legendFeature")}
         </span>
       </div>
     </div>

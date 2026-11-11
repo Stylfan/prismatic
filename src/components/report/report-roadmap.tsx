@@ -58,7 +58,7 @@ export async function ReportRoadmap({
                     key={c.id}
                     className={cn(
                       "relative rounded border border-hairline border-l-[3px] p-1.5 break-inside-avoid",
-                      c.track === "technical" ? "border-l-technical" : "border-l-business",
+                      c.kind === "goal" ? "border-l-goal" : "border-l-feature",
                     )}
                   >
                     {stars.has(c.id) && (
@@ -103,12 +103,12 @@ export async function ReportRoadmap({
       </div>
       <p className="flex items-center gap-4 text-[11px] text-slate">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-1 bg-business" aria-hidden />
-          {t("legendBusiness")}
+          <span className="h-3 w-1 bg-goal" aria-hidden />
+          {t("legendGoal")}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-1 bg-technical" aria-hidden />
-          {t("legendTechnical")}
+          <span className="h-3 w-1 bg-feature" aria-hidden />
+          {t("legendFeature")}
         </span>
         <span className="flex items-center gap-1.5">
           <Star className="size-3 fill-bronze text-bronze" aria-hidden />

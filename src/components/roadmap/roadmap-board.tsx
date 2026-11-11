@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { arrangeBoardAction, removeEventAction } from "@/actions/roadmap";
 import { StatusMessage, useStatus } from "@/components/ui/status";
 import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
+import { GoalBand } from "./goal-band";
 import { RoadmapColumn } from "./roadmap-column";
 import { RoadmapToolbar, type CardStatusFilter, type CardView } from "./roadmap-toolbar";
 import { UnplacedMilestones } from "./unplaced-milestones";
@@ -57,6 +59,13 @@ export function RoadmapBoard({
   const [synced, setSynced] = useState({ cards: initialCards, milestones: initialMilestones });
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useStatus();
+  // A business goal the manager clicked: its features stand out and a thread links them.
+  const [focus, setFocus] = useState<string | null>(null);
+  useEffect(() => {
+    const clear = (e: KeyboardEvent) => e.key === "Escape" && setFocus(null);
+    window.addEventListener("keydown", clear);
+    return () => window.removeEventListener("keydown", clear);
+  }, []);
 
   // A refresh from the server replaces the optimistic copy.
   if (synced.cards !== initialCards || synced.milestones !== initialMilestones) {
@@ -136,6 +145,20 @@ export function RoadmapBoard({
   );
 
   const unplannedAt = columns.length - 1;
+  const goalOf = (c: BoardCard) => (c.kind === "goal" ? c.id : c.parentId);
+  const pick = (c: BoardCard) => {
+    const goal = goalOf(c);
+    setFocus((f) => (goal === null || f === goal ? null : goal));
+  };
+  const focusOf = (c: BoardCard) =>
+    focus === null ? null : goalOf(c) === focus ? ("on" as const) : ("dim" as const);
+  const family = focus === null ? [] : cards.filter((c) => goalOf(c) === focus);
+  const focusGoal = family.find((c) => c.kind === "goal") ?? null;
+  const goalColumn = focusGoal && focusGoal.column !== unplannedAt ? focusGoal.column : null;
+  const featureCount = (i: number) =>
+    family.filter((c) => c.kind === "feature" && c.column === i).length;
+  const reached = family.map((c) => c.column).filter((i) => i !== unplannedAt);
+  const span = reached.length > 0 ? { from: Math.min(...reached), to: Math.max(...reached) } : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -146,7 +169,21 @@ export function RoadmapBoard({
         onStatus={setStatusFilter}
         view={view}
         onView={setView}
-        message={<StatusMessage status={status} />}
+        message={
+          <>
+            <StatusMessage status={status} />
+            {focusGoal && (
+              <button
+                type="button"
+                onClick={() => setFocus(null)}
+                className="flex items-center gap-1 rounded-md border border-hairline bg-surface px-2 py-1 text-ink hover:bg-sand"
+              >
+                <X className="size-3" aria-hidden />
+                {t("focus.clear")}
+              </button>
+            )}
+          </>
+        }
       />
 
       <div className="grid items-start gap-6 xl:grid-cols-2">
@@ -166,6 +203,8 @@ export function RoadmapBoard({
             pending={pending}
             drag={drag}
             onMove={(card, column) => moveCard(card, column)}
+            focusOf={focusOf}
+            onPick={pick}
           />
         </div>
       </div>
@@ -178,6 +217,12 @@ export function RoadmapBoard({
             <h3 className="text-[11px] font-semibold tracking-[0.12em] text-slate uppercase">
               {t(`band.${band}`)}
             </h3>
+            <GoalBand
+              indexes={inBand.map(({ i }) => i)}
+              featureCount={featureCount}
+              goalColumn={goalColumn}
+              span={span}
+            />
             <div
               className="grid gap-3"
               style={{ gridTemplateColumns: `repeat(${inBand.length}, minmax(0, 1fr))` }}
@@ -193,6 +238,8 @@ export function RoadmapBoard({
                   pending={pending}
                   drag={drag}
                   onMoveCard={(card, column) => moveCard(card, column)}
+                  focusOf={focusOf}
+                  onPick={pick}
                   onPlaceMilestone={(m, column) => placeMilestone(m, column)}
                   onRemoveEvent={(eventId) => save(() => removeEventAction({ eventId }))}
                 />

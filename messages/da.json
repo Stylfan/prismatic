@@ -330,8 +330,6 @@
     "planned": "{points} point planlagt",
     "overdue": "Over tid",
     "hasWarnings": "Har advarsler",
-    "legendBusiness": "Forretning",
-    "legendTechnical": "Teknisk",
     "moveTo": "Flyt {title} til",
     "moveOption": "Flyt til {column}",
     "placeMilestone": "Placér {code}",
@@ -378,7 +376,15 @@
       "empty": "Alt er planlagt. Træk et kort hertil for at fjerne det fra roadmappet igen.",
       "points": "{points} point"
     },
-    "eventMark": "Aktivitet eller begivenhed"
+    "eventMark": "Aktivitet eller begivenhed",
+    "legendGoal": "Forretningsmål",
+    "legendFeature": "Feature",
+    "focus": {
+      "hint": "Klik for at fremhæve forretningsmålet og dets features",
+      "clear": "Vis alle kort",
+      "features": "{count, plural, one {# feature til målet} other {# features til målet}}",
+      "goal": "Forretningsmålet"
+    }
   },
   "forecast": {
     "label": "Fremdrift",
