@@ -20,7 +20,7 @@ export function EventForm({ programId, quarters }: { programId: string; quarters
 
   return (
     <form
-      className="grid grid-cols-[14rem_1fr_auto] items-end gap-3"
+      className="grid grid-cols-[11rem_1fr_auto] items-end gap-3"
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim() || quarter === "") return;

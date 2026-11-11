@@ -4,36 +4,43 @@ import { Plug, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
 import type { BoardColumn, BoardCard } from "@/lib/roadmap-view";
+import type { useBoardDrag } from "./use-board-drag";
+
+type Piece = ReturnType<ReturnType<typeof useBoardDrag>["piece"]>;
 
 /**
- * A card on the roadmap. It can be dragged to another column, or moved
- * with its own "Flyt til" list, so the board works without a mouse too.
+ * A card on the roadmap. It can be dragged to another column or to
+ * another place in its own, or moved with its own "Flyt til" list, so the
+ * board works without a mouse too.
  */
 export function RoadmapCard({
   card,
   columns,
   onMove,
   pending,
+  drag,
 }: {
   card: BoardCard;
   columns: BoardColumn[];
   onMove: (card: BoardCard, column: number) => void;
   pending: boolean;
+  drag: Piece;
 }) {
   const t = useTranslations("roadmap");
   const tb = useTranslations("backlog");
   const isGoal = card.kind === "goal";
   return (
     <li
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({ type: "item", id: card.id }));
-        e.dataTransfer.effectAllowed = "move";
-      }}
+      draggable={drag.draggable}
+      onDragStart={drag.onDragStart}
+      onDragEnd={drag.onDragEnd}
+      onDragOver={drag.onDragOver}
+      onDrop={drag.onDrop}
       className={cn(
         "group relative flex cursor-grab flex-col gap-1.5 rounded-md border border-hairline border-l-[3px] bg-surface px-2.5 py-2 transition-shadow hover:shadow-[0_1px_3px_rgba(31,45,51,0.12)] active:cursor-grabbing",
         card.track === "technical" ? "border-l-technical" : "border-l-business",
         pending && "opacity-60",
+        drag.mark,
       )}
     >
       <div className="flex items-start justify-between gap-2">

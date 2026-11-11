@@ -314,11 +314,11 @@
   "roadmap": {
     "label": "Roadmap",
     "title": "Hvornår arbejdet forventes færdigt",
-    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kolonnerne, eller brug listen på kortet. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
+    "lead": "Den nære horisont i kvartaler og den fjerne i halvår. Træk kort og milepæle mellem kolonnerne og op og ned i en kolonne, eller brug listen på kortet. Roadmappet er det bedste bud lige nu, ikke en plan skåret i sten.",
     "viewLabel": "Vis",
     "view": {
       "both": "Mål og features",
-      "goals": "Kun forretningsmål",
+      "goals": "Kun mål",
       "features": "Kun features"
     },
     "kind": {
@@ -336,21 +336,20 @@
     "moveOption": "Flyt til {column}",
     "placeMilestone": "Placér {code}",
     "notPlaced": "Ikke placeret",
-    "unplacedMilestones": "Milepæle uden placering. Træk dem til den kolonne, hvor de skal nås.",
     "milestoneLater": "{count, plural, one {# kort hørende til milepælen ligger senere} other {# kort hørende til milepælen ligger senere}}",
     "removeEvent": "Fjern {title}",
     "events": {
       "label": "Begivenheder",
-      "heading": "Det, der sker i et kvartal",
+      "heading": "Tilføj aktiviteter og begivenheder til et kvartal",
       "lead": "Onboarding, skalering, estimeringsdag, workshop, ferie, strejke. De vises i kvartalets kolonne, så en ændring i fremdriften har sin forklaring ved siden af.",
       "quarter": "Kvartal",
-      "title": "Begivenhed",
+      "title": "Aktivitet eller begivenhed",
       "placeholder": "Onboarding af to udviklere",
       "add": "Tilføj"
     },
     "delivered": {
       "label": "Færdiggjort arbejde",
-      "title": "Det, der er leveret",
+      "title": "Det, der tidligere er blevet leveret",
       "lead": "Kort, der er lukket, samlet efter det kvartal, de blev færdige i.",
       "empty": "Intet er leveret endnu.",
       "points": "{points} point"
@@ -360,7 +359,19 @@
       "near": "Nær horisont · kvartaler",
       "far": "Fjern horisont · halvår"
     },
-    "pointsOf": "{points} af {capacity} point"
+    "pointsOf": "{points} af {capacity} point",
+    "search": "Søg på roadmappet",
+    "statusLabel": "Status",
+    "status": {
+      "all": "Alle",
+      "planned": "Planlagt",
+      "in_progress": "I gang"
+    },
+    "unplacedList": {
+      "title": "Milepæle, der endnu ikke er placeret på roadmappet",
+      "lead": "Træk dem til den kolonne, hvor du ønsker dem placeret.",
+      "empty": "Alle milepæle er placeret. Træk en milepæl hertil for at fjerne dens placering."
+    }
   },
   "forecast": {
     "label": "Fremdrift",
@@ -441,12 +452,14 @@
     },
     "fields": {
       "title": "Risiko (der er en risiko for, at …)",
-      "consequence": "Konsekvens (hvis risikoen indtræffer …)",
+      "consequence": "Konsekvens",
       "mitigation": "Mitigerende handling",
       "probability": "Sandsynlighed (1–10)",
       "impact": "Konsekvens (1–10)",
       "status": "Status",
-      "changeNote": "Ændring siden sidst"
+      "changeNote": "Ændring siden sidst",
+      "consequenceHint": "Konsekvensen, hvis denne risiko indtræffer, er …",
+      "mitigationHint": "Den mitigerende handling er …"
     },
     "status": {
       "open": "Åben",

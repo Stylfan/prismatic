@@ -98,6 +98,14 @@ export const ArrangeItemsSchema = z.discriminatedUnion("kind", [
 
 export const MoveItemSchema = z.object({ itemId: id, ...period });
 export const PlaceMilestoneSchema = z.object({ milestoneId: id, ...period });
+/** A roadmap column's new order after a drop, and the period of the one that was moved. */
+export const ArrangeBoardSchema = z.object({
+  programId: id,
+  kind: z.enum(["item", "milestone"]),
+  movedId: id,
+  ids: z.array(id).min(1).max(500),
+  ...period,
+});
 export const NewEventSchema = z.object({
   programId: id,
   quarterIndex: z.number().int().min(-200).max(400),
@@ -115,7 +123,12 @@ export const SaveQuarterSchema = z.object({
 });
 
 const scale = z.number().int().min(1).max(10);
-export const NewRiskSchema = z.object({ programId: id, title: text(400).min(1) });
+export const NewRiskSchema = z.object({
+  programId: id,
+  title: text(400).min(1),
+  consequence: text(2000).default(""),
+  mitigation: text(2000).default(""),
+});
 export const UpdateRiskSchema = z.object({
   riskId: id,
   title: text(400).min(1),

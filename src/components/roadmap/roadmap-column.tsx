@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
 import { MilestoneChip } from "./milestone-chip";
 import { RoadmapCard } from "./roadmap-card";
+import type { useBoardDrag } from "./use-board-drag";
 
 /** Green while there is room, amber close to full, red beyond what the tempo can carry. */
 export function loadTone(pct: number | null) {
@@ -19,19 +20,18 @@ const BAR = { success: "bg-success", warning: "bg-warning", danger: "bg-danger" 
 
 /**
  * One period on the roadmap: its name, how full it is against the average
- * tempo, its events, its cards and the milestones placed in it. A drop
- * target; the board decides what a drop means.
+ * tempo, its events, its cards and the milestones placed in it. Cards and
+ * milestones dropped here land where they are aimed; the board decides
+ * what a drop means.
  */
 export function RoadmapColumn({
   col,
+  index,
   columns,
   cards,
   milestones,
-  over,
   pending,
-  onOver,
-  onLeave,
-  onDrop,
+  drag,
   onMoveCard,
   onPlaceMilestone,
   onRemoveEvent,
@@ -40,11 +40,9 @@ export function RoadmapColumn({
   columns: BoardColumn[];
   cards: BoardCard[];
   milestones: BoardMilestone[];
-  over: boolean;
+  index: number;
   pending: boolean;
-  onOver: () => void;
-  onLeave: () => void;
-  onDrop: (raw: string) => void;
+  drag: ReturnType<typeof useBoardDrag>;
   onMoveCard: (card: BoardCard, column: number) => void;
   onPlaceMilestone: (m: BoardMilestone, column: number | null) => void;
   onRemoveEvent: (eventId: string) => void;
@@ -52,24 +50,18 @@ export function RoadmapColumn({
   const t = useTranslations("roadmap");
   const tone = loadTone(col.pct);
   const unplanned = col.kind === "unplanned";
+  // The last column is "not yet planned": cards can go there, milestones then go unplaced.
+  const area = drag.area(index, ["item", "milestone"]);
 
   return (
     <section
       aria-label={col.label}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        onOver();
-      }}
-      onDragLeave={onLeave}
-      onDrop={(e) => {
-        e.preventDefault();
-        onDrop(e.dataTransfer.getData("text/plain"));
-      }}
+      onDragOver={area.onDragOver}
+      onDrop={area.onDrop}
       className={cn(
         "flex min-h-56 min-w-0 flex-col gap-2.5 rounded-lg p-3 transition-colors",
         unplanned ? "border border-dashed border-hairline bg-transparent" : "bg-sand/70",
-        over && "bg-sand ring-2 ring-ink/20",
+        area.over && "bg-sand ring-2 ring-ink/20",
       )}
     >
       <header className="flex flex-col gap-1">
@@ -137,6 +129,7 @@ export function RoadmapColumn({
             columns={columns}
             onMove={onMoveCard}
             pending={pending}
+            drag={drag.piece("item", card.id, index)}
           />
         ))}
       </ul>
@@ -150,6 +143,7 @@ export function RoadmapColumn({
               columns={columns}
               onPlace={onPlaceMilestone}
               pending={pending}
+              drag={drag.piece("milestone", m.id, index)}
             />
           ))}
         </ul>

@@ -26,16 +26,20 @@ async function requireRisk(db: Db, userId: string, riskId: string): Promise<Risk
 export async function addRisk(
   db: Db,
   userId: string,
-  input: { programId: string; title: string },
+  input: { programId: string; title: string; consequence?: string; mitigation?: string },
 ): Promise<string> {
   await requireProgram(db, userId, input.programId);
   const [last] = await db
     .select({ max: max(risks.number) })
     .from(risks)
     .where(eq(risks.programId, input.programId));
-  await db
-    .insert(risks)
-    .values({ programId: input.programId, title: input.title, number: (last?.max ?? 0) + 1 });
+  await db.insert(risks).values({
+    programId: input.programId,
+    title: input.title,
+    consequence: input.consequence ?? "",
+    mitigation: input.mitigation ?? "",
+    number: (last?.max ?? 0) + 1,
+  });
   return input.programId;
 }
 

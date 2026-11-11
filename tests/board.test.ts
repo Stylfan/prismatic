@@ -1,107 +1,102 @@
-import { describe, expect, it } from "vitest";
-import type { BacklogItem } from "@/domain/backlog";
-import { columnLoad, locate, milestonePlacementWarnings } from "@/domain/board";
-import { roadmapColumns } from "@/domain/periods";
-import { DEFAULT_POINTS } from "@/domain/sizes";
+import { beforeEach, describe, expect, it } from "vitest";
+import { arrangeBoard } from "@/services/board";
+import { createItem, listItems } from "@/services/items";
+import { addMilestone, createProgram, getProgram } from "@/services/programs";
+import { freshDb } from "./db";
+import { seedUser } from "./helpers";
+import type { Db } from "@/db/client";
 
-// November 2026, seasons from September 2025: Efterår 26 (4), Vinter 26/27 (5),
-// then half-years starting at 6, 8 and 10, then "not yet planned" (column 5).
-const columns = roadmapColumns({ model: "seasons", startDate: "2025-09-01" }, "2026-11-09", 2);
+/**
+ * Dropping a card or a milestone on the roadmap: the one moved takes the
+ * column's period, the column keeps the order it was given, and nothing
+ * outside the user's own programme can be moved or ranked.
+ */
 
-const item = (
-  over: Partial<BacklogItem & { periodIndex: number | null; periodSpan: number; title: string }> &
-    Pick<BacklogItem, "id" | "kind">,
-) => ({
-  parentId: null,
-  milestoneId: null,
-  size: null,
-  pointsOverride: null,
-  status: "planned" as const,
-  periodIndex: null,
-  periodSpan: 1,
-  title: over.id,
-  ...over,
+let db: Db;
+let owner: string;
+let programId: string;
+
+const settings = {
+  name: "Program",
+  goal: "",
+  periodModel: "seasons" as const,
+  startDate: "2025-09-01",
+  quarterHorizon: 4,
+  costPerQuarter: null,
+  deviationPct: 10,
+};
+const feature = (title: string) =>
+  createItem(db, owner, { programId, kind: "feature", title, parentId: null, milestoneId: null });
+const items = async () => new Map((await listItems(db, programId)).map((i) => [i.title, i]));
+const arrange = (
+  kind: "item" | "milestone",
+  movedId: string,
+  ids: string[],
+  periodIndex: number | null,
+  periodSpan: 1 | 2 = 1,
+) => arrangeBoard(db, owner, { programId, kind, movedId, ids, periodIndex, periodSpan });
+
+beforeEach(async () => {
+  db = await freshDb();
+  owner = await seedUser(db, "owner@example.com");
+  programId = await createProgram(db, owner, settings);
 });
 
-describe("locating a card", () => {
-  it("puts quarters, half-years and the unplanned in their columns", () => {
-    expect(columns.map((c) => [c.index, c.span])).toEqual([
-      [4, 1],
-      [5, 1],
-      [6, 2],
-      [8, 2],
-      [10, 2],
+describe("arranging the roadmap", () => {
+  it("moves the dropped card to the column and keeps the column's order", async () => {
+    const [a, b, c] = [await feature("A"), await feature("B"), await feature("C")];
+    await arrange("item", a, [a], 3);
+    await arrange("item", b, [b, a], 3);
+    await arrange("item", c, [b, c, a], 4, 2);
+    const by = await items();
+    expect([by.get("A")!.periodIndex, by.get("B")!.periodIndex]).toEqual([3, 3]);
+    expect([by.get("C")!.periodIndex, by.get("C")!.periodSpan]).toEqual([4, 2]);
+    expect(["B", "C", "A"].map((t) => by.get(t)!.boardRank)).toEqual([0, 1, 2]);
+  });
+
+  it("places, orders and unplaces milestones", async () => {
+    await addMilestone(db, owner, programId, "M1");
+    await addMilestone(db, owner, programId, "M2");
+    const [m1, m2] = (await getProgram(db, owner, programId))!.milestones.map((m) => m.id) as [
+      string,
+      string,
+    ];
+    await arrange("milestone", m1, [m1], 2);
+    await arrange("milestone", m2, [m2, m1], 2);
+    let ms = (await getProgram(db, owner, programId))!.milestones;
+    expect(ms.map((m) => [m.periodIndex, m.boardRank])).toEqual([
+      [2, 1],
+      [2, 0],
     ]);
-    expect(locate(columns, { periodIndex: 5, periodSpan: 1 })).toEqual({
-      column: 1,
-      overdue: false,
-    });
-    expect(locate(columns, { periodIndex: 6, periodSpan: 2 }).column).toBe(2);
-    // A single quarter inside a half-year shows in that half-year.
-    expect(locate(columns, { periodIndex: 9, periodSpan: 1 }).column).toBe(3);
-    expect(locate(columns, { periodIndex: null, periodSpan: 1 }).column).toBe(5);
+    await arrange("milestone", m1, [m1], null);
+    ms = (await getProgram(db, owner, programId))!.milestones;
+    expect(ms[0]!.periodIndex).toBeNull();
   });
 
-  it("marks work planned for a quarter that has passed as overdue in the first column", () => {
-    expect(locate(columns, { periodIndex: 2, periodSpan: 1 })).toEqual({
-      column: 0,
-      overdue: true,
-    });
-  });
-
-  it("keeps work planned beyond the far horizon in the last column", () => {
-    expect(locate(columns, { periodIndex: 20, periodSpan: 2 }).column).toBe(4);
-  });
-});
-
-describe("column load", () => {
-  it("counts open features where they are and a goal's undivided rest where the goal is", () => {
-    const goal = item({ id: "g", kind: "goal", size: "L", periodIndex: 6, periodSpan: 2 }); // 400
-    const f1 = item({ id: "f1", kind: "feature", parentId: "g", size: "L", periodIndex: 4 }); // 100
-    const f2 = item({
-      id: "f2",
+  it("refuses ids it does not know, a moved one outside the list and another user", async () => {
+    const a = await feature("A");
+    const otherProgram = await createProgram(db, owner, { ...settings, name: "Andet" });
+    const foreign = await createItem(db, owner, {
+      programId: otherProgram,
       kind: "feature",
-      parentId: "g",
-      size: "M",
-      status: "done",
-      periodIndex: 4,
-    }); // 60, done
-    const loose = item({ id: "x", kind: "feature", size: "S" }); // 40, unplanned
-    expect(columnLoad(DEFAULT_POINTS, columns, [goal, f1, f2, loose])).toEqual([
-      100, 0, 240, 0, 0, 40,
-    ]);
-  });
-});
-
-describe("milestone placement", () => {
-  it("warns when a milestone's own work is planned after it, or not at all", () => {
-    const goal = item({ id: "g", kind: "goal", milestoneId: "m1", periodIndex: 5 });
-    const early = item({ id: "f1", kind: "feature", parentId: "g", periodIndex: 4 });
-    const late = item({ id: "f2", kind: "feature", parentId: "g", periodIndex: 8, periodSpan: 2 });
-    const direct = item({ id: "d", kind: "feature", milestoneId: "m1" }); // not planned
-    const done = item({
-      id: "f3",
-      kind: "feature",
-      parentId: "g",
-      status: "done",
-      periodIndex: 10,
+      title: "Fremmed",
+      parentId: null,
+      milestoneId: null,
     });
-    const warnings = milestonePlacementWarnings(
-      columns,
-      [
-        { id: "m1", periodIndex: 5, periodSpan: 1 },
-        { id: "m2", periodIndex: null, periodSpan: 1 },
-      ],
-      [goal, early, late, direct, done],
-    );
-    expect(warnings).toEqual([
-      {
-        milestoneId: "m1",
-        later: [
-          { id: "f2", title: "f2" },
-          { id: "d", title: "d" },
-        ],
-      },
-    ]);
+    await expect(arrange("item", a, [a, foreign], 3)).rejects.toThrow("notFound");
+    await expect(arrange("item", foreign, [a], 3)).rejects.toThrow("notFound");
+    await expect(arrange("milestone", a, [a], 3)).rejects.toThrow("notFound");
+    const stranger = await seedUser(db, "stranger@example.com");
+    await expect(
+      arrangeBoard(db, stranger, {
+        programId,
+        kind: "item",
+        movedId: a,
+        ids: [a],
+        periodIndex: 3,
+        periodSpan: 1,
+      }),
+    ).rejects.toThrow("notFound");
+    expect((await items()).get("A")!.periodIndex).toBeNull();
   });
 });

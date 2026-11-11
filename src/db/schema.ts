@@ -91,6 +91,8 @@ export const milestones = pgTable(
     periodIndex: integer("period_index"),
     /** 1 for a quarter, 2 for a half-year starting at `period_index`. */
     periodSpan: integer("period_span").notNull().default(1),
+    /** Its place among the milestones in the same roadmap column, 0 first; null sorts after. */
+    boardRank: integer("board_rank"),
     ...timestamps,
   },
   (t) => [
@@ -147,6 +149,8 @@ export const items = pgTable(
     periodIndex: integer("period_index"),
     /** 1 for a quarter, 2 for a half-year starting at `period_index`. */
     periodSpan: integer("period_span").notNull().default(1),
+    /** Its place among the cards in the same roadmap column, 0 first; null sorts after. */
+    boardRank: integer("board_rank"),
     /** The feature this one was split from, when it is the next version of it. */
     splitFromId: text("split_from_id").references((): AnyPgColumn => items.id, {
       onDelete: "set null",

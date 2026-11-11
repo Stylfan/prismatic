@@ -49,6 +49,19 @@ describe("the risk log", () => {
     ]);
   });
 
+  it("keeps the consequence and mitigation written when the risk is raised", async () => {
+    await addRisk(db, owner, {
+      programId,
+      title: "A",
+      consequence: "Konsekvensen er forsinkelse",
+      mitigation: "Den mitigerende handling er en ekstra udvikler",
+    });
+    expect((await listRisks(db, programId))[0]).toMatchObject({
+      consequence: "Konsekvensen er forsinkelse",
+      mitigation: "Den mitigerende handling er en ekstra udvikler",
+    });
+  });
+
   it("stores the assessment", async () => {
     await addRisk(db, owner, { programId, title: "A" });
     const id = (await listRisks(db, programId))[0]!.id;

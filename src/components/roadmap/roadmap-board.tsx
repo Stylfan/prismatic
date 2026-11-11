@@ -3,38 +3,57 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { moveItemAction, placeMilestoneAction, removeEventAction } from "@/actions/roadmap";
+import { arrangeBoardAction, removeEventAction } from "@/actions/roadmap";
 import { StatusMessage, useStatus } from "@/components/ui/status";
-import { cn } from "@/lib/cn";
 import type { BoardCard, BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
-import { MilestoneChip } from "./milestone-chip";
 import { RoadmapColumn } from "./roadmap-column";
+import { RoadmapToolbar, type CardStatusFilter, type CardView } from "./roadmap-toolbar";
+import { UnplacedMilestones } from "./unplaced-milestones";
+import { useBoardDrag, type DropAim, type Where } from "./use-board-drag";
 
-type View = "both" | "goals" | "features";
+/** Puts an element just before or after another, or after the last of its column. */
+function insert<T extends { id: string; column: number | null }>(
+  list: T[],
+  moved: T,
+  aim: DropAim,
+): T[] {
+  const rest = list.filter((x) => x.id !== moved.id);
+  let at = aim ? rest.findIndex((x) => x.id === aim.id) : -1;
+  if (at >= 0 && aim?.place === "after") at += 1;
+  if (at < 0) at = rest.map((x) => x.column).lastIndexOf(moved.column) + 1 || rest.length;
+  rest.splice(at, 0, moved);
+  return rest;
+}
 
 /**
- * The roadmap: the near quarters in a row of their own, and below them the
- * far half-years and "Endnu ikke planlagt", so both get the full width.
- * Cards and milestones are dragged between columns; each also has a list
- * to move it with the keyboard. Moves show at once and are saved behind.
+ * The roadmap: the milestones not yet placed beside the panel for a
+ * quarter's events, then the near quarters, and below them the far
+ * half-years and "Endnu ikke planlagt". Cards and milestones are dragged
+ * between columns and up and down within one; each also has a list to
+ * move it with the keyboard. Moves show at once and are saved behind.
  */
 export function RoadmapBoard({
+  programId,
   columns,
   cards: initialCards,
   milestones: initialMilestones,
+  eventsPanel,
 }: {
+  programId: string;
   columns: BoardColumn[];
   cards: BoardCard[];
   milestones: BoardMilestone[];
+  eventsPanel: React.ReactNode;
 }) {
   const t = useTranslations("roadmap");
   const errors = useTranslations("errors");
   const router = useRouter();
-  const [view, setView] = useState<View>("both");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<CardStatusFilter>("all");
+  const [view, setView] = useState<CardView>("both");
   const [cards, setCards] = useState(initialCards);
   const [milestones, setMilestones] = useState(initialMilestones);
   const [synced, setSynced] = useState({ cards: initialCards, milestones: initialMilestones });
-  const [over, setOver] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useStatus();
 
@@ -56,103 +75,87 @@ export function RoadmapBoard({
       router.refresh();
     });
 
-  const moveCard = (card: BoardCard, column: number) => {
+  const moveCard = (card: BoardCard, column: number, aim: DropAim = null) => {
     const c = columns[column]!;
-    setCards((list) => list.map((x) => (x.id === card.id ? { ...x, column, overdue: false } : x)));
+    const same = card.column === column;
+    const next = insert(cards, { ...card, column, overdue: same && card.overdue }, aim);
+    setCards(next);
+    // Within its own column a card keeps its period; elsewhere it takes the column's.
+    const period = same ? card : c;
     save(() =>
-      moveItemAction({ itemId: card.id, periodIndex: c.periodIndex, periodSpan: c.periodSpan }),
-    );
-  };
-
-  const placeMilestone = (m: BoardMilestone, column: number | null) => {
-    const c = column === null ? null : columns[column]!;
-    setMilestones((list) => list.map((x) => (x.id === m.id ? { ...x, column } : x)));
-    save(() =>
-      placeMilestoneAction({
-        milestoneId: m.id,
-        periodIndex: c?.periodIndex ?? null,
-        periodSpan: c?.periodSpan ?? 1,
+      arrangeBoardAction({
+        programId,
+        kind: "item",
+        movedId: card.id,
+        ids: next.filter((x) => x.column === column).map((x) => x.id),
+        periodIndex: period.periodIndex,
+        periodSpan: period.periodSpan,
       }),
     );
   };
 
-  const onDrop = (column: number, raw: string) => {
-    setOver(null);
-    let payload: { type?: string; id?: string };
-    try {
-      payload = JSON.parse(raw);
-    } catch {
-      return;
-    }
-    if (payload.type === "item") {
-      const card = cards.find((c) => c.id === payload.id);
-      if (card && card.column !== column) moveCard(card, column);
-    } else if (payload.type === "milestone") {
-      const m = milestones.find((x) => x.id === payload.id);
-      // A milestone is reached in a period; "not yet planned" means not placed.
-      const target = column === columns.length - 1 ? null : column;
-      if (m && m.column !== target) placeMilestone(m, target);
-    }
+  const placeMilestone = (m: BoardMilestone, column: number | null, aim: DropAim = null) => {
+    const c = column === null ? null : columns[column]!;
+    const same = m.column === column;
+    const next = insert(milestones, { ...m, column }, aim);
+    setMilestones(next);
+    const period = same
+      ? m
+      : { periodIndex: c?.periodIndex ?? null, periodSpan: c?.periodSpan ?? 1 };
+    save(() =>
+      arrangeBoardAction({
+        programId,
+        kind: "milestone",
+        movedId: m.id,
+        ids: next.filter((x) => x.column === column).map((x) => x.id),
+        periodIndex: period.periodIndex,
+        periodSpan: period.periodSpan,
+      }),
+    );
   };
 
+  const drag = useBoardDrag((dragged, where: Where, aim) => {
+    if (dragged.kind === "item") {
+      const card = cards.find((c) => c.id === dragged.id);
+      if (card && where !== "unplaced") moveCard(card, where, aim);
+      return;
+    }
+    const m = milestones.find((x) => x.id === dragged.id);
+    // A milestone is reached in a period; "not yet planned" means not placed.
+    const target = where === "unplaced" || where === columns.length - 1 ? null : where;
+    if (m) placeMilestone(m, target, target === null && where !== "unplaced" ? null : aim);
+  });
+
+  const q = query.trim().toLowerCase();
   const visible = cards.filter(
-    (c) => view === "both" || (view === "goals" ? c.kind === "goal" : c.kind === "feature"),
+    (c) =>
+      (view === "both" || (view === "goals" ? c.kind === "goal" : c.kind === "feature")) &&
+      (statusFilter === "all" || c.status === statusFilter) &&
+      (q === "" || c.title.toLowerCase().includes(q)),
   );
-  const unplaced = milestones.filter((m) => m.column === null);
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <fieldset className="flex rounded-md border border-hairline bg-surface p-0.5">
-          <legend className="sr-only">{t("viewLabel")}</legend>
-          {(["both", "goals", "features"] as const).map((v) => (
-            <label
-              key={v}
-              className={cn(
-                "cursor-pointer rounded px-3 py-1 text-[13px] font-medium transition-colors has-focus-visible:outline-2 has-focus-visible:outline-ink",
-                view === v ? "bg-ink text-paper" : "text-slate hover:text-ink",
-              )}
-            >
-              <input
-                type="radio"
-                name="roadmap-view"
-                className="sr-only"
-                checked={view === v}
-                onChange={() => setView(v)}
-              />
-              {t(`view.${v}`)}
-            </label>
-          ))}
-        </fieldset>
-        <div className="flex items-center gap-5 text-[12px] text-slate">
-          <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-sm bg-business" aria-hidden />
-            {t("legendBusiness")}
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-sm bg-technical" aria-hidden />
-            {t("legendTechnical")}
-          </span>
-          <StatusMessage status={status} />
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="grid items-stretch gap-6 xl:grid-cols-2">
+        <UnplacedMilestones
+          milestones={milestones.filter((m) => m.column === null)}
+          columns={columns}
+          pending={pending}
+          drag={drag}
+          onPlace={placeMilestone}
+        />
+        {eventsPanel}
       </div>
 
-      {unplaced.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-lg border border-dashed border-hairline p-3">
-          <p className="text-[12px] font-semibold text-slate">{t("unplacedMilestones")}</p>
-          <ul className="grid grid-cols-4 gap-2">
-            {unplaced.map((m) => (
-              <MilestoneChip
-                key={m.id}
-                milestone={m}
-                columns={columns}
-                onPlace={placeMilestone}
-                pending={pending}
-              />
-            ))}
-          </ul>
-        </div>
-      )}
+      <RoadmapToolbar
+        query={query}
+        onQuery={setQuery}
+        status={statusFilter}
+        onStatus={setStatusFilter}
+        view={view}
+        onView={setView}
+        message={<StatusMessage status={status} />}
+      />
 
       {(["near", "far"] as const).map((band) => {
         const inBand = columns
@@ -172,16 +175,14 @@ export function RoadmapBoard({
                 <RoadmapColumn
                   key={col.key}
                   col={col}
+                  index={i}
                   columns={columns}
                   cards={visible.filter((c) => c.column === i)}
                   milestones={milestones.filter((m) => m.column === i)}
-                  over={over === i}
                   pending={pending}
-                  onOver={() => over !== i && setOver(i)}
-                  onLeave={() => setOver((o) => (o === i ? null : o))}
-                  onDrop={(raw) => onDrop(i, raw)}
-                  onMoveCard={moveCard}
-                  onPlaceMilestone={placeMilestone}
+                  drag={drag}
+                  onMoveCard={(card, column) => moveCard(card, column)}
+                  onPlaceMilestone={(m, column) => placeMilestone(m, column)}
                   onRemoveEvent={(eventId) => save(() => removeEventAction({ eventId }))}
                 />
               ))}

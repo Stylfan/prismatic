@@ -129,9 +129,7 @@ export function GoalsEditor({
               {goals
                 .filter((c) => c.parentId === g.id)
                 .map((c, k) => (
-                  <div key={c.id} className="ml-10">
-                    <GoalRow goal={c} code={`${i + 1}.${k + 1}`} onStatus={setStatus} />
-                  </div>
+                  <GoalRow key={c.id} goal={c} code={`${i + 1}.${k + 1}`} onStatus={setStatus} />
                 ))}
             </li>
           ))}

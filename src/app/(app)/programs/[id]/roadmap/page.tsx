@@ -52,17 +52,27 @@ export default async function RoadmapPage({ params }: Params) {
             title={(await getTranslations("nav"))("roadmap")}
             lead={tr("lead")}
           />
-          <RoadmapBoard columns={view.columns} cards={view.cards} milestones={view.milestones} />
-          <div className="grid gap-6 xl:grid-cols-2">
-            <Section id="events" label={tr("events.label")} title={tr("events.heading")}>
-              <Panel>
-                <EventForm programId={program.id} quarters={view.eventQuarters} />
-              </Panel>
-            </Section>
-            <Section id="delivered" label={tr("delivered.label")} title={tr("delivered.title")}>
-              <DeliveredList groups={view.delivered} />
-            </Section>
-          </div>
+          <RoadmapBoard
+            programId={program.id}
+            columns={view.columns}
+            cards={view.cards}
+            milestones={view.milestones}
+            eventsPanel={
+              <Section
+                id="events"
+                label={tr("events.label")}
+                title={tr("events.heading")}
+                lead={tr("events.lead")}
+              >
+                <Panel className="flex-1">
+                  <EventForm programId={program.id} quarters={view.eventQuarters} />
+                </Panel>
+              </Section>
+            }
+          />
+          <Section id="delivered" label={tr("delivered.label")} title={tr("delivered.title")}>
+            <DeliveredList groups={view.delivered} />
+          </Section>
         </div>
       );
     },

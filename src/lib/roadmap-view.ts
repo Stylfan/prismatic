@@ -41,6 +41,9 @@ export type BoardMilestone = {
   code: string;
   title: string;
   column: number | null;
+  /** Where it is stored, so a move within its own column keeps it. */
+  periodIndex: number | null;
+  periodSpan: 1 | 2;
   later: Array<{ id: string; title: string }>;
 };
 
@@ -118,14 +121,24 @@ export async function buildRoadmapView(
       };
     });
 
+  // The order the manager gave them in each column; the rest after, as before.
+  const rankOf = new Map(rows.map((r) => [r.id, r.boardRank]));
+  const byRank = (a: number | null | undefined, b: number | null | undefined) =>
+    (a ?? Number.MAX_SAFE_INTEGER) - (b ?? Number.MAX_SAFE_INTEGER);
+  cards.sort((a, b) => byRank(rankOf.get(a.id), rankOf.get(b.id)));
+
   const placementWarnings = milestonePlacementWarnings(periods, milestones, rows);
-  const boardMilestones: BoardMilestone[] = milestones.map((m) => ({
-    id: m.id,
-    code: tm("code", { seq: m.seq }),
-    title: m.title,
-    column: m.periodIndex === null ? null : locate(periods, m).column,
-    later: placementWarnings.find((w) => w.milestoneId === m.id)?.later ?? [],
-  }));
+  const boardMilestones: BoardMilestone[] = [...milestones]
+    .sort((a, b) => byRank(a.boardRank, b.boardRank) || a.seq - b.seq)
+    .map((m) => ({
+      id: m.id,
+      code: tm("code", { seq: m.seq }),
+      title: m.title,
+      column: m.periodIndex === null ? null : locate(periods, m).column,
+      periodIndex: m.periodIndex,
+      periodSpan: m.periodSpan === 2 ? 2 : 1,
+      later: placementWarnings.find((w) => w.milestoneId === m.id)?.later ?? [],
+    }));
 
   // Delivered work, newest quarter first.
   const doneByQuarter = new Map<number, ItemView[]>();

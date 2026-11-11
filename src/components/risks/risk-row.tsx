@@ -106,6 +106,7 @@ export function RiskRow({ risk }: { risk: Risk }) {
               id={id("consequence")}
               rows={3}
               maxLength={2000}
+              placeholder={t("fields.consequenceHint")}
               value={v.consequence}
               onChange={(e) => set("consequence", e.target.value)}
             />
@@ -116,6 +117,7 @@ export function RiskRow({ risk }: { risk: Risk }) {
               id={id("mitigation")}
               rows={3}
               maxLength={2000}
+              placeholder={t("fields.mitigationHint")}
               value={v.mitigation}
               onChange={(e) => set("mitigation", e.target.value)}
             />

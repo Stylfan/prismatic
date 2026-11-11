@@ -36,6 +36,13 @@
       "when": 1794398748967,
       "tag": "0004_goal_rank",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794401312391,
+      "tag": "0005_board_rank",
+      "breakpoints": true
     }
   ]
 }

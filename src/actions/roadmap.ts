@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { arrangeBoard } from "@/services/board";
 import { addEvent, removeEvent } from "@/services/events";
 import { moveItem } from "@/services/items";
 import { placeMilestone } from "@/services/programs";
 import {
+  ArrangeBoardSchema,
   EventIdSchema,
   MoveItemSchema,
   NewEventSchema,
@@ -28,6 +30,12 @@ export async function moveItemAction(raw: unknown): Promise<Result<string>> {
 
 export async function placeMilestoneAction(raw: unknown): Promise<Result<string>> {
   const r = await run(PlaceMilestoneSchema, raw, placeMilestone);
+  return refresh(r, idOf(r));
+}
+
+/** A card or milestone dropped in a column, at a place among the others there. */
+export async function arrangeBoardAction(raw: unknown): Promise<Result<string>> {
+  const r = await run(ArrangeBoardSchema, raw, arrangeBoard);
   return refresh(r, idOf(r));
 }
 
