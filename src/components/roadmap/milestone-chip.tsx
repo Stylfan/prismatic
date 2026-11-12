@@ -3,6 +3,7 @@
 import { TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/cn";
+import { RemoveMilestone } from "@/components/program/remove-milestone";
 import type { BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
 import type { useBoardDrag } from "./use-board-drag";
 
@@ -46,7 +47,13 @@ export function MilestoneChip({
         <span className="shrink-0 rounded-full bg-ink px-1.5 text-[10px] leading-4 font-semibold text-paper tabular">
           {milestone.code}
         </span>
-        <span>{milestone.title}</span>
+        <span className="min-w-0 flex-1">{milestone.title}</span>
+        <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          <RemoveMilestone
+            milestoneId={milestone.id}
+            name={`${milestone.code}: ${milestone.title}`}
+          />
+        </span>
       </p>
       {warn && (
         <p className="flex items-start gap-1.5 text-[11px] text-warning">

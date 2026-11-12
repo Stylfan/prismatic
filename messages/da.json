@@ -124,7 +124,12 @@
     "removeQuestion": "Fjern milepæl {code}?",
     "removeDetail": "Milepælen fjernes, og de efterfølgende rykker et nummer op.",
     "own": "Guestimat",
-    "fromGoals": "fra forretningsmålene"
+    "fromGoals": "fra forretningsmålene",
+    "addShort": "Milepæl",
+    "cancel": "Fortryd",
+    "removeNamed": "Slet {name}?",
+    "removeNamedDetail": "Milepælen slettes. Dens forretningsmål bliver liggende uden milepæl, og de efterfølgende milepæle rykker et nummer op.",
+    "removeConfirm": "Slet milepælen"
   },
   "backlog": {
     "label": "Backlog",
@@ -350,7 +355,8 @@
       "title": "Det, der tidligere er blevet leveret",
       "lead": "Kort, der er lukket, samlet efter det kvartal, de blev færdige i.",
       "empty": "Intet er leveret endnu.",
-      "points": "{points} point"
+      "points": "{points} point",
+      "toggle": "Se det, der tidligere er blevet leveret"
     },
     "points": "{points} point",
     "band": {
@@ -1041,10 +1047,8 @@
     "label": "Demo",
     "title": "Prøv Prismatic",
     "body": "Du får dit eget eksempel på et program med roadmap, backlog, fremdrift, risici og rapport, som du kan ændre i, som du vil. Der skal ikke bruges e-mail eller adgangskode, og alt slettes igen efter {hours} timer.",
-    "noRealData": "Skriv ikke rigtige data i demoen.",
+    "noRealData": "Anbefaling: Skriv ikke rigtige data i demoen.",
     "start": "Start demoen",
-    "source": "Hent koden og kør den selv",
-    "login": "Har du en konto på denne installation? Log ind",
     "busy": "Der er startet mange demoer herfra lige nu. Prøv igen om et kvarter.",
     "full": "Demoen er fuld lige nu. Prøv igen senere.",
     "banner": "Det her er en demo. Alt, du laver, slettes {when}. Skriv ikke rigtige data.",
@@ -1052,6 +1056,10 @@
     "end": "Afslut demoen nu",
     "endQuestion": "Afslut demoen nu?",
     "endDetail": "Dit eksempelprogram og alt, du har lavet i demoen, slettes med det samme. Du kan starte en ny demo bagefter.",
-    "endConfirm": "Afslut og slet"
+    "endConfirm": "Afslut og slet",
+    "sourceButton": "Hent koden og kør den selv",
+    "loginButton": "Log ind",
+    "registerButton": "Opret konto",
+    "backToDemo": "Tilbage til demoen"
   }
 }

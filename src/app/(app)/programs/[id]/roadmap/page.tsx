@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { ChevronRight } from "lucide-react";
 import { requireUser } from "@/auth/session";
 import { DeliveredList } from "@/components/roadmap/delivered-list";
 import { EventForm } from "@/components/roadmap/event-form";
@@ -63,7 +64,7 @@ export default async function RoadmapPage({ params }: Params) {
                 id="events"
                 label={tr("events.label")}
                 title={tr("events.heading")}
-                lead={tr("events.lead")}
+                hint={tr("events.lead")}
               >
                 <Panel className="flex-1">
                   <EventForm programId={program.id} quarters={view.eventQuarters} />
@@ -71,9 +72,18 @@ export default async function RoadmapPage({ params }: Params) {
               </Section>
             }
           />
-          <Section id="delivered" label={tr("delivered.label")} title={tr("delivered.title")}>
-            <DeliveredList groups={view.delivered} />
-          </Section>
+          <details id="delivered" className="group flex flex-col gap-3">
+            <summary className="flex w-max cursor-pointer list-none items-center gap-2 rounded-md border border-hairline bg-surface px-3 py-1.5 text-[14px] font-semibold text-ink hover:bg-sand [&::-webkit-details-marker]:hidden">
+              <ChevronRight
+                className="size-4 transition-transform group-open:rotate-90"
+                aria-hidden
+              />
+              {tr("delivered.toggle")}
+            </summary>
+            <div className="pt-3">
+              <DeliveredList groups={view.delivered} />
+            </div>
+          </details>
         </div>
       );
     },

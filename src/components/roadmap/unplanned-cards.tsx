@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { HintIcon } from "@/components/ui/hint-icon";
 import { cn } from "@/lib/cn";
 import type { BoardCard, BoardColumn } from "@/lib/roadmap-view";
 import { RoadmapCard } from "./roadmap-card";
@@ -38,10 +39,13 @@ export function UnplannedCards({
     <section aria-labelledby="unplanned-title" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-4">
         <div className="flex flex-col gap-0.5">
-          <h2 id="unplanned-title" className="text-[15px] font-semibold text-ink">
+          <h2
+            id="unplanned-title"
+            className="flex items-center gap-1.5 text-[15px] font-semibold text-ink"
+          >
             {t("title")}
+            <HintIcon text={t("lead")} />
           </h2>
-          <p className="text-[13px] leading-relaxed text-slate">{t("lead")}</p>
         </div>
         {points > 0 && (
           <span className="shrink-0 text-[12px] text-slate tabular">

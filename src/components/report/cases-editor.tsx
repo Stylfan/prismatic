@@ -110,7 +110,7 @@ function CaseForm({ item }: { item: DecisionCase }) {
   const id = (k: string) => `case-${item.id}-${k}`;
   return (
     <form
-      className="grid grid-cols-2 gap-4 rounded-lg border border-hairline bg-surface p-5"
+      className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-hairline bg-surface p-4"
       onSubmit={(e) => {
         e.preventDefault();
         startTransition(async () => {
@@ -122,8 +122,11 @@ function CaseForm({ item }: { item: DecisionCase }) {
       }}
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={id("title")}>{t("title")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("title")}>
+          {t("title")}
+        </Label>
         <Input
+          quiet
           id={id("title")}
           maxLength={200}
           value={v.title}
@@ -131,8 +134,11 @@ function CaseForm({ item }: { item: DecisionCase }) {
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={id("status")}>{t("status")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("status")}>
+          {t("status")}
+        </Label>
         <Select
+          className="h-8 text-[13px]"
           id={id("status")}
           value={v.status}
           onChange={(e) => setV({ ...v, status: e.target.value as CaseStatus })}
@@ -143,10 +149,13 @@ function CaseForm({ item }: { item: DecisionCase }) {
       </div>
       {(["problem", "background", "keyPoints", "nextSteps"] as const).map((k) => (
         <div key={k} className="flex flex-col gap-1.5">
-          <Label htmlFor={id(k)}>{tr(`case.${k}`)}</Label>
+          <Label className="text-[12px] text-slate" htmlFor={id(k)}>
+            {tr(`case.${k}`)}
+          </Label>
           <Textarea
+            quiet
             id={id(k)}
-            rows={4}
+            rows={2}
             maxLength={4000}
             value={v[k]}
             onChange={(e) => setV({ ...v, [k]: e.target.value })}
@@ -154,11 +163,7 @@ function CaseForm({ item }: { item: DecisionCase }) {
         </div>
       ))}
       <div className="col-span-2 flex items-center gap-3">
-        <Button type="submit" variant="primary" size="sm" disabled={pending || !v.title.trim()}>
-          {common("save")}
-        </Button>
-        <span className="flex-1" />
-        <StatusMessage status={status} />
+        {" "}
         <ConfirmButton
           label={t("delete")}
           question={t("deleteQuestion", { title: item.title })}
@@ -171,6 +176,11 @@ function CaseForm({ item }: { item: DecisionCase }) {
             })
           }
         />
+        <span className="flex-1" />
+        <StatusMessage status={status} />
+        <Button type="submit" variant="primary" size="sm" disabled={pending || !v.title.trim()}>
+          {common("save")}
+        </Button>
       </div>
     </form>
   );
@@ -219,7 +229,7 @@ function DecisionForm({ item }: { item: Decision }) {
   const id = (k: string) => `decision-${item.id}-${k}`;
   return (
     <form
-      className="grid grid-cols-[1fr_9rem_12rem_10rem] gap-3 rounded-lg border border-hairline bg-surface p-4"
+      className="grid grid-cols-[1fr_9rem_12rem_10rem] gap-x-3 gap-y-3 rounded-lg border border-hairline bg-surface p-4"
       onSubmit={(e) => {
         e.preventDefault();
         startTransition(async () => {
@@ -231,8 +241,11 @@ function DecisionForm({ item }: { item: Decision }) {
       }}
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={id("title")}>{tr("decision.title")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("title")}>
+          {tr("decision.title")}
+        </Label>
         <Input
+          quiet
           id={id("title")}
           maxLength={200}
           value={v.title}
@@ -240,8 +253,11 @@ function DecisionForm({ item }: { item: Decision }) {
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={id("when")}>{tr("decision.when")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("when")}>
+          {tr("decision.when")}
+        </Label>
         <Input
+          quiet
           id={id("when")}
           maxLength={60}
           value={v.decidedOn}
@@ -250,8 +266,11 @@ function DecisionForm({ item }: { item: Decision }) {
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={id("forum")}>{tr("decision.forum")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("forum")}>
+          {tr("decision.forum")}
+        </Label>
         <Input
+          quiet
           id={id("forum")}
           maxLength={120}
           value={v.forum}
@@ -260,8 +279,11 @@ function DecisionForm({ item }: { item: Decision }) {
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={id("effect")}>{tr("decision.effect")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("effect")}>
+          {tr("decision.effect")}
+        </Label>
         <Select
+          className="h-8 text-[13px]"
           id={id("effect")}
           value={v.effect}
           onChange={(e) => setV({ ...v, effect: e.target.value as DecisionEffect })}
@@ -274,8 +296,11 @@ function DecisionForm({ item }: { item: Decision }) {
         </Select>
       </div>
       <div className="col-span-4 flex flex-col gap-1.5">
-        <Label htmlFor={id("decision")}>{tr("decision.decision")}</Label>
+        <Label className="text-[12px] text-slate" htmlFor={id("decision")}>
+          {tr("decision.decision")}
+        </Label>
         <Textarea
+          quiet
           id={id("decision")}
           rows={2}
           maxLength={4000}
@@ -284,11 +309,7 @@ function DecisionForm({ item }: { item: Decision }) {
         />
       </div>
       <div className="col-span-4 flex items-center gap-3">
-        <Button type="submit" variant="primary" size="sm" disabled={pending || !v.title.trim()}>
-          {common("save")}
-        </Button>
-        <span className="flex-1" />
-        <StatusMessage status={status} />
+        {" "}
         <ConfirmButton
           label={t("delete")}
           question={t("deleteQuestion", { title: item.title })}
@@ -301,6 +322,11 @@ function DecisionForm({ item }: { item: Decision }) {
             })
           }
         />
+        <span className="flex-1" />
+        <StatusMessage status={status} />
+        <Button type="submit" variant="primary" size="sm" disabled={pending || !v.title.trim()}>
+          {common("save")}
+        </Button>
       </div>
     </form>
   );

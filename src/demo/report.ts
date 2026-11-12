@@ -28,23 +28,6 @@ export const DEMO_RISKS: DemoRisk[] = [
     impact: 7,
   },
   {
-    title: "der træffes teknologivalg, der viser sig uhensigtsmæssige",
-    consequence: "løsningen kunne være bygget billigere eller hurtigere.",
-    mitigation: "Der bygges på udbredt standardteknologi til systemer af denne kompleksitet.",
-    changeNote: "Ingen ændring.",
-    probability: 2,
-    impact: 5,
-  },
-  {
-    title: "beslutninger i ledelse og styregruppe trækker ud",
-    consequence:
-      "afklaringer med økonomiske konsekvenser bliver ikke truffet eller bliver udfordret bagefter, og udviklingen forsinkes.",
-    mitigation: "Styregruppen er bredt sammensat, så det, der bringes op, kan besluttes.",
-    changeNote: "Ingen ændring.",
-    probability: 2,
-    impact: 6,
-  },
-  {
     title: "opgavens omfang er estimeret for optimistisk, og budgettet overskrides",
     consequence: "der skal findes yderligere økonomi.",
     mitigation:
@@ -54,92 +37,12 @@ export const DEMO_RISKS: DemoRisk[] = [
     impact: 7,
   },
   {
-    title: "det gamle system skal videreudvikles, fordi forretningen ikke kan vente på det nye",
-    consequence:
-      "der bruges penge og kræfter på et system, der skal udfases, og overgangen bliver sværere.",
-    mitigation:
-      "Det mest kritiske bygges først, og ændringer i det gamle system holdes på et minimum.",
-    changeNote: "Ingen ændring.",
-    probability: 6,
-    impact: 5,
-  },
-  {
-    title: "det nye system ikke er klar, før driftsaftalen på det gamle system udløber",
-    consequence: "aftalen skal forlænges til en ukendt, formentlig højere pris.",
-    mitigation:
-      "Funktionalitet prioriteres, så det mindst kritiske er det, der eventuelt mangler, når der skiftes.",
-    changeNote: "Sandsynligheden er hævet efter det opdaterede forecast.",
-    probability: 6,
-    impact: 8,
-  },
-  {
-    title: "høje krav fra afdelingerne og et begrænset lokalt mandat gør beslutninger langsomme",
-    consequence: "lange afklaringsforløb og ombygning af funktionalitet undervejs.",
-    mitigation:
-      "Projektgruppen har mandat til at træffe beslutninger på tværs; kun de store eskaleres.",
-    changeNote: "Ingen ændring.",
-    probability: 4,
-    impact: 5,
-  },
-  {
-    title: "migrering af data fra det gamle system er mere omfattende end forventet",
-    consequence: "opgaven tager længere tid; i værste fald må dele flyttes manuelt.",
-    mitigation: "Data migreres løbende, så problemer opdages så tidligt som muligt.",
-    changeNote: "Ingen ændring.",
-    probability: 5,
-    impact: 6,
-  },
-  {
-    title:
-      "vi for sent opdager, at nødvendig funktionalitet mangler for at overtage fra det gamle system",
-    consequence:
-      "overgangen bliver dyrere og længere, eller der skiftes til en mangelfuld løsning.",
-    mitigation: "Løsningerne valideres med brugerne så tidligt og så ofte som muligt.",
-    changeNote: "Ingen ændring.",
-    probability: 3,
-    impact: 7,
-  },
-  {
-    title: "der ikke er ressourcer nok til databeskyttelse og informationssikkerhed i udviklingen",
-    consequence: "der bygges løsninger, der ikke overholder reglerne, eller som er sårbare.",
-    mitigation:
-      "En dedikeret databeskyttelsesansvarlig er tæt på teamet, og løsningen sikkerhedstestes af en tredjepart.",
-    changeNote: "En sikkerhedskonsulent er ansat og har taget over efter en fratrædelse.",
-    probability: 4,
-    impact: 8,
-  },
-  {
-    title: "nøglepersoner stopper, og viden forsvinder",
-    consequence: "krav overses og opdages sent, og domæneviden går tabt.",
-    mitigation:
-      "Systematisk overdragelse, dokumentation i et fælles arkiv og arbejde i teams frem for enkeltpersoner.",
-    changeNote: "To nøglepersoner er stoppet siden sidst; en ny teamleder er udpeget.",
-    probability: 6,
-    impact: 7,
-  },
-  {
     title: "vi ikke kan tiltrække de nødvendige udviklere så hurtigt som planlagt",
     consequence: "teamet kan ikke skaleres så hurtigt, som forecastet antager.",
     mitigation: "Freelancere og flere rekrutteringsspor ud over partneren.",
     changeNote: "Øget: rekrutteringen tager længere tid end håbet, og en ledende udvikler stopper.",
     probability: 7,
     impact: 8,
-  },
-  {
-    title: "ukritisk brug af AI-værktøjer forringer kvaliteten og øger byrden på test og review",
-    consequence: "teknisk gæld, mere fejlretning og overbelastede seniorudviklere.",
-    mitigation: "AI-værktøjer vurderes grundigt og bruges selektivt, fx til test og designforslag.",
-    changeNote: "Ny.",
-    probability: 4,
-    impact: 5,
-  },
-  {
-    title: "forbrugsbaserede AI-licenser gør projektøkonomien uforudsigelig",
-    consequence: "budgetoverskridelser og en lang binding til leverandørernes priser.",
-    mitigation: "Forbruget følges månedligt og har et loft.",
-    changeNote: "Ny.",
-    probability: 3,
-    impact: 4,
   },
 ];
 
@@ -178,35 +81,13 @@ export const DEMO_CASES: DemoCase[] = [
   {
     title: "Skal kunder under 18 år kunne oprettes?",
     problem:
-      "Oprettelse af kunder under 18 år er sjælden og håndteres i dag manuelt uden en beskrevet proces.",
+      "Det gamle system tillader kunder under 18 år, men det sker sjældent og håndteres manuelt uden en beskrevet proces. Det nye system skal enten understøtte det fuldt ud med samtykke fra forældre og særlige regler for kontakt, eller lade det være. Valget påvirker både datamodellen, oprettelsesflowet og kundeservice.",
     background:
-      "Der er ingen kunder under 18 år i dag, og der har kun været en håndfuld de seneste år.",
+      "Der er ingen kunder under 18 år i dag, og der har kun været en håndfuld de seneste fem år. De få sager har krævet manuelt arbejde hos kundeservice og en juridisk vurdering hver gang. Forretningen har ikke planer om at målrette tilbud til unge de næste par år.",
     keyPoints:
-      "Det er enklere teknisk og administrativt, hvis man ikke kan oprettes før 18 år. Muligheden kan bygges senere.",
+      "Uden muligheden bliver løsningen enklere at bygge, teste og drive, og der er færre krav til samtykke og databeskyttelse. Muligheden kan bygges senere, hvis behovet opstår, for omkring 40 point. Med muligheden fra start skal reglerne for alder og samtykke afklares nu, hvilket forsinker kundeforholdene i M1.",
     nextSteps:
-      "Styregruppen beslutter, om det skal være muligt, og i så fald hvem der afklarer regler for alder og samtykke.",
-    status: "open",
-  },
-  {
-    title: "Skal særrabatten ved deltid videreføres?",
-    problem:
-      "En særregel giver kunder på deltid en lille rabat, men kræver oplysninger, der skal indhentes og vedligeholdes.",
-    background: "Omkring 450 kunder får i dag rabatten automatisk.",
-    keyPoints:
-      "Uden særreglen er der mindre logik at bygge og vedligeholde, og prismodellen bliver mere gennemsigtig.",
-    nextSteps:
-      "Styregruppen beslutter, om reglen skal med. Hvis ikke, planlægges en kontrolleret overgang for de berørte kunder.",
-    status: "open",
-  },
-  {
-    title: "Må persondata fra produktion bruges som testdata?",
-    problem:
-      "Testmiljøet indeholder personhenførbare data, og det er ikke afklaret, om de må bruges i udviklingen.",
-    background:
-      "Teamet har brug for data, der afspejler de reelle forhold, for at kunne bygge løsningen rigtigt.",
-    keyPoints:
-      "Et alternativ med maskerede data vil tage tid og kan forsinke projektet; at fortsætte kræver, at risiciene accepteres.",
-    nextSteps: "Styregruppen beslutter retningen sammen med den databeskyttelsesansvarlige.",
+      "Styregruppen beslutter på dette møde, om kunder under 18 år skal kunne oprettes i første version. Hvis ja, afklarer den juridiske funktion reglerne for alder og samtykke inden næste kvartal, og M1 planlægges om. Hvis nej, sætter teamet en spærring i oprettelsen og beskriver, hvordan sjældne undtagelser håndteres.",
     status: "open",
   },
 ];
@@ -217,12 +98,6 @@ export const DEMO_DECISIONS: Array<{
   decision: string;
   effect: DecisionEffect;
 }> = [
-  {
-    title: "Tilgængelighed",
-    when: "Februar",
-    decision: "Almindelig HTML og de lavthængende frugter; ingen særskilt indsats.",
-    effect: "simplifying",
-  },
   {
     title: "Personnummer på alle kunder",
     when: "Marts",
@@ -235,8 +110,6 @@ export const DEMO_DECISIONS: Array<{
     decision: "Håndtering af abonnement på magasinet er med i scope.",
     effect: "complicating",
   },
-  { title: "Kunder under 18 år", when: "August", decision: "Afventer.", effect: "pending" },
-  { title: "Særrabat ved deltid", when: "August", decision: "Afventer.", effect: "pending" },
 ];
 
 export const DEMO_STATUS_TEXT =

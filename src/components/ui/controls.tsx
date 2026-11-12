@@ -36,12 +36,29 @@ export function Button({ variant, size, className, type = "button", ...props }: 
 const FIELD =
   "w-full rounded-md border border-hairline bg-surface px-3 text-sm text-ink placeholder:text-slate/70 transition-colors hover:border-slate/60 focus:border-ink focus:outline-none aria-[invalid=true]:border-danger";
 
-export function Input({ className, ...props }: React.ComponentProps<"input">) {
-  return <input className={cn(FIELD, "h-9", className)} {...props} />;
+/**
+ * A quiet field for pages of many fields, like the report's texts: small
+ * and soft at rest, so the page reads as text; white, outlined and roomier
+ * when clicked into, so it is clear where one is writing.
+ */
+const QUIET =
+  "border-transparent bg-sand/45 text-[13px] hover:border-hairline focus:border-ink focus:bg-surface focus:shadow-[0_0_0_3px_var(--color-technical-soft)]";
+const QUIET_AREA =
+  "min-h-[3.75rem] resize-none transition-[min-height,background-color,box-shadow] focus:min-h-[10rem]";
+
+type Quiet = { quiet?: boolean };
+
+export function Input({ className, quiet, ...props }: React.ComponentProps<"input"> & Quiet) {
+  return <input className={cn(FIELD, quiet ? cn(QUIET, "h-8") : "h-9", className)} {...props} />;
 }
 
-export function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
-  return <textarea className={cn(FIELD, "py-2 leading-relaxed", className)} {...props} />;
+export function Textarea({ className, quiet, ...props }: React.ComponentProps<"textarea"> & Quiet) {
+  return (
+    <textarea
+      className={cn(FIELD, "py-2 leading-relaxed", quiet && cn(QUIET, QUIET_AREA), className)}
+      {...props}
+    />
+  );
 }
 
 export function Select({ className, ...props }: React.ComponentProps<"select">) {

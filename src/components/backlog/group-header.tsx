@@ -1,13 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { RemoveMilestone } from "@/components/program/remove-milestone";
 
 /** A milestone's name and its own progress, the same figure and bar as on the overview. */
 export function GroupHeader({
   label,
   progress,
+  milestoneId,
 }: {
   label: string;
+  /** Given for a real milestone, which can then be deleted from here. */
+  milestoneId?: string;
   progress?: { own: number; done: number };
 }) {
   const t = useTranslations("backlog.groups");
@@ -16,7 +20,10 @@ export function GroupHeader({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-[14px] font-semibold text-ink">{label}</h2>
+        <h2 className="flex items-center gap-1 text-[14px] font-semibold text-ink">
+          {label}
+          {milestoneId && <RemoveMilestone milestoneId={milestoneId} name={label} />}
+        </h2>
         {progress && progress.own > 0 && (
           <span className="text-[12px] text-slate tabular">
             {t("progress", {

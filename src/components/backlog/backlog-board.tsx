@@ -201,7 +201,11 @@ export function BacklogBoard({
           </div>
           {blocks.map(({ group, rendered }) => (
             <section key={group.key} aria-label={group.label} className="flex flex-col gap-2">
-              <GroupHeader label={group.label} progress={group.progress} />
+              <GroupHeader
+                label={group.label}
+                progress={group.progress}
+                milestoneId={group.key === "none" ? undefined : group.key}
+              />
               <div
                 {...arrange.into("g:" + group.key, "goal")}
                 className={cn(

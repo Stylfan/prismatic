@@ -1,8 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { HintIcon } from "@/components/ui/hint-icon";
 import { cn } from "@/lib/cn";
 import type { BoardColumn, BoardMilestone } from "@/lib/roadmap-view";
+import { AddMilestone } from "@/components/program/add-milestone";
 import { MilestoneChip } from "./milestone-chip";
 import type { useBoardDrag } from "./use-board-drag";
 
@@ -12,12 +14,14 @@ import type { useBoardDrag } from "./use-board-drag";
  * placed one dragged back here is unplaced again.
  */
 export function UnplacedMilestones({
+  programId,
   milestones,
   columns,
   pending,
   drag,
   onPlace,
 }: {
+  programId: string;
   milestones: BoardMilestone[];
   columns: BoardColumn[];
   pending: boolean;
@@ -28,11 +32,15 @@ export function UnplacedMilestones({
   const area = drag.area("unplaced", ["milestone"]);
   return (
     <section aria-labelledby="unplaced-title" className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5">
-        <h2 id="unplaced-title" className="text-[15px] font-semibold text-ink">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2
+          id="unplaced-title"
+          className="flex items-center gap-1.5 text-[15px] font-semibold text-ink"
+        >
           {t("title")}
+          <HintIcon text={t("lead")} />
         </h2>
-        <p className="text-[13px] leading-relaxed text-slate">{t("lead")}</p>
+        <AddMilestone programId={programId} />
       </div>
       <div
         onDragOver={area.onDragOver}

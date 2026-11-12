@@ -68,14 +68,16 @@ describe("demo visits", () => {
     expect((audit.rows[0] as { n: number }).n).toBe(0);
   });
 
-  it("leave real accounts alone, and take no sign-ups", async () => {
+  it("leave real accounts alone, and take sign-ups only when opened", async () => {
     await seedUser(await freshDbNoTruncate(), "ejer@example.dk");
     expect(await cleanExpiredDemos(appDb(), Date.now() + 1000 * HOUR)).toBe(0);
     expect(await count("users")).toBe(1);
-    expect(await signupOpen(appDb(), "open")).toBe(false);
+    expect(await signupOpen(appDb(), undefined)).toBe(false);
     await expect(
-      registerUser(appDb(), { email: "ny@example.dk", name: "", password: "x".repeat(12) }, "open"),
+      registerUser(appDb(), { email: "ny@example.dk", name: "", password: "x".repeat(12) }, ""),
     ).rejects.toThrow("signupClosed");
+    // Its operator can open sign-up beside the demo.
+    expect(await signupOpen(appDb(), "open")).toBe(true);
   });
 
   it("stop at the limit of visits at once", async () => {

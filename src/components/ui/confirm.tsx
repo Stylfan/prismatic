@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { Trash2 } from "lucide-react";
 import { Button } from "./controls";
 
 /**
@@ -15,6 +16,7 @@ export function ConfirmButton({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  icon = false,
 }: {
   label: string;
   question: string;
@@ -22,13 +24,27 @@ export function ConfirmButton({
   confirmLabel: string;
   cancelLabel: string;
   onConfirm: () => void;
+  /** A small bin instead of a button, for rows and headers; the label becomes its name. */
+  icon?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   return (
     <>
-      <Button variant="danger" size="sm" onClick={() => ref.current?.showModal()}>
-        {label}
-      </Button>
+      {icon ? (
+        <button
+          type="button"
+          aria-label={label}
+          title={label}
+          onClick={() => ref.current?.showModal()}
+          className="rounded p-1 text-slate/60 hover:bg-danger-soft hover:text-danger focus-visible:text-danger"
+        >
+          <Trash2 className="size-3.5" aria-hidden />
+        </button>
+      ) : (
+        <Button variant="danger" size="sm" onClick={() => ref.current?.showModal()}>
+          {label}
+        </Button>
+      )}
       <dialog
         ref={ref}
         className="m-auto max-w-md rounded-lg border border-hairline bg-surface p-6 text-ink backdrop:bg-ink/40"

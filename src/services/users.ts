@@ -36,8 +36,8 @@ const DUMMY_HASH =
   "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
 export async function signupOpen(db: Db, setting = process.env.PRISMATIC_SIGNUP): Promise<boolean> {
-  // A demo installation has visits, never accounts of its own.
-  if (isDemoMode()) return false;
+  // A demo installation has visits; real accounts only when its operator opens sign-up.
+  if (isDemoMode()) return setting === "open";
   if (setting === "open") return true;
   const [row] = await db.select({ n: count() }).from(users);
   return (row?.n ?? 0) === 0;

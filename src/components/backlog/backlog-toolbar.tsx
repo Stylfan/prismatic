@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Segmented } from "@/components/ui/segmented";
+import { AddMilestone } from "@/components/program/add-milestone";
 import { AddGoal } from "./add-goal";
 import type { BacklogOptions } from "./types";
 
@@ -72,6 +73,7 @@ export function BacklogToolbar({
         />
       </span>
       <span className="flex-1" />
+      <AddMilestone programId={programId} />
       <AddGoal programId={programId} options={options} />
     </div>
   );

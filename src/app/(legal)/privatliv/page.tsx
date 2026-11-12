@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { LegalDocument } from "@/components/legal/legal-document";
-import { isDemoMode } from "@/lib/demo-mode";
+import { hasRealAccounts } from "@/lib/demo-mode";
 import { fillIn, operator } from "@/lib/operator";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export default async function PrivacyPage() {
   );
   return (
     <LegalDocument
-      kind={isDemoMode() ? "demoPrivacy" : "privacy"}
+      kind={hasRealAccounts() ? "privacy" : "demoPrivacy"}
       op={op}
       extra={{ hostingSentence: hosting }}
     />

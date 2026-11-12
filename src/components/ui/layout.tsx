@@ -1,6 +1,7 @@
 import { CircleHelp } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/cn";
+import { HintIcon } from "./hint-icon";
 
 /**
  * Page structure inside the app frame. A page opens with a slim bar that
@@ -88,6 +89,7 @@ export function Section({
   label,
   title,
   lead,
+  hint,
   actions,
   children,
   id,
@@ -96,6 +98,8 @@ export function Section({
   label: string;
   title?: string;
   lead?: string;
+  /** Help kept behind a question mark beside the title, for pages people know well. */
+  hint?: string;
   actions?: React.ReactNode;
   children: React.ReactNode;
   id?: string;
@@ -108,8 +112,12 @@ export function Section({
     >
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 id={id ? `${id}-title` : undefined} className="text-[15px] font-semibold text-ink">
+          <h2
+            id={id ? `${id}-title` : undefined}
+            className="flex items-center gap-1.5 text-[15px] font-semibold text-ink"
+          >
             {title ?? label}
+            {hint && <HintIcon text={hint} />}
           </h2>
           {lead && <p className="max-w-3xl text-[13px] leading-relaxed text-slate">{lead}</p>}
         </div>

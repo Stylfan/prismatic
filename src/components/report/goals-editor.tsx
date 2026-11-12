@@ -49,8 +49,9 @@ export function DraftEditor({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="draft-status">{t("statusText")}</Label>
         <Textarea
+          quiet
           id="draft-status"
-          rows={6}
+          rows={3}
           maxLength={8000}
           value={v.statusText}
           placeholder={t("statusPlaceholder")}
@@ -60,8 +61,9 @@ export function DraftEditor({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="draft-change">{t("changeText")}</Label>
         <Textarea
+          quiet
           id="draft-change"
-          rows={6}
+          rows={3}
           maxLength={8000}
           value={v.changeText}
           placeholder={t("changePlaceholder")}
@@ -209,6 +211,7 @@ function GoalRow({
         {t("titleFor", { code })}
       </label>
       <Input
+        quiet
         id={`goal-${goal.id}`}
         maxLength={400}
         value={title}
@@ -228,6 +231,7 @@ function GoalRow({
         {t("statusFor", { code })}
       </label>
       <Select
+        className="h-8 text-[13px]"
         id={`goal-status-${goal.id}`}
         value={goal.status}
         onChange={(e) => save({ status: e.target.value as GoalStatus })}

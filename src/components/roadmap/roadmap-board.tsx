@@ -31,9 +31,10 @@ function insert<T extends { id: string; column: number | null }>(
 }
 
 /**
- * The roadmap: the panel for a quarter's events beside what is not yet on
- * the roadmap (milestones not placed, goals and features not planned),
- * then the near quarters and below them the far half-years. Cards and milestones are dragged
+ * The roadmap: the search and filters, the near quarters and below them
+ * the far half-years; after them the panel for a quarter's events beside
+ * what is not yet on the roadmap (milestones not placed, goals and
+ * features not planned). Cards and milestones are dragged
  * between columns and up and down within one; each also has a list to
  * move it with the keyboard. Moves show at once and are saved behind.
  */
@@ -212,29 +213,6 @@ export function RoadmapBoard({
         }
       />
 
-      <div className="grid items-start gap-6 xl:grid-cols-2">
-        {eventsPanel}
-        <div className="flex flex-col gap-6">
-          <UnplacedMilestones
-            milestones={milestones.filter((m) => m.column === null)}
-            columns={columns}
-            pending={pending}
-            drag={drag}
-            onPlace={placeMilestone}
-          />
-          <UnplannedCards
-            index={unplannedAt}
-            cards={visible.filter((c) => c.column === unplannedAt)}
-            columns={columns}
-            pending={pending}
-            drag={drag}
-            focusOf={focusOf}
-            onPick={pick}
-            editorFor={editorFor}
-          />
-        </div>
-      </div>
-
       {(["near", "far"] as const).map((band) => {
         const inBand = columns.map((col, i) => ({ col, i })).filter(({ col }) => col.kind === band);
         if (inBand.length === 0) return null;
@@ -274,6 +252,29 @@ export function RoadmapBoard({
           </div>
         );
       })}
+      <div className="grid items-start gap-6 xl:grid-cols-2">
+        {eventsPanel}
+        <div className="flex flex-col gap-6">
+          <UnplacedMilestones
+            programId={programId}
+            milestones={milestones.filter((m) => m.column === null)}
+            columns={columns}
+            pending={pending}
+            drag={drag}
+            onPlace={placeMilestone}
+          />
+          <UnplannedCards
+            index={unplannedAt}
+            cards={visible.filter((c) => c.column === unplannedAt)}
+            columns={columns}
+            pending={pending}
+            drag={drag}
+            focusOf={focusOf}
+            onPick={pick}
+            editorFor={editorFor}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,16 +1,27 @@
+import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { startDemoAction } from "@/actions/demo-visit";
-import { Button } from "@/components/ui/controls";
+import { Button, buttonClass } from "@/components/ui/controls";
 import { SectionLabel } from "@/components/ui/layout";
+import { cn } from "@/lib/cn";
 import { DEMO_HOURS } from "@/services/demo-visits";
 import { sourceUrl } from "@/lib/demo-mode";
 
+const SAME = "h-10 w-full justify-center text-[14px]";
+
 /**
- * The front door of a demo installation: what the visitor gets, that it is
- * gone again after a day, one button to start, and where the code is.
+ * The front door of a demo installation: what the visitor gets and that
+ * it is gone again after a day, then buttons of one size: start the demo,
+ * fetch the code, sign in, and create an account when sign-up is open.
  */
-export async function DemoStart({ notice }: { notice?: "busy" | "full" }) {
+export async function DemoStart({
+  notice,
+  canRegister,
+}: {
+  notice?: "busy" | "full";
+  canRegister: boolean;
+}) {
   const t = await getTranslations("demoVisit");
   return (
     <div className="flex flex-col gap-5">
@@ -25,20 +36,30 @@ export async function DemoStart({ notice }: { notice?: "busy" | "full" }) {
           {t(notice)}
         </p>
       )}
-      <form action={startDemoAction}>
-        <Button type="submit" variant="primary" className="w-full justify-center">
-          {t("start")}
-        </Button>
-      </form>
-      <a
-        href={sourceUrl()}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 self-start text-[13px] text-slate underline underline-offset-4 hover:text-ink"
-      >
-        {t("source")}
-        <ExternalLink className="size-3.5" aria-hidden />
-      </a>
+      <div className="flex flex-col gap-2">
+        <form action={startDemoAction}>
+          <Button type="submit" variant="primary" className={SAME}>
+            {t("start")}
+          </Button>
+        </form>
+        <a
+          href={sourceUrl()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(buttonClass("secondary"), SAME, "gap-1.5")}
+        >
+          {t("sourceButton")}
+          <ExternalLink className="size-3.5" aria-hidden />
+        </a>
+        <Link href="/login?form=login" className={cn(buttonClass("secondary"), SAME)}>
+          {t("loginButton")}
+        </Link>
+        {canRegister && (
+          <Link href="/register" className={cn(buttonClass("secondary"), SAME)}>
+            {t("registerButton")}
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
