@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { AddMilestone } from "@/components/program/add-milestone";
 import { MilestonesPanel } from "@/components/program/milestones-panel";
 import { SettingsPanel } from "@/components/program/settings-panel";
 import { SizesPanel } from "@/components/program/sizes-panel";
@@ -68,7 +69,7 @@ export default async function ProgramSetupPage({ params }: Params) {
                 </a>
               ))}
             </nav>
-            <Section id="settings" label={t("settingsLabel")} title={t("settingsTitle")}>
+            <div id="settings">
               <SettingsPanel
                 programId={program.id}
                 today={todayInCopenhagen()}
@@ -77,15 +78,20 @@ export default async function ProgramSetupPage({ params }: Params) {
                   goal: program.goal,
                   periodModel: program.periodModel,
                   startDate: program.startDate,
-                  quarterHorizon: program.quarterHorizon,
+                  roadmapYears: program.roadmapYears,
                   costPerQuarter: program.costPerQuarter,
                   deviationPct: program.deviationPct,
                 }}
               />
-            </Section>
-            <Section id="milestones" label={tm("label")} title={tm("title")} lead={tm("lead")}>
+            </div>
+            <Section
+              id="milestones"
+              label={tm("label")}
+              title={tm("title")}
+              hint={tm("lead")}
+              actions={<AddMilestone programId={program.id} />}
+            >
               <MilestonesPanel
-                programId={program.id}
                 milestones={milestones.map((m) => ({
                   id: m.id,
                   seq: m.seq,
@@ -98,7 +104,7 @@ export default async function ProgramSetupPage({ params }: Params) {
                 }))}
               />
             </Section>
-            <Section id="sizes" label={ts("label")} title={ts("title")} lead={ts("lead")}>
+            <Section id="sizes" label={ts("label")} title={ts("title")} hint={ts("lead")}>
               <SizesPanel programId={program.id} sizes={sizes} />
             </Section>
           </div>

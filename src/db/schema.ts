@@ -46,8 +46,10 @@ export const programs = pgTable("programs", {
   periodModel: text("period_model").$type<PeriodModel>().notNull().default("seasons"),
   /** The programme's first day; its first quarter is the one this date falls in (custom: starts on it). */
   startDate: text("start_date").notNull(),
-  /** Quarters shown as quarters from the current one before the roadmap switches to half-years. */
+  /** No longer set: the near horizon is always four quarters. Kept so older rows and imports read. */
   quarterHorizon: integer("quarter_horizon").notNull().default(2),
+  /** How many years ahead the roadmap reaches from the current quarter: four quarters, then half-years. */
+  roadmapYears: integer("roadmap_years").notNull().default(3),
   /** Whole kroner per quarter, for the price of a forecast; null means not tracked. */
   costPerQuarter: integer("cost_per_quarter"),
   /** Per cent a goal's features may differ from its estimate before the goal is flagged. */

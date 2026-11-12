@@ -89,7 +89,7 @@ export async function requireProgram(db: Db, userId: string, programId: string) 
 export async function updateProgram(
   db: Db,
   userId: string,
-  input: z.infer<typeof UpdateProgramSchema>,
+  input: z.input<typeof UpdateProgramSchema>,
 ) {
   const { programId, ...fields } = input;
   await db.transaction(async (tx) => {

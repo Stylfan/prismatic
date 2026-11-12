@@ -1,0 +1,1 @@
+ALTER TABLE "programs" ADD COLUMN "roadmap_years" integer DEFAULT 3 NOT NULL;

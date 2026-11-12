@@ -15,6 +15,7 @@ export function GoalBand({
   featureCount,
   goalColumn,
   span,
+  slots,
 }: {
   /** The board's column indexes in this row, left to right. */
   indexes: number[];
@@ -22,13 +23,15 @@ export function GoalBand({
   goalColumn: number | null;
   /** The first and last column the thread reaches, over the whole board. */
   span: { from: number; to: number } | null;
+  /** Columns in the row's grid, when a last row of half-years is not full. */
+  slots?: number;
 }) {
   const t = useTranslations("roadmap.focus");
   if (!span) return null;
   return (
     <div
       className="grid gap-3"
-      style={{ gridTemplateColumns: `repeat(${indexes.length}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: `repeat(${slots ?? indexes.length}, minmax(0, 1fr))` }}
       aria-hidden
     >
       {indexes.map((i, k) => {

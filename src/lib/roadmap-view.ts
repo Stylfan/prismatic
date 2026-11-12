@@ -3,7 +3,7 @@ import type { ItemView, Option } from "@/components/backlog/types";
 import { formatDate, formatPeriodLabel } from "@/components/program/period-label";
 import type { Item, ProgramEvent } from "@/db/schema";
 import { columnLoad, locate, milestonePlacementWarnings } from "@/domain/board";
-import { quarterLabel, roadmapColumns, type PeriodSettings } from "@/domain/periods";
+import { programColumns, quarterLabel, type PeriodSettings } from "@/domain/periods";
 import type { ProgramFull } from "@/services/programs";
 import { buildBacklogView } from "./backlog-view";
 import { todayInCopenhagen } from "./dates";
@@ -58,7 +58,7 @@ export async function buildRoadmapView(
   const tm = await getTranslations("milestones");
   const { program, sizes, milestones } = full;
   const settings: PeriodSettings = { model: program.periodModel, startDate: program.startDate };
-  const periods = roadmapColumns(settings, todayInCopenhagen(), program.quarterHorizon);
+  const periods = programColumns(settings, todayInCopenhagen(), program.roadmapYears);
   const { views, options } = await buildBacklogView(full, rows);
 
   const load = columnLoad(sizes, periods, rows);

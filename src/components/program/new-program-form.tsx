@@ -21,7 +21,7 @@ export function NewProgramForm({ today }: { today: string }) {
     goal: "",
     periodModel: "seasons",
     startDate: today,
-    quarterHorizon: 2,
+    roadmapYears: 3,
     costPerQuarter: null,
     deviationPct: 10,
   });

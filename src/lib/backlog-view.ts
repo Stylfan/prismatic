@@ -7,7 +7,7 @@ import {
   halfLabel,
   quarterIndexOf,
   quarterLabel,
-  roadmapColumns,
+  programColumns,
   type PeriodSettings,
 } from "@/domain/periods";
 import type { ProgramFull } from "@/services/programs";
@@ -72,7 +72,7 @@ export async function buildBacklogView(full: ProgramFull, rows: Item[]) {
 
   // Planned periods: the roadmap's columns from now on, plus any period an item already sits in.
   const periodOptions = new Map<string, string>();
-  for (const c of roadmapColumns(settings, today, program.quarterHorizon)) {
+  for (const c of programColumns(settings, today, program.roadmapYears)) {
     periodOptions.set(`${c.index}:${c.span}`, periodLabel(c.index, c.span)!);
   }
   for (const v of views) {

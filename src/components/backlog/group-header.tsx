@@ -20,10 +20,10 @@ export function GroupHeader({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="flex items-center gap-1 text-[14px] font-semibold text-ink">
-          {label}
+        <div className="flex items-center gap-1">
+          <h2 className="text-[14px] font-semibold text-ink">{label}</h2>
           {milestoneId && <RemoveMilestone milestoneId={milestoneId} name={label} />}
-        </h2>
+        </div>
         {progress && progress.own > 0 && (
           <span className="text-[12px] text-slate tabular">
             {t("progress", {

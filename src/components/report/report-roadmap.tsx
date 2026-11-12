@@ -34,7 +34,9 @@ export async function ReportRoadmap({ roadmap, starred }: { roadmap: Roadmap; st
           </h3>
           <div
             className="grid gap-3"
-            style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+            style={{
+              gridTemplateColumns: `repeat(${band === "near" ? columns.length : 4}, minmax(0, 1fr))`,
+            }}
           >
             {columns.map(({ col, i }) => {
               const cards = roadmap.cards.filter((c) => c.column === i);

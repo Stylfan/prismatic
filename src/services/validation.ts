@@ -15,11 +15,14 @@ export const ProgramFields = z.object({
   // The custom start model is kept in the period arithmetic but not offered yet.
   periodModel: z.enum(["seasons", "calendar"]),
   startDate: isoDate,
-  quarterHorizon: z.number().int().min(1).max(4),
+  // No longer asked for: the near horizon is always four quarters.
+  quarterHorizon: z.number().int().min(1).max(4).default(4),
+  roadmapYears: z.number().int().min(2).max(10).default(3),
   costPerQuarter: z.number().int().min(0).max(999_999_999).nullable(),
   deviationPct: z.number().int().min(1).max(100),
 });
-export type ProgramInput = z.infer<typeof ProgramFields>;
+// What a caller passes: the fields with defaults may be left out.
+export type ProgramInput = z.input<typeof ProgramFields>;
 
 export const UpdateProgramSchema = ProgramFields.extend({ programId: id });
 

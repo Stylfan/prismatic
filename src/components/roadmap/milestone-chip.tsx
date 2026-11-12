@@ -43,7 +43,7 @@ export function MilestoneChip({
       )}
     >
       {/* The same mark as in the forecast chart: the code in a dark badge, then the name. */}
-      <p className="flex items-center gap-1.5 text-[12px] leading-snug font-medium text-ink">
+      <div className="flex items-center gap-1.5 text-[12px] leading-snug font-medium text-ink">
         <span className="shrink-0 rounded-full bg-ink px-1.5 text-[10px] leading-4 font-semibold text-paper tabular">
           {milestone.code}
         </span>
@@ -54,7 +54,7 @@ export function MilestoneChip({
             name={`${milestone.code}: ${milestone.title}`}
           />
         </span>
-      </p>
+      </div>
       {warn && (
         <p className="flex items-start gap-1.5 text-[11px] text-warning">
           <TriangleAlert className="mt-0.5 size-3 shrink-0" aria-hidden />

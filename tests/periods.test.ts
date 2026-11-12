@@ -6,6 +6,7 @@ import {
   quarterEnd,
   quarterIndexOf,
   quarterLabel,
+  programColumns,
   quarterStart,
   roadmapColumns,
   type PeriodSettings,
@@ -46,6 +47,20 @@ describe("the seasons model (Djøf)", () => {
   it("snaps a start inside a quarter back to that quarter's first day", () => {
     expect(firstQuarterStart({ model: "seasons", startDate: "2026-01-20" })).toBe("2025-12-01");
   });
+  it("reaches as many years ahead as the programme says, four quarters first", () => {
+    const shape = (years: number) => {
+      const c = programColumns(seasons, "2026-11-09", years);
+      return [c.filter((x) => x.span === 1).length, c.filter((x) => x.span === 2).length];
+    };
+    expect(shape(3)).toEqual([4, 4]);
+    expect(shape(4)).toEqual([4, 6]);
+    expect(shape(1)).toEqual([4, 2]);
+    expect(shape(99)).toEqual([4, 18]);
+    // It rolls forward: a year later it starts a year later.
+    const later = programColumns(seasons, "2027-11-09", 3);
+    expect(later[0]!.start).toBe("2027-09-01");
+  });
+
   it("always draws four half-years on the far horizon", () => {
     const far = roadmapColumns(seasons, "2026-11-09", 4).filter((c) => c.span === 2);
     expect(far).toHaveLength(4);

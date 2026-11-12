@@ -143,6 +143,22 @@ export function halfPeriod(settings: PeriodSettings, index: number): Period {
   };
 }
 
+/** The near horizon: always this many quarters from the current one. */
+export const NEAR_QUARTERS = 4;
+export const MIN_ROADMAP_YEARS = 2;
+export const MAX_ROADMAP_YEARS = 10;
+
+/**
+ * A programme's roadmap from today: the near horizon of four quarters, then
+ * two half-years for every further year it reaches. It always starts in
+ * the current quarter, so it rolls forward with time; what is done lies
+ * behind it.
+ */
+export function programColumns(settings: PeriodSettings, today: string, years: number): Period[] {
+  const y = Math.min(MAX_ROADMAP_YEARS, Math.max(MIN_ROADMAP_YEARS, Math.round(years)));
+  return roadmapColumns(settings, today, NEAR_QUARTERS, (y - 1) * 2);
+}
+
 /**
  * The roadmap's columns: the current quarter and `quarterHorizon - 1`
  * after it as quarters, more quarters until a half-year can start, then

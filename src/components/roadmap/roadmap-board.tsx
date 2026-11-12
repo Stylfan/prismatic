@@ -216,39 +216,52 @@ export function RoadmapBoard({
       {(["near", "far"] as const).map((band) => {
         const inBand = columns.map((col, i) => ({ col, i })).filter(({ col }) => col.kind === band);
         if (inBand.length === 0) return null;
+        // The far horizon in rows of four half-years, however many years the roadmap reaches.
+        const rows =
+          band === "near"
+            ? [inBand]
+            : Array.from({ length: Math.ceil(inBand.length / 4) }, (_, r) =>
+                inBand.slice(r * 4, r * 4 + 4),
+              );
+        const slots = band === "near" ? inBand.length : 4;
         return (
           <div key={band} className="flex flex-col gap-2">
             <h3 className="text-[11px] font-semibold tracking-[0.12em] text-slate uppercase">
               {t(`band.${band}`)}
             </h3>
-            <GoalBand
-              indexes={inBand.map(({ i }) => i)}
-              featureCount={featureCount}
-              goalColumn={goalColumn}
-              span={span}
-            />
-            <div
-              className="grid gap-3"
-              style={{ gridTemplateColumns: `repeat(${inBand.length}, minmax(0, 1fr))` }}
-            >
-              {inBand.map(({ col, i }) => (
-                <RoadmapColumn
-                  key={col.key}
-                  col={col}
-                  index={i}
-                  columns={columns}
-                  cards={visible.filter((c) => c.column === i)}
-                  milestones={milestones.filter((m) => m.column === i)}
-                  pending={pending}
-                  drag={drag}
-                  focusOf={focusOf}
-                  onPick={pick}
-                  editorFor={editorFor}
-                  onPlaceMilestone={(m, column) => placeMilestone(m, column)}
-                  onRemoveEvent={(eventId) => save(() => removeEventAction({ eventId }))}
+            {rows.map((row) => (
+              <div key={row[0]!.col.key} className="flex flex-col gap-2">
+                <GoalBand
+                  indexes={row.map(({ i }) => i)}
+                  featureCount={featureCount}
+                  goalColumn={goalColumn}
+                  span={span}
+                  slots={slots}
                 />
-              ))}
-            </div>
+                <div
+                  className="grid gap-3"
+                  style={{ gridTemplateColumns: `repeat(${slots}, minmax(0, 1fr))` }}
+                >
+                  {row.map(({ col, i }) => (
+                    <RoadmapColumn
+                      key={col.key}
+                      col={col}
+                      index={i}
+                      columns={columns}
+                      cards={visible.filter((c) => c.column === i)}
+                      milestones={milestones.filter((m) => m.column === i)}
+                      pending={pending}
+                      drag={drag}
+                      focusOf={focusOf}
+                      onPick={pick}
+                      editorFor={editorFor}
+                      onPlaceMilestone={(m, column) => placeMilestone(m, column)}
+                      onRemoveEvent={(eventId) => save(() => removeEventAction({ eventId }))}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         );
       })}

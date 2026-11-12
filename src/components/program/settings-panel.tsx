@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { deleteProgramAction, updateProgramAction } from "@/actions/programs";
 import { ConfirmButton } from "@/components/ui/confirm";
 import { Button } from "@/components/ui/controls";
-import { Panel } from "@/components/ui/layout";
 import { StatusMessage, useStatus } from "@/components/ui/status";
 import { ProgramFields, type ProgramValues } from "./program-fields";
 
@@ -30,7 +29,7 @@ export function SettingsPanel({
   const changed = JSON.stringify(values) !== JSON.stringify(initial);
 
   return (
-    <Panel>
+    <div>
       <form
         className="flex flex-col gap-6"
         onSubmit={(e) => {
@@ -49,13 +48,7 @@ export function SettingsPanel({
           idPrefix="program-settings"
           today={today}
         />
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-hairline-soft pt-5">
-          <div className="flex flex-wrap items-center gap-4">
-            <Button type="submit" variant="primary" disabled={pending || !changed}>
-              {pending ? common("saving") : t("settingsSave")}
-            </Button>
-            <StatusMessage status={status} />
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <ConfirmButton
             label={t("deleteLabel")}
             question={t("deleteQuestion", { name: initial.name })}
@@ -70,8 +63,14 @@ export function SettingsPanel({
               })
             }
           />
+          <div className="flex flex-wrap items-center gap-4">
+            <StatusMessage status={status} />
+            <Button type="submit" variant="primary" disabled={pending || !changed}>
+              {pending ? common("saving") : t("settingsSave")}
+            </Button>
+          </div>
         </div>
       </form>
-    </Panel>
+    </div>
   );
 }
