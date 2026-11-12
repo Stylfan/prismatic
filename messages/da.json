@@ -575,7 +575,19 @@
       "milestone": "{code}, gennemsnit: fra {from} til {to}",
       "riskNew": "Ny risiko {number}: {title}",
       "riskClosed": "Lukket: risiko {number}, {title}",
-      "riskMoved": "Risiko {number} flyttet fra {from} til {to} (sandsynlighed/konsekvens)"
+      "riskMoved": "Risiko {number} flyttet fra {from} til {to} (sandsynlighed/konsekvens)",
+      "reestimatedShort": "re-estimeret {from} → {to} point",
+      "milestoneShort": "{code} {title}",
+      "riskShort": "Risiko {number}: {title}",
+      "riskMovedShort": "sandsynlighed/konsekvens {from} → {to}",
+      "kind": {
+        "added": "ny",
+        "split": "ny version",
+        "removed": "fjernet",
+        "done": "færdig",
+        "riskNew": "ny risiko",
+        "riskClosed": "lukket"
+      }
     },
     "risks": {
       "arrows": "Pilene viser, hvor risikoen stod ved sidste udgave.",
@@ -586,7 +598,8 @@
       "change": "Ændring siden sidst",
       "noChange": "Ingen ændring",
       "new": "NY",
-      "score": "Sandsynlighed {p} · konsekvens {i}"
+      "score": "Sandsynlighed {p} · konsekvens {i}",
+      "fold": "Fold sammen"
     },
     "publish": {
       "sectionLabel": "Udgivelse",
@@ -657,7 +670,10 @@
     "quarter": {
       "label": "Kvartalsrapport for",
       "lead": "Hver rapport hører til et kvartal. Kvartalet starter med en plan og nogle mål, og når det slutter, gør rapporten status: hvad nåede vi, hvad nåede vi ikke, og hvad lærte vi."
-    }
+    },
+    "caseBand": "Til beslutning",
+    "caseAsk": "Styregruppen bedes",
+    "pointsShort": "{points} point"
   },
   "account": {
     "label": "Konto",

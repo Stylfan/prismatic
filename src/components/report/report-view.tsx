@@ -5,7 +5,9 @@ import { SectionLabel } from "@/components/ui/layout";
 import type { ChangeControl } from "@/domain/report";
 import { cn } from "@/lib/cn";
 import type { GoalNode, ReportData } from "@/lib/report-data";
+import { ReportCases } from "./report-cases";
 import { ReportChanges } from "./report-changes";
+import { ReportDecisions } from "./report-decisions";
 import { ReportRisks } from "./report-risks";
 import { ReportRoadmap } from "./report-roadmap";
 
@@ -92,84 +94,39 @@ export async function ReportView({
 
       {openCases.length > 0 && (
         <ReportSection label={t("sections.cases")}>
-          <div className="flex flex-col gap-6">
-            {openCases.map((c) => (
-              <div
-                key={c.id}
-                className="grid grid-cols-2 gap-x-8 gap-y-4 rounded-lg border border-hairline bg-surface p-6 break-inside-avoid"
-              >
-                <h3 className="col-span-2 text-lg font-semibold">{c.title}</h3>
-                {(
-                  [
-                    ["problem", c.problem],
-                    ["background", c.background],
-                    ["keyPoints", c.keyPoints],
-                    ["nextSteps", c.nextSteps],
-                  ] as const
-                ).map(([key, text]) => (
-                  <div key={key}>
-                    <p className="text-[11px] font-bold tracking-[0.12em] text-bronze-deep uppercase">
-                      {t(`case.${key}`)}
-                    </p>
-                    <p className="mt-1 text-[13px] leading-relaxed whitespace-pre-line">
-                      {text || "–"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          <ReportCases cases={openCases} />
         </ReportSection>
       )}
 
       {data.decisions.length > 0 && (
         <ReportSection label={t("sections.decisions")}>
-          <table className="w-full text-left text-[12px]">
-            <thead className="border-b border-hairline text-[10px] font-bold tracking-[0.12em] text-slate uppercase">
-              <tr>
-                <th scope="col" className="py-2 pr-3">
-                  {t("decision.title")}
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  {t("decision.when")}
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  {t("decision.forum")}
-                </th>
-                <th scope="col" className="py-2 pr-3">
-                  {t("decision.decision")}
-                </th>
-                <th scope="col" className="py-2">
-                  {t("decision.effect")}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-hairline-soft align-top">
-              {data.decisions.map((d) => (
-                <tr key={d.id}>
-                  <td className="py-2 pr-3 font-semibold">{d.title}</td>
-                  <td className="py-2 pr-3">{d.decidedOn}</td>
-                  <td className="py-2 pr-3">{d.forum}</td>
-                  <td className="py-2 pr-3 whitespace-pre-line">{d.decision}</td>
-                  <td className="py-2">{t(`effects.${d.effect}`)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <ReportDecisions decisions={data.decisions} />
         </ReportSection>
       )}
 
       {data.delivered.length > 0 && (
         <ReportSection label={t("sections.delivered")}>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-3">
             {data.delivered.map((g) => (
-              <div key={g.quarter} className="flex flex-col gap-1.5 break-inside-avoid">
-                <p className="text-[13px] font-semibold">{g.quarter}</p>
+              <div
+                key={g.quarter}
+                className="flex flex-col gap-1.5 rounded-lg bg-sand/70 p-2.5 break-inside-avoid"
+              >
+                <p className="flex items-baseline justify-between gap-2 text-[12px] font-semibold">
+                  {g.quarter}
+                  <span className="text-[11px] font-normal text-slate tabular">
+                    {t("pointsShort", {
+                      points: g.items
+                        .reduce((n, i) => n + (i.points ?? 0), 0)
+                        .toLocaleString("da-DK"),
+                    })}
+                  </span>
+                </p>
                 {g.items.map((i) => (
                   <p
                     key={i.id}
                     className={cn(
-                      "rounded border border-hairline border-l-[3px] p-1.5 text-[11px]",
+                      "rounded-md border border-hairline border-l-[3px] bg-surface px-2 py-1.5 text-[11px] leading-snug",
                       i.kind === "goal" ? "border-l-goal" : "border-l-feature",
                     )}
                   >
@@ -195,8 +152,11 @@ function ReportSection({
   breakBefore?: boolean;
 }) {
   return (
-    <section className={cn("flex flex-col gap-5", breakBefore && "print:break-before-page")}>
-      <SectionLabel>{label}</SectionLabel>
+    <section className={cn("flex flex-col gap-4", breakBefore && "print:break-before-page")}>
+      <div className="flex flex-col gap-2">
+        <SectionLabel>{label}</SectionLabel>
+        <div className="border-t-[1.5px] border-ink" />
+      </div>
       {children}
     </section>
   );
