@@ -28,6 +28,9 @@ services:
     build:
       context: .
       target: migrator
+    # Runs once and stops; the app starts when it has. Said outright, because
+    # Coolify otherwise gives every service a restart policy and it never ends.
+    restart: "no"
     environment:
       MIGRATION_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/prismatic
       PRISMATIC_APP_PASSWORD: ${PRISMATIC_APP_PASSWORD:?set PRISMATIC_APP_PASSWORD}
