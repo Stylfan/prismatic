@@ -35,7 +35,7 @@ export function DraftEditor({
   const [v, setV] = useState({ statusText: draft.statusText, changeText: draft.changeText });
   return (
     <form
-      className="grid grid-cols-2 gap-5"
+      className="flex flex-col gap-5"
       onSubmit={(e) => {
         e.preventDefault();
         startTransition(async () => {
@@ -51,7 +51,7 @@ export function DraftEditor({
         <Textarea
           quiet
           id="draft-status"
-          rows={3}
+          rows={4}
           maxLength={8000}
           value={v.statusText}
           placeholder={t("statusPlaceholder")}
@@ -63,14 +63,14 @@ export function DraftEditor({
         <Textarea
           quiet
           id="draft-change"
-          rows={3}
+          rows={4}
           maxLength={8000}
           value={v.changeText}
           placeholder={t("changePlaceholder")}
           onChange={(e) => setV({ ...v, changeText: e.target.value })}
         />
       </div>
-      <div className="col-span-2 flex items-center justify-end gap-4">
+      <div className="flex items-center justify-end gap-4">
         <StatusMessage status={status} />
         <Button type="submit" variant="primary" disabled={pending}>
           {pending ? common("saving") : t("saveTexts")}

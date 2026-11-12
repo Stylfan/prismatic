@@ -42,9 +42,9 @@ const FIELD =
  * when clicked into, so it is clear where one is writing.
  */
 const QUIET =
-  "border-transparent bg-sand/45 text-[13px] hover:border-hairline focus:border-ink focus:bg-surface focus:shadow-[0_0_0_3px_var(--color-technical-soft)]";
+  "border-hairline-soft bg-surface text-[13px] hover:border-hairline focus:border-technical focus:shadow-[0_0_0_3px_var(--color-technical-soft)]";
 const QUIET_AREA =
-  "min-h-[3.75rem] resize-none transition-[min-height,background-color,box-shadow] focus:min-h-[10rem]";
+  "min-h-[4.5rem] resize-none transition-[min-height,border-color,box-shadow] focus:min-h-[10rem]";
 
 type Quiet = { quiet?: boolean };
 

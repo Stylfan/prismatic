@@ -511,7 +511,7 @@
       "goals": "Kvartalets mål · {quarter}",
       "cases": "Sager til beslutning",
       "roadmap": "Roadmap",
-      "changes": "Ændringer siden sidst",
+      "changes": "Læringer og ændringer siden sidst",
       "forecast": "Fremdrift og forecast",
       "risks": "Risici",
       "decisions": "Beslutningslog",
@@ -559,7 +559,7 @@
       "pending": "Afventer"
     },
     "changes": {
-      "noText": "Der er ikke skrevet en forklaring til ændringerne.",
+      "noText": "Der er ikke skrevet læringer og ændringer siden sidst.",
       "first": "Det er den første udgave, så der er intet at sammenligne med.",
       "none": "Intet er ændret siden sidste udgave.",
       "roadmap": "Roadmap",
@@ -615,11 +615,11 @@
     "editor": {
       "label": "Tekster",
       "title": "Det, rapporten siger med ord",
-      "lead": "Den korte update står forrest i rapporten ved siden af kvartalets mål. Forklaringen til ændringerne står ved ændringerne siden sidst.",
+      "lead": "Den korte update står forrest i rapporten ved siden af kvartalets mål. Læringer og ændringer siden sidst står ved ændringerne i data.",
       "statusText": "Kort update siden sidst",
       "statusPlaceholder": "Hvordan kvartalet er gået: milepæle, mål og øvrige fokuspunkter.",
-      "changeText": "Forklaring til ændringerne",
-      "changePlaceholder": "Hvorfor roadmappet eller forecastet har flyttet sig siden sidst.",
+      "changeText": "Læringer og ændringer siden sidst",
+      "changePlaceholder": "Hvad vi har lært, og hvorfor roadmappet eller forecastet har flyttet sig siden sidst.",
       "saveTexts": "Gem tekster",
       "saved": "Teksterne er gemt"
     },
